@@ -1,30 +1,82 @@
 # CMDS Achmage
 
-<img width="509" height="635" alt="CMDS Achmage_example_1" src="https://github.com/user-attachments/assets/eaa92354-130d-4f9c-9824-d78aa769e221" />
-<img width="558" height="353" alt="CMDS Achmage_example_4" src="https://github.com/user-attachments/assets/0e8a0e9b-5506-4ff0-8717-03900fd3f131" />
-<img width="508" height="649" alt="CMDS Achmage_example_3" src="https://github.com/user-attachments/assets/42a69b2c-71b5-49b0-aa9a-76ffd08386fe" />
-<img width="506" height="643" alt="CMDS Achmage_example_2" src="https://github.com/user-attachments/assets/acc5f17f-106d-4737-a72e-8a50ff2a536c" />
+옵시디언 안에서 AI 에이전트를 실제 작업 도구로 쓰기 위한 플러그인입니다.
+커맨드스페이스와 안창현 교수가 함께 개발하고 있습니다.
 
-CMDS Achmage(플러그인 ID: `cmds-achmage`)는 Heesu Suh의 Smart Composer(`glowingjade/obsidian-smart-composer`)를 포크한 업데이트 & 개량 버전입니다.
-원본 출처 링크 : https://github.com/glowingjade/obsidian-smart-composer
-이 저장소 : https://github.com/CMDSPACE-DEV/CMDS-Achmage
+## 테세우스의 배
 
-- 추가 업데이트 및 수정 내용
-  - v1.4.0 Plan 모델: GPT-5.6 Sol/Terra/Luna와 Claude Sonnet 5
-    - GPT-5.6 모델별로 `none`, `low`, `medium`, `high`, `xhigh`, `max` 추론 강도를 독립 설정
-    - Claude Sonnet 5 Adaptive Thinking, 추론 강도, thinking summary 표시 설정 지원
-    - 채팅 입력창에서 현재 추론 강도를 바로 확인하고 변경하는 빠른 effort 선택기 추가
-    - 기존 gpt-5.5 (plan)과 Claude Sonnet 4.6 (plan) 설정은 업데이트 시 새 Plan 모델로 이전
-  - RAG 임베딩이 원래 **OpenAI API키로만 폴더 멘션/임베딩을 할 수 있도록 하드코딩된 버그**가 있었습니다.
-    - Plan 모드로도 API 키 아예 없이도 폴더 멘션 및 청크, 임베딩이 가능하도록 개선 (API 키 제거 후 동작 확인)
+낡은 배를 고쳐 쓰다 보면 널빤지를 하나씩 갈아 끼우게 됩니다. 돛대를 바꾸고, 갑판을 새로 깔고, 이물과 고물까지 손을 대고 나면 어느 순간 처음 그 배의 나무는 한 조각도 남아 있지 않습니다. 그래도 이것은 같은 배인가 — 오래된 질문입니다.
 
-## Plan 모드 주의사항
+CMDS Achmage도 남의 배에서 출발했습니다. 잘 만들어진 옵시디언 AI 플러그인 하나를 가져다 쓰기 시작했고, 매일 쓰다 보니 더 나아갈 수 있는 자리가 보였습니다. 노트를 쓰고 자료를 찾고 글을 고치는 흐름을 더 매끄럽게 만들 수 있는 지점들이었습니다. 그래서 판자를 덧대고 갈아 끼웠습니다. 모델을 붙이는 방식을 넓히고, 폴더를 읽는 방식을 늘리고, 편집이 일어나는 자리를 옮겼습니다.
 
-- OpenAI/Claude Plan 연결은 구독 인증과 비공개 백엔드를 사용하는 실험 기능입니다. 제공자의 모델 권한이나 백엔드 변경으로 예고 없이 작동하지 않을 수 있으며 자동으로 다른 모델로 대체하지 않습니다.
-- Claude는 제3자 도구에 API 인증 사용을 권장합니다. Plan 연결 전 계정 정책과 위험 안내를 확인하세요.
-- v1.4.0을 수동 설치하기 전에 기존 플러그인 폴더와 `data.json`을 통째로 백업하세요.
-- API 키 기반 모델 목록은 v1.4.0에서 변경되지 않습니다.
+**이 배가 최종적으로 어떤 모습이 될지는 우리도 모릅니다.** 정해두지 않았기 때문입니다. 우리가 매일 옵시디언에서 일하면서 더 좋은 방법을 발견하면 그 자리의 판자를 갈아 끼울 것이고, 그 과정이 이 플러그인의 개발 계획 그 자체입니다. 로드맵이 먼저 있고 그대로 만드는 것이 아니라, 쓰면서 배가 바뀝니다.
 
----
+그러니 이 저장소를 지켜보신다면 완성된 제품이 아니라 **항해 중인 배**를 보고 계신 것입니다.
 
-커맨드스페이스 협업 레포 안내는 [docs/CMDS-COLLABORATION.md](docs/CMDS-COLLABORATION.md)를 참고하세요.
+## 무엇을 할 수 있나
+
+- **노트를 맥락으로 삼는 AI 대화** — 채팅창에서 노트와 폴더를 멘션해 대화에 끌어옵니다. 볼트 전체를 뒤지지 않고 지금 이야기 중인 자료만 정확히 올립니다.
+- **폴더 읽기와 검색(RAG)** — 폴더를 통째로 멘션하면 자동·집중·전수 세 방식 중 상황에 맞게 읽습니다. 임베딩 검색과 재순위 검색을 함께 쓰며, **임베딩용 API 키가 없어도 폴더 멘션이 동작합니다.**
+- **인라인 편집** — 노트 안에서 고칠 부분만 선택해 그 자리에서 수정합니다. 문서 전체를 다시 쓰지 않습니다.
+- **문서 단위 편집** — 긴 문서를 통째로 다루는 편집 모드입니다. 여러 곳을 동시에 손봐야 할 때 씁니다.
+- **이미지 생성** — 대화 안에서 이미지를 만들어 노트에 바로 넣습니다.
+- **Plan 연결** — Claude Pro/Max, Gemini, GPT 계열 구독 계정의 인증을 그대로 빌려 쓰는 실험 기능입니다. API 키 없이 쓸 수 있고, 모델별 추론 강도(reasoning effort)를 따로 설정해 채팅 입력창에서 바로 바꿉니다.
+- **리서치 — 내장 MCP 도구** — 학술·공공 데이터베이스를 플러그인이 직접 호출합니다. 아래 참고.
+- **MCP 도구 연결** — 위 내장 도구 외에 원하는 외부 MCP 서버를 직접 붙입니다. 검토된 도구만 노출되도록 제한합니다.
+- **백그라운드 작업** — 오래 걸리는 작업을 뒤로 돌리고 하던 일을 계속합니다.
+
+## 내장 MCP 리서치 도구
+
+리서치 기능은 **MCP로 연결된 공식 데이터베이스 묶음**입니다. 웹을 긁어오는 것이 아니라 각 기관이 제공하는 공식 API를 호출하므로, 출처가 분명한 메타데이터가 돌아옵니다. 필요한 것만 켜고 각자의 API 키를 넣어 쓰며, 키는 분리 보관됩니다.
+
+**해외 학술**
+
+- **Web of Science Starter** — Web of Science 코어 컬렉션(SSCI 포함) 검색
+- **Crossref + Retraction Watch** — DOI 메타데이터와 정정·철회 이력 검증
+- **OpenAlex** — 논문·저자·기관·인용 관계와 오픈액세스 위치 탐색
+- **PubMed** — 생의학 문헌 메타데이터 검색
+- **Europe PMC** — 생명과학 문헌·인용·연구비·오픈액세스 검색
+
+**국내 학술**
+
+- **KCI** — 한국학술지인용색인 논문 메타데이터
+- **ScienceON** — 국내 과학기술 문헌 메타데이터
+- **RISS Linked Data** — 국내 학위논문·서지 링크드데이터 조회
+
+**국내 공공·법령**
+
+- **Korean Law MCP** — 법령과 조문 조회
+- **OpenDART** — 기업 공시 검색
+- **NTIS** — 국가 R&D 과제 정보 검색
+- **KOSIS MCP** — 국가통계 표와 메타데이터 조회
+
+**뉴스·웹**
+
+- **NAVER API HUB Search** — 국내 뉴스·웹·블로그 검색(본문이 아닌 스니펫)
+
+## 설치
+
+**커뮤니티 플러그인**
+옵시디언 설정 → 커뮤니티 플러그인 → 찾아보기에서 `CMDS Achmage`를 검색해 설치합니다.
+
+**수동 설치**
+[릴리스 페이지](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases)에서 `main.js`, `manifest.json`, `styles.css` 세 파일을 받아 볼트의 `.obsidian/plugins/cmds-achmage/` 폴더에 넣고 옵시디언을 다시 시작합니다.
+
+## Plan 모드를 쓰기 전에
+
+- Plan 연결은 **구독 인증과 비공개 백엔드를 사용하는 실험 기능**입니다. 제공자의 정책이나 백엔드가 바뀌면 예고 없이 멈출 수 있고, 그때 다른 모델로 자동 대체하지 않습니다.
+- 각 제공자는 제3자 도구에 API 인증을 쓰도록 권장합니다. 연결 전에 본인 계정의 정책과 위험 안내를 확인하세요.
+- 업데이트 전에는 플러그인 폴더와 `data.json`을 백업해 두세요.
+- API 키로 쓰는 일반 모델은 이 기능과 무관하게 그대로 동작합니다.
+
+## 만드는 사람들
+
+커맨드스페이스([CMDSPACE-DEV](https://github.com/CMDSPACE-DEV))와 안창현 교수가 공동 개발합니다. 협업 방식은 [docs/CMDS-COLLABORATION.md](docs/CMDS-COLLABORATION.md)에 정리돼 있습니다.
+
+## 출처
+
+이 플러그인은 옵시디언 커뮤니티 플러그인 [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer)를 포크한 것에서 시작되었습니다.
+
+## 라이선스
+
+MIT
