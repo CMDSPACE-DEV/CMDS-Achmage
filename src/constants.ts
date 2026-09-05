@@ -305,6 +305,18 @@ export const DEFAULT_CHAT_MODELS: readonly ChatModel[] = [
     model: 'haiku',
   },
   {
+    providerType: 'anthropic-plan',
+    providerId: PROVIDER_TYPES_INFO['anthropic-plan'].defaultProviderId,
+    id: 'claude-fable-latest (plan)',
+    model: 'fable',
+    thinking: {
+      enabled: true,
+      mode: 'adaptive',
+      effort: 'high',
+      display: 'summarized',
+    },
+  },
+  {
     providerType: 'openai-plan',
     providerId: PROVIDER_TYPES_INFO['openai-plan'].defaultProviderId,
     id: 'gpt-5.6-sol (plan)',
@@ -353,11 +365,24 @@ export const DEFAULT_CHAT_MODELS: readonly ChatModel[] = [
     enable: false,
   },
   {
+    providerType: 'openai-plan',
+    providerId: PROVIDER_TYPES_INFO['openai-plan'].defaultProviderId,
+    id: 'gpt-6-astra (plan)',
+    model: 'gpt-6-astra',
+    enable: false,
+  },
+  {
     providerType: 'gemini-plan',
     providerId: PROVIDER_TYPES_INFO['gemini-plan'].defaultProviderId,
     id: 'gemini-3-flash-preview (plan)',
     model: 'gemini-3-flash-preview',
     enable: false,
+  },
+  {
+    providerType: 'anthropic',
+    providerId: PROVIDER_TYPES_INFO.anthropic.defaultProviderId,
+    id: 'claude-fable-5.1',
+    model: 'claude-fable-5-1',
   },
   {
     providerType: 'anthropic',
@@ -376,6 +401,12 @@ export const DEFAULT_CHAT_MODELS: readonly ChatModel[] = [
     providerId: PROVIDER_TYPES_INFO.anthropic.defaultProviderId,
     id: 'claude-haiku-4.5',
     model: 'claude-haiku-4-5',
+  },
+  {
+    providerType: 'openai',
+    providerId: PROVIDER_TYPES_INFO.openai.defaultProviderId,
+    id: 'gpt-6-astra',
+    model: 'gpt-6-astra',
   },
   {
     providerType: 'openai',
@@ -519,6 +550,7 @@ export const OPENAI_PRICES: Record<string, ModelPricing> = {
 }
 
 export const ANTHROPIC_PRICES: Record<string, ModelPricing> = {
+  'claude-fable-5-1': { input: 10, output: 50 },
   'claude-opus-4-8': { input: 5, output: 25 },
   'claude-sonnet-4-6': { input: 3, output: 15 },
   'claude-opus-4-5': { input: 5, output: 25 },

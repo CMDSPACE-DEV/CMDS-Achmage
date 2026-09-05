@@ -40,7 +40,7 @@ describe('parseSmartComposerSettings', () => {
         concurrency: 1,
       },
       appearance: {
-        skinMode: 'follow-obsidian',
+        skinMode: 'studio-console',
       },
 
       systemPrompt: '',
@@ -95,7 +95,7 @@ describe('parseSmartComposerSettings', () => {
       },
     })
 
-    expect(result.version).toBe(29)
+    expect(result.version).toBe(30)
     expect(result.providers).toEqual(DEFAULT_PROVIDERS)
     expect(result.chatModels).toEqual(DEFAULT_CHAT_MODELS)
     expect(result.chatModelId).toBe(DEFAULT_CHAT_MODEL_ID)

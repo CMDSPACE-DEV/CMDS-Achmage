@@ -1,3 +1,61 @@
+/* @settings
+
+name: CMDS Achmage
+id: cmds-achmage
+settings:
+    -
+        id: ach-appearance-note
+        title: Chat skin
+        description: The chat pane ships with two owned skins (Operator Console in dark mode, Conversation Studio in light mode). To make the pane follow your Obsidian theme instead, switch Appearance -> Chat skin inside the plugin settings. The options below apply to whichever skin is active.
+        type: heading
+        level: 2
+        collapsed: false
+    -
+        id: ach-ss-accent
+        title: Accent color
+        description: Overrides the chat accent used by buttons, focus rings, and active states. Leave empty to keep the skin default.
+        type: variable-color
+        format: hex
+        opacity: false
+        default: '#b6ff00'
+    -
+        id: ach-shape-heading
+        title: Shape and density
+        type: heading
+        level: 2
+        collapsed: true
+    -
+        id: ach-ss-radius-m
+        title: Corner radius
+        description: Radius for inputs, popovers, and message surfaces.
+        type: variable-number
+        default: 7
+        format: px
+    -
+        id: ach-ss-font-ui-small
+        title: Small UI text size
+        description: Controls model pickers, badges, and control labels.
+        type: variable-number
+        default: 13
+        format: px
+    -
+        id: ach-ss-font-ui-medium
+        title: Medium UI text size
+        type: variable-number
+        default: 15
+        format: px
+    -
+        id: ach-ss-line-height
+        title: Message line height
+        description: Line height for assistant and user message bodies.
+        type: variable-number-slider
+        default: 1.58
+        min: 1.2
+        max: 2
+        step: 0.01
+
+*/
+
 .smtcmp-chat-header {
   display: flex;
   justify-content: space-between;
@@ -3109,17 +3167,17 @@ button.smtcmp-research-source-main:focus-visible {
   --size-4-8: 32px;
   --size-4-10: 40px;
   --font-ui-smaller: 11px;
-  --font-ui-small: 13px;
-  --font-ui-medium: 15px;
+  --font-ui-small: var(--ach-ss-font-ui-small, 13px);
+  --font-ui-medium: var(--ach-ss-font-ui-medium, 15px);
   --font-ui-large: 18px;
   --font-ui-smallest: 10px;
   --font-medium: 560;
-  --line-height-normal: 1.58;
+  --line-height-normal: var(--ach-ss-line-height, 1.58);
   --icon-l: 18px;
   --icon-stroke: 1.7;
   --radius-s: 4px;
-  --radius-m: 7px;
-  --input-radius: 7px;
+  --radius-m: var(--ach-ss-radius-m, 7px);
+  --input-radius: var(--ach-ss-radius-m, 7px);
   --code-radius: 4px;
   --code-size: 12px;
   --blockquote-style: normal;
@@ -3142,6 +3200,38 @@ button.smtcmp-research-source-main:focus-visible {
   isolation: isolate;
 }
 
+/*
+ * R-030: opt-in third skin. R-005 established the two owned skins as the
+ * default and that decision stands; this block only applies when the user
+ * sets Appearance -> Chat skin to "Follow Obsidian theme".
+ *
+ * Only the color tokens are re-pointed at theme variables. Spacing, radius,
+ * and type-scale tokens stay owned so an unfamiliar theme cannot break the
+ * chat layout; those are adjustable through Style Settings instead.
+ *
+ * Obsidian's own variables (--background-primary, --text-normal, ...) are
+ * deliberately NOT redefined here, unlike in the two owned skins, so they
+ * inherit from the active theme.
+ */
+.smtcmp-shell[data-skin='obsidian'] {
+  --ach-canvas: var(--background-secondary);
+  --ach-surface: var(--background-primary);
+  --ach-surface-raised: var(
+    --background-secondary-alt,
+    var(--background-secondary)
+  );
+  --ach-selected: var(--text-selection);
+  --ach-border: var(--background-modifier-border);
+  --ach-text: var(--text-normal);
+  --ach-muted: var(--text-muted);
+  --ach-heading: var(--text-normal);
+  --ach-action: var(--ach-ss-accent, var(--interactive-accent));
+  --ach-motion: var(--interactive-accent-hover, var(--interactive-accent));
+  --ach-danger: var(--text-error);
+  color-scheme: normal;
+  font-family: inherit;
+}
+
 .smtcmp-shell[data-skin='hallym-light'] {
   --ach-canvas: #f7f9fc;
   --ach-surface: #ffffff;
@@ -3151,7 +3241,7 @@ button.smtcmp-research-source-main:focus-visible {
   --ach-text: #00102e;
   --ach-muted: #526174;
   --ach-heading: #002e6e;
-  --ach-action: #0066b3;
+  --ach-action: var(--ach-ss-accent, #0066b3);
   --ach-motion: #00b5ad;
   --ach-danger: #a52834;
   --background-primary: #ffffff;
@@ -3180,7 +3270,7 @@ button.smtcmp-research-source-main:focus-visible {
   --ach-text: #d4d4d4;
   --ach-muted: #888888;
   --ach-heading: #b6ff00;
-  --ach-action: #b6ff00;
+  --ach-action: var(--ach-ss-accent, #b6ff00);
   --ach-motion: #00b5ad;
   --ach-danger: #ff6675;
   --background-primary: #141414;
