@@ -127,6 +127,23 @@ alias.
 See E-5. `normalizeGpt56Effort` passes efforts through unchanged for
 non-`gpt-5.6` models, so no code blocks Astra; only the installed binary does.
 
+### 5. New default models do not reach existing vaults
+
+`DEFAULT_CHAT_MODELS` seeds fresh installs only. An existing vault keeps its
+own stored `chatModels` array, so a catalog addition is invisible there until a
+migration inserts it. `27_to_28` established the upsert pattern for exactly
+this reason. Verified by loading the branch in a live vault: the four new
+entries were absent until the migration was extended.
+
+### 6. A third skin must reimplement every "base hides, skin shows" rule
+
+Intersecting the selector sets scoped to the two owned skins yields the rules a
+new skin cannot inherit. Two surfaced:
+`.smtcmp-chat-user-input-container:focus-within` (no base rule exists, so a
+focused composer loses its outline) and the persona badge (base sets
+`display: none`, each skin reveals its own variant). Value overrides degrade to
+a sane default when omitted; "base hides it, skin shows it" fails silently.
+
 ## Decision And Implementation Contract
 
 1. Default stays `studio-console`. R-005's dual skin is untouched for every
@@ -148,6 +165,10 @@ non-`gpt-5.6` models, so no code blocks Astra; only the installed binary does.
    `claude-sonnet-5 (plan)` and `gemini-3-flash-preview (plan)`.
 7. Astra pricing is omitted rather than guessed; the calculator degrades to
    `null`.
+8. Migration 29 -> 30 also inserts the four new catalog entries, insert-if-
+   absent so a user's own entry or `enable` choice is never overwritten.
+9. The theme-following skin supplies its own focus ring and persona-badge
+   rules, derived from theme variables and the real `theme-dark` state.
 
 ## Expected Change Surface
 
