@@ -122,7 +122,7 @@ jobs:
           TAG: ${{ github.ref_name }}
         shell: bash
         run: |
-          title="Smart_composer_Achmage v${TAG}"
+          title="CMDS Achmage v${TAG}"
           assets=(main.js manifest.json styles.css)
           # 2.6.6 -> full release; 2.6.6-test.1 / 2.7.0-rc.1 -> prerelease.
           if [[ "${TAG}" == *-* ]]; then
