@@ -104,7 +104,15 @@ export const smartComposerSettingsSchema = z.object({
 
   appearance: z
     .object({
-      skinMode: z.literal('follow-obsidian'),
+      /**
+       * `follow-obsidian` (default) derives the chat shell colors from the
+       * user's active Obsidian theme. `studio-console` opts into the owned
+       * dual skin from R-005 (Hallym Conversation Studio in light mode,
+       * CMDS AI Operator Console in dark mode). See R-030.
+       */
+      skinMode: z
+        .enum(['follow-obsidian', 'studio-console'])
+        .catch('follow-obsidian'),
     })
     .catch({
       skinMode: 'follow-obsidian',

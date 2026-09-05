@@ -6,6 +6,7 @@ import { CHAT_VIEW_TYPE } from './constants'
 import type SmartComposerPlugin from './main'
 import type { MentionableBlockData } from './types/mentionable'
 import { prepareChatMountSurface } from './utils/chat/chatMountSurface'
+import { resolveChatSkin } from './utils/chat/chatSkin'
 
 export class ChatView extends ItemView {
   private initialChatProps?: ChatProps
@@ -83,13 +84,15 @@ export class ChatView extends ItemView {
     const applyTheme = () => {
       this.mountEl?.setAttribute(
         'data-skin',
-        host.ownerDocument.body.classList.contains('theme-dark')
-          ? 'cmds-dark'
-          : 'hallym-light',
+        resolveChatSkin(
+          this.plugin.settings.appearance?.skinMode,
+          host.ownerDocument.body.classList.contains('theme-dark'),
+        ),
       )
     }
     applyTheme()
     this.registerEvent(this.app.workspace.on('css-change', applyTheme))
+    this.register(this.plugin.addSettingsChangeListener(applyTheme))
     return this.mountEl
   }
 

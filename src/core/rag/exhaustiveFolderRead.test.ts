@@ -32,7 +32,7 @@ function createSettings(
   overrides: Partial<SmartComposerSettings> = {},
 ): SmartComposerSettings {
   return {
-    version: 29,
+    version: 30,
     providers: [...DEFAULT_PROVIDERS],
     chatModels: [...DEFAULT_CHAT_MODELS],
     embeddingModels: [],

@@ -5,6 +5,7 @@ import SmartComposerPlugin from '../../main'
 import { ObsidianButton } from '../common/ObsidianButton'
 import { ObsidianSetting } from '../common/ObsidianSetting'
 
+import { AppearanceSection } from './sections/AppearanceSection'
 import { ChatSection } from './sections/ChatSection'
 import { EtcSection } from './sections/EtcSection'
 import { McpSection } from './sections/McpSection'
@@ -60,6 +61,7 @@ export function SettingsTabRoot({ app, plugin }: SettingsTabRootProps) {
         {activeTab === 'writing' && (
           <>
             <ChatSection mode="writing" />
+            <AppearanceSection />
             <RAGSection app={app} plugin={plugin} />
             <TemplateSection app={app} />
           </>

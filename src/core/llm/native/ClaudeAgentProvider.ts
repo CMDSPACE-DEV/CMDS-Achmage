@@ -491,6 +491,7 @@ function parseClaudeUsage(value: unknown): ResponseUsage | undefined {
 }
 
 function normalizeClaudeModel(model: string): string {
+  if (/fable/i.test(model)) return 'fable'
   if (/opus/i.test(model)) return 'opus'
   if (/sonnet/i.test(model)) return 'sonnet'
   if (/haiku/i.test(model)) return 'haiku'
