@@ -3,17 +3,19 @@ export type ChatSkin = 'hallym-light' | 'cmds-dark' | 'obsidian'
 export type ChatSkinMode = 'studio-console' | 'follow-obsidian'
 
 /**
- * R-005 approved two owned skins that deliberately ignore the active Obsidian
- * theme. R-030 keeps those as the default and adds `follow-obsidian` as an
- * explicit opt-in that derives the shell tokens from the user's theme instead.
+ * The chat pane follows the user's Obsidian theme by default (R-030). The two
+ * owned skins from R-005 (Hallym Conversation Studio / CMDS AI Operator
+ * Console) remain available as an explicit opt-in via `studio-console`.
  *
- * An unknown or missing mode falls back to the owned skin so a corrupt or
- * partially migrated settings file never silently changes the appearance.
+ * An unknown or missing mode resolves to the theme-following skin: nobody's
+ * brand colors are forced on a vault unless the user chose them.
  */
 export function resolveChatSkin(
   skinMode: ChatSkinMode | undefined,
   isDarkTheme: boolean,
 ): ChatSkin {
-  if (skinMode === 'follow-obsidian') return 'obsidian'
-  return isDarkTheme ? 'cmds-dark' : 'hallym-light'
+  if (skinMode === 'studio-console') {
+    return isDarkTheme ? 'cmds-dark' : 'hallym-light'
+  }
+  return 'obsidian'
 }

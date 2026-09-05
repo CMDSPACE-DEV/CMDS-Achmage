@@ -1,7 +1,7 @@
 import { migrateFrom29To30 } from './29_to_30'
 
 describe('migrateFrom29To30', () => {
-  it('remaps the never-read follow-obsidian literal to the skin users actually saw', () => {
+  it('keeps the stored follow-obsidian literal now that the renderer honors it', () => {
     const input = {
       version: 29,
       appearance: { skinMode: 'follow-obsidian' },
@@ -12,24 +12,24 @@ describe('migrateFrom29To30', () => {
 
     expect(result).toEqual({
       version: 30,
-      appearance: { skinMode: 'studio-console' },
+      appearance: { skinMode: 'follow-obsidian' },
       chatModelId: 'claude-sonnet-latest (plan)',
     })
   })
 
-  it('adds the appearance object when it is missing entirely', () => {
+  it('defaults to following the theme when appearance is missing entirely', () => {
     const result = migrateFrom29To30({ version: 29 })
 
     expect(result).toEqual({
       version: 30,
-      appearance: { skinMode: 'studio-console' },
+      appearance: { skinMode: 'follow-obsidian' },
     })
   })
 
-  it('keeps unrelated appearance keys and other settings untouched', () => {
+  it('preserves an explicit studio-console opt-in and unrelated keys', () => {
     const result = migrateFrom29To30({
       version: 29,
-      appearance: { skinMode: 'follow-obsidian', somethingElse: 42 },
+      appearance: { skinMode: 'studio-console', somethingElse: 42 },
       providers: [{ type: 'anthropic', id: 'anthropic' }],
     })
 
@@ -85,7 +85,7 @@ describe('migrateFrom29To30', () => {
 
     expect(result).toEqual({
       version: 30,
-      appearance: { skinMode: 'studio-console' },
+      appearance: { skinMode: 'follow-obsidian' },
     })
   })
 })

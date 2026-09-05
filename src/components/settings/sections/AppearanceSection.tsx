@@ -3,8 +3,8 @@ import { ObsidianDropdown } from '../../common/ObsidianDropdown'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
 
 const SKIN_MODE_OPTIONS: Record<string, string> = {
-  'studio-console': 'Operator Console / Conversation Studio (default)',
-  'follow-obsidian': 'Follow Obsidian theme',
+  'follow-obsidian': 'Follow Obsidian theme (default)',
+  'studio-console': 'Operator Console / Conversation Studio',
 }
 
 export function AppearanceSection() {
@@ -16,10 +16,10 @@ export function AppearanceSection() {
 
       <ObsidianSetting
         name="Chat skin"
-        desc="The chat pane ships with its own dark and light skins. Switch to Follow Obsidian theme to derive the chat colors from your active theme instead. Spacing and type scale stay fixed; adjust those with the Style Settings plugin."
+        desc="By default the chat pane derives its colors from your active Obsidian theme. Operator Console / Conversation Studio switches to the plugin's own skins instead (CMDS-styled in dark mode, Hallym-styled in light mode). Spacing and type scale stay fixed; adjust those with the Style Settings plugin."
       >
         <ObsidianDropdown
-          value={settings.appearance?.skinMode ?? 'studio-console'}
+          value={settings.appearance?.skinMode ?? 'follow-obsidian'}
           options={SKIN_MODE_OPTIONS}
           onChange={async (value: string) => {
             await setSettings({
@@ -27,14 +27,19 @@ export function AppearanceSection() {
               appearance: {
                 ...settings.appearance,
                 skinMode:
-                  value === 'follow-obsidian'
-                    ? 'follow-obsidian'
-                    : 'studio-console',
+                  value === 'studio-console'
+                    ? 'studio-console'
+                    : 'follow-obsidian',
               },
             })
           }}
         />
       </ObsidianSetting>
+
+      <ObsidianSetting
+        name="What the accent color touches"
+        desc="Send button, composer focus ring, user message bubble, the accent bar on assistant replies, links and headings inside replies, and selected states in pickers. When following your theme this is your theme's accent; the owned skins use CMDS Pink (dark) and Hallym Blue (light). Override it, corner radius, UI text size, and line height in the Style Settings plugin under the CMDS Achmage section."
+      />
     </div>
   )
 }

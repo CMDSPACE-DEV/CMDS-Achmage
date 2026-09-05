@@ -7,9 +7,12 @@
 - **Partially verified** for `gpt-6-astra` on the Plan path: the model is
   recognized by the ChatGPT-account backend but the installed Codex CLI is too
   old to dispatch it, so an end-to-end run is still pending.
-- **Relationship to R-005**: this report **narrows, and does not revoke**,
-  R-005 section 18.1. The owned dual skin stays the default. R-005 remains
-  Verified and Mandatory.
+- **Relationship to R-005**: this report **supersedes the default in R-005
+  section 18.1**. The chat pane now follows the user's Obsidian theme by
+  default; the owned dual skin (Hallym Conversation Studio / CMDS AI Operator
+  Console) remains fully available as an explicit opt-in. R-005 stays
+  Verified and Mandatory for the owned skins' design and for the isolation
+  analysis in its section 14, which this report relies on.
 
 ## Executive Summary
 
@@ -33,9 +36,14 @@ Separately, `appearance.skinMode` has existed since migration 19_to_20 as
 class. The settings file has therefore been claiming theme-following behavior
 that the product never implemented.
 
-This report keeps R-005's default and makes the dormant setting real as an
-explicit opt-in, plus adds a Style Settings surface so appearance tuning does
-not require further code changes.
+The product owner's decision (2026-09-05) is that the plugin must not force
+anyone's brand colors: by default the pane derives its colors from whatever
+theme the user already chose, and the owned skins are something a user picks.
+This report makes the dormant setting real with that default, tokenizes the
+stylesheet so the owned skins carry their palette in one place (CMDS Pink for
+the dark Operator Console, Hallym Blue for the light Conversation Studio), and
+adds a Style Settings surface so appearance tuning does not require further
+code changes.
 
 ## Research Question
 
@@ -146,29 +154,45 @@ a sane default when omitted; "base hides it, skin shows it" fails silently.
 
 ## Decision And Implementation Contract
 
-1. Default stays `studio-console`. R-005's dual skin is untouched for every
-   existing and new install.
+1. Default is `follow-obsidian`. The owned dual skin is an opt-in via
+   `studio-console` and is unchanged in structure.
 2. `appearance.skinMode` becomes
-   `z.enum(['studio-console', 'follow-obsidian'])` defaulting to
-   `studio-console`.
-3. Migration 29 -> 30 rewrites the stored `'follow-obsidian'` literal to
-   `'studio-console'`. This is behavior preserving: every vault was already
-   rendering the owned skin. An upgrade must not silently change appearance.
-4. A third skin `data-skin='obsidian'` maps only the color tokens to theme
-   variables and deliberately does not redefine Obsidian's own variables, so
-   they inherit. Spacing, radius, and type scale stay owned so an unfamiliar
-   theme cannot break layout.
-5. Style Settings exposes the accent color and the shape/density tokens, so
-   further appearance requests do not require a release.
-6. Fable and Astra are registered on both the API and Plan paths. Astra's Plan
+   `z.enum(['follow-obsidian', 'studio-console'])` defaulting to
+   `follow-obsidian`.
+3. Migration 29 -> 30 keeps the stored `'follow-obsidian'` literal verbatim.
+   Upgraded vaults therefore start following their theme. This is a visible
+   change from the owned skin they were rendering, and it is intentional:
+   the settings file has claimed this behavior since 19_to_20, and the product
+   owner chose it. An explicit `'studio-console'` is preserved.
+4. The `data-skin='obsidian'` skin maps only the color tokens to theme
+   variables and deliberately does not redefine Obsidian's own variables
+   (links, headings, bold, italic included), so they inherit. Spacing,
+   radius, and type scale stay owned so an unfamiliar theme cannot break
+   layout.
+5. The owned skins pin `--link-color`, `--h1..h6-color`, `--bold-color`, and
+   `--italic-color`: Obsidian computes those on `<body>` from the theme
+   accent and descendants inherit the computed value, so overriding
+   `--text-accent` inside the shell alone does nothing for them.
+6. All 47 hardcoded palette values in `styles.css` are replaced by tokens or
+   `color-mix()` derivations of `--ach-action`, with two new tokens
+   `--ach-on-action` (text on an accent fill) and `--ach-shadow`. The owned
+   dark skin's accent moves from neon `#b6ff00` to CMDS Pink `#e985a2`; the
+   light skin keeps Hallym Blue because it is the partner's brand.
+7. Style Settings exposes the accent color and the shape/density tokens and
+   states, per option, exactly which elements it touches. Style Settings only
+   writes a variable the user has changed, so the defaults never override the
+   theme.
+8. The composer control row wraps so the model name is never crushed to
+   "gpt-..." on a narrow pane.
+9. Fable and Astra are registered on both the API and Plan paths. Astra's Plan
    entry ships `enable: false`, matching the existing convention for
    `claude-sonnet-5 (plan)` and `gemini-3-flash-preview (plan)`.
-7. Astra pricing is omitted rather than guessed; the calculator degrades to
-   `null`.
-8. Migration 29 -> 30 also inserts the four new catalog entries, insert-if-
-   absent so a user's own entry or `enable` choice is never overwritten.
-9. The theme-following skin supplies its own focus ring and persona-badge
-   rules, derived from theme variables and the real `theme-dark` state.
+10. Astra pricing is omitted rather than guessed; the calculator degrades to
+    `null`.
+11. Migration 29 -> 30 also inserts the four new catalog entries, insert-if-
+    absent so a user's own entry or `enable` choice is never overwritten.
+12. The theme-following skin supplies its own focus ring and persona-badge
+    rules, derived from theme variables and the real `theme-dark` state.
 
 ## Expected Change Surface
 
@@ -205,3 +229,8 @@ new setting is a local enum. No research artifact records account identifiers.
 
 - 2026-09-05: Initial report. Narrows R-005 section 18.1 with an opt-in escape
   hatch; does not supersede it.
+- 2026-09-05 (later): Product owner decision reverses the default. Theme
+  following becomes the default and the owned dual skin the opt-in, so this
+  report now supersedes the R-005 section 18.1 default. Palette tokenized,
+  owned dark accent moved to CMDS Pink, link/heading/bold leak pinned in owned
+  skins, composer controls wrap.

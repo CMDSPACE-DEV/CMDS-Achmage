@@ -40,7 +40,7 @@ describe('parseSmartComposerSettings', () => {
         concurrency: 1,
       },
       appearance: {
-        skinMode: 'studio-console',
+        skinMode: 'follow-obsidian',
       },
 
       systemPrompt: '',

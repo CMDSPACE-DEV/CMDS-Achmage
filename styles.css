@@ -4,50 +4,52 @@ name: CMDS Achmage
 id: cmds-achmage
 settings:
     -
-        id: ach-appearance-note
-        title: Chat skin
-        description: The chat pane ships with two owned skins (Operator Console in dark mode, Conversation Studio in light mode). To make the pane follow your Obsidian theme instead, switch Appearance -> Chat skin inside the plugin settings. The options below apply to whichever skin is active.
+        id: ach-where-heading
+        title: Where these settings apply
+        description: Every option below changes only the CMDS Achmage chat pane (the "Chat" side panel and its composer). Nothing here touches the editor, the inline edit popup, or other plugins. By default the pane follows your Obsidian theme; the plugin's own skins (Operator Console in dark mode, Conversation Studio in light mode) are an opt-in under the plugin's Settings -> Writing -> Appearance. The options below apply on top of whichever skin is active and are only written when you change them, so leaving them alone keeps your theme's colors.
         type: heading
         level: 2
         collapsed: false
     -
         id: ach-ss-accent
         title: Accent color
-        description: Overrides the chat accent used by buttons, focus rings, and active states. Leave empty to keep the skin default.
+        description: "Applies to: the send button, the composer focus ring, the user message bubble, the left accent bar on assistant replies, active/selected states in pickers and menus, and the pulse glow while a response is pending. Unset, the theme-following skin uses your theme's accent and the owned skins use CMDS Pink (#E985A2, dark) or Hallym Blue (#0066B3, light). Set it only if you want a different accent than the skin provides."
         type: variable-color
         format: hex
         opacity: false
-        default: '#b6ff00'
+        default: '#e985a2'
     -
         id: ach-shape-heading
         title: Shape and density
+        description: Sizes are fixed per skin so an unfamiliar theme cannot break the chat layout. Adjust them here instead.
         type: heading
         level: 2
         collapsed: true
     -
         id: ach-ss-radius-m
         title: Corner radius
-        description: Radius for inputs, popovers, and message surfaces.
+        description: "Applies to: the composer box, the model and effort pickers, popovers, tooltips, and the rounded ends of message bubbles."
         type: variable-number
         default: 7
         format: px
     -
         id: ach-ss-font-ui-small
         title: Small UI text size
-        description: Controls model pickers, badges, and control labels.
+        description: "Applies to: the model and effort picker labels, file badges above the composer, and control captions. Does not change message text."
         type: variable-number
         default: 13
         format: px
     -
         id: ach-ss-font-ui-medium
         title: Medium UI text size
+        description: "Applies to: the Chat header title and section labels inside the pane."
         type: variable-number
         default: 15
         format: px
     -
         id: ach-ss-line-height
         title: Message line height
-        description: Line height for assistant and user message bodies.
+        description: "Applies to: the body text of user and assistant messages only."
         type: variable-number-slider
         default: 1.58
         min: 1.2
@@ -3228,6 +3230,8 @@ button.smtcmp-research-source-main:focus-visible {
   --ach-action: var(--ach-ss-accent, var(--interactive-accent));
   --ach-motion: var(--interactive-accent-hover, var(--interactive-accent));
   --ach-danger: var(--text-error);
+  --ach-on-action: var(--text-on-accent);
+  --ach-shadow: var(--text-normal);
   color-scheme: normal;
   font-family: inherit;
 }
@@ -3257,32 +3261,57 @@ body:not(.theme-dark)
   display: inline;
 }
 
+/*
+ * Obsidian resolves --link-color, --h*-color, --bold-color, and --italic-color
+ * on <body> from the theme's accent, and descendants inherit the *computed*
+ * value. Overriding --text-accent inside the shell therefore does nothing for
+ * them. The two owned skins pin those tokens explicitly; the theme-following
+ * skin deliberately does not, so it inherits the theme's own choices.
+ */
 .smtcmp-shell[data-skin='hallym-light'] {
   --ach-canvas: #f7f9fc;
   --ach-surface: #ffffff;
   --ach-surface-raised: #f0f5fa;
-  --ach-selected: #c3dbef;
+  --ach-selected: color-mix(in srgb, var(--ach-action) 22%, #ffffff);
   --ach-border: #d7e1ec;
   --ach-text: #00102e;
   --ach-muted: #526174;
   --ach-heading: #002e6e;
   --ach-action: var(--ach-ss-accent, #0066b3);
+  --ach-on-action: #ffffff;
+  --ach-shadow: #002e6e;
+  --link-color: var(--ach-action);
+  --link-color-hover: var(--interactive-accent-hover);
+  --link-external-color: var(--ach-action);
+  --link-external-color-hover: var(--interactive-accent-hover);
+  --h1-color: var(--ach-heading);
+  --h2-color: var(--ach-heading);
+  --h3-color: var(--ach-heading);
+  --h4-color: var(--ach-heading);
+  --h5-color: var(--ach-heading);
+  --h6-color: var(--ach-heading);
+  --bold-color: var(--ach-text);
+  --italic-color: var(--ach-text);
   --ach-motion: #00b5ad;
   --ach-danger: #a52834;
   --background-primary: #ffffff;
   --background-secondary: #f0f5fa;
   --background-modifier-border: #d7e1ec;
   --background-modifier-hover: #e4edf6;
-  --background-modifier-active-hover: #c3dbef;
+  --background-modifier-active-hover: var(--ach-selected);
   --text-normal: #00102e;
   --text-muted: #526174;
-  --text-accent: #0066b3;
-  --interactive-accent: #0066b3;
-  --interactive-accent-hover: #00528f;
+  --text-accent: var(--ach-action);
+  --interactive-accent: var(--ach-action);
+  --interactive-accent-hover: color-mix(
+    in srgb,
+    var(--ach-action) 82%,
+    #000000
+  );
   --code-normal: #002e6e;
   --code-background: #edf3f8;
   --blockquote-background-color: #f0f5fa;
-  --blockquote-border-color: #0066b3;
+  --blockquote-border-color: var(--ach-action);
   color-scheme: light;
 }
 
@@ -3290,28 +3319,54 @@ body:not(.theme-dark)
   --ach-canvas: #0a0a0a;
   --ach-surface: #141414;
   --ach-surface-raised: #1f1f1f;
-  --ach-selected: #334c00;
+  --ach-selected: color-mix(in srgb, var(--ach-action) 22%, var(--ach-canvas));
   --ach-border: #333333;
   --ach-text: #d4d4d4;
   --ach-muted: #888888;
-  --ach-heading: #b6ff00;
-  --ach-action: var(--ach-ss-accent, #b6ff00);
+  --ach-heading: var(--ach-action);
+  --ach-action: var(--ach-ss-accent, #e985a2);
+  --ach-on-action: #0a0a0a;
+  --ach-shadow: #000000;
+  --link-color: var(--ach-action);
+  --link-color-hover: var(--interactive-accent-hover);
+  --link-external-color: var(--ach-action);
+  --link-external-color-hover: var(--interactive-accent-hover);
+  --h1-color: var(--ach-heading);
+  --h2-color: var(--ach-heading);
+  --h3-color: var(--ach-heading);
+  --h4-color: var(--ach-heading);
+  --h5-color: var(--ach-heading);
+  --h6-color: var(--ach-heading);
+  --bold-color: var(--ach-text);
+  --italic-color: var(--ach-text);
   --ach-motion: #00b5ad;
   --ach-danger: #ff6675;
   --background-primary: #141414;
   --background-secondary: #1f1f1f;
   --background-modifier-border: #333333;
-  --background-modifier-hover: #263500;
-  --background-modifier-active-hover: #334c00;
+  --background-modifier-hover: color-mix(
+    in srgb,
+    var(--ach-action) 14%,
+    var(--ach-canvas)
+  );
+  --background-modifier-active-hover: var(--ach-selected);
   --text-normal: #d4d4d4;
   --text-muted: #888888;
-  --text-accent: #b6ff00;
-  --interactive-accent: #b6ff00;
-  --interactive-accent-hover: #d0ff5b;
+  --text-accent: var(--ach-action);
+  --interactive-accent: var(--ach-action);
+  --interactive-accent-hover: color-mix(
+    in srgb,
+    var(--ach-action) 80%,
+    #ffffff
+  );
   --code-normal: #caff51;
   --code-background: #080a08;
-  --blockquote-background-color: #10150c;
-  --blockquote-border-color: #b6ff00;
+  --blockquote-background-color: color-mix(
+    in srgb,
+    var(--ach-action) 8%,
+    var(--ach-canvas)
+  );
+  --blockquote-border-color: var(--ach-action);
   color-scheme: dark;
   font-family: 'IBM Plex Sans', Inter, ui-sans-serif, system-ui, sans-serif;
 }
@@ -3409,19 +3464,19 @@ body:not(.theme-dark)
 .smtcmp-shell .smtcmp-chat-icon-button--primary {
   border-color: var(--ach-action);
   background: var(--ach-action);
-  color: #ffffff;
+  color: var(--ach-on-action);
 }
 
 .smtcmp-shell .smtcmp-chat-icon-button--primary:hover,
 .smtcmp-shell .smtcmp-chat-icon-button--primary:focus-visible {
   border-color: var(--interactive-accent-hover);
   background: var(--interactive-accent-hover);
-  color: #ffffff;
+  color: var(--ach-on-action);
 }
 
 .smtcmp-shell[data-skin='cmds-dark'] .smtcmp-chat-icon-button--primary {
-  color: #081000;
-  box-shadow: 0 0 12px #b6ff0024;
+  color: var(--ach-on-action);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--ach-action) 14%, transparent);
 }
 
 .smtcmp-shell .smtcmp-chat-control-tooltip {
@@ -3435,7 +3490,7 @@ body:not(.theme-dark)
   border-radius: 5px;
   background: var(--ach-surface);
   color: var(--ach-text);
-  box-shadow: 0 8px 24px #00102e1f;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ach-shadow) 12%, transparent);
   font-size: 10.5px;
   line-height: 1.25;
 }
@@ -3536,11 +3591,11 @@ body:not(.theme-dark)
   max-width: 100%;
   padding: 8px 34px 8px 11px;
   overflow: hidden;
-  color: #ffffff;
-  background: #0066b3;
-  border: 1px solid #005497;
+  color: var(--ach-on-action);
+  background: var(--ach-action);
+  border: 1px solid color-mix(in srgb, var(--ach-action) 85%, #000000);
   border-radius: 17px 17px 5px 17px;
-  box-shadow: 0 5px 16px #002e6e1f;
+  box-shadow: 0 5px 16px color-mix(in srgb, var(--ach-shadow) 12%, transparent);
 }
 
 .smtcmp-user-message-bubble__mentions {
@@ -3549,7 +3604,7 @@ body:not(.theme-dark)
   gap: 4px;
   min-width: 0;
   margin-bottom: 3px;
-  color: #ffffffbf;
+  color: color-mix(in srgb, var(--ach-on-action) 75%, transparent);
   font-size: 10px;
   line-height: 1.25;
 }
@@ -3608,28 +3663,28 @@ body:not(.theme-dark)
 }
 
 .smtcmp-shell[data-skin='cmds-dark'] .smtcmp-user-message-bubble {
-  color: #edf5e8;
-  background: #151a16;
-  border-color: #40542d;
+  color: var(--ach-text);
+  background: color-mix(in srgb, var(--ach-action) 6%, var(--ach-surface));
+  border-color: color-mix(in srgb, var(--ach-action) 30%, var(--ach-border));
   border-radius: 5px 14px 5px 14px;
   box-shadow:
-    inset 2px 0 0 #b6ff00,
+    inset 2px 0 0 var(--ach-action),
     0 8px 24px #00000080;
 }
 
 .smtcmp-shell[data-skin='cmds-dark'] .smtcmp-user-message-bubble__mentions {
-  color: #b6ff00b8;
+  color: color-mix(in srgb, var(--ach-action) 72%, transparent);
 }
 
 .smtcmp-shell[data-skin='cmds-dark'] .smtcmp-user-message-bubble__edit {
-  color: #b6ff00;
+  color: var(--ach-action);
 }
 
 .smtcmp-shell[data-skin='cmds-dark'] .smtcmp-user-message-bubble__edit:hover,
 .smtcmp-shell[data-skin='cmds-dark']
   .smtcmp-user-message-bubble__edit:focus-visible {
-  color: #dfff8e;
-  background: #b6ff0017;
+  color: var(--interactive-accent-hover);
+  background: color-mix(in srgb, var(--ach-action) 9%, transparent);
 }
 
 .smtcmp-shell .smtcmp-chat-user-input-container {
@@ -3641,18 +3696,18 @@ body:not(.theme-dark)
 
 .smtcmp-shell[data-skin='cmds-dark']
   .smtcmp-chat-user-input-container:focus-within {
-  border-color: #b6ff00;
+  border-color: var(--ach-action);
   box-shadow:
-    0 0 0 1px #b6ff0044,
-    0 0 18px #b6ff0018;
+    0 0 0 1px color-mix(in srgb, var(--ach-action) 27%, transparent),
+    0 0 18px color-mix(in srgb, var(--ach-action) 9%, transparent);
 }
 
 .smtcmp-shell[data-skin='hallym-light']
   .smtcmp-chat-user-input-container:focus-within {
-  border-color: #0066b3;
+  border-color: var(--ach-action);
   box-shadow:
-    0 0 0 2px #0066b31d,
-    0 10px 28px #002e6e12;
+    0 0 0 2px color-mix(in srgb, var(--ach-action) 11%, transparent),
+    0 10px 28px color-mix(in srgb, var(--ach-shadow) 7%, transparent);
 }
 
 .smtcmp-shell .smtcmp-chat-user-input-container > .obsidian-default-textarea {
@@ -3730,7 +3785,7 @@ body:not(.theme-dark)
   border-color: var(--ach-border);
   border-radius: 7px;
   background: var(--ach-surface);
-  box-shadow: 0 14px 36px #00102e2b;
+  box-shadow: 0 14px 36px color-mix(in srgb, var(--ach-shadow) 17%, transparent);
 }
 
 .smtcmp-shell[data-skin='cmds-dark'] .smtcmp-tools-control-popover {
@@ -3905,7 +3960,10 @@ body:not(.theme-dark)
 .smtcmp-shell[data-skin='cmds-dark']
   .smtcmp-chat-container[data-response-phase='waiting']
   .smtcmp-chat-user-input-container::before {
-  filter: drop-shadow(0 0 4px #b6ff0070) drop-shadow(0 0 9px #00b5ad2e);
+  filter: drop-shadow(
+      0 0 4px color-mix(in srgb, var(--ach-action) 44%, transparent)
+    )
+    drop-shadow(0 0 9px #00b5ad2e);
 }
 
 @keyframes smtcmp-composer-border-orbit {
@@ -4024,7 +4082,7 @@ body:not(.theme-dark)
   --smtcmp-response-pending-surface: color-mix(
     in srgb,
     var(--ach-surface) 82%,
-    #c3dbef 18%
+    var(--ach-selected) 18%
   );
   position: relative;
   display: grid;
@@ -4036,7 +4094,7 @@ body:not(.theme-dark)
   border: 1px solid var(--ach-border);
   border-radius: 17px 17px 17px 5px;
   background: var(--smtcmp-response-pending-surface);
-  box-shadow: 0 5px 16px #002e6e12;
+  box-shadow: 0 5px 16px color-mix(in srgb, var(--ach-shadow) 7%, transparent);
   isolation: isolate;
   animation: smtcmp-pending-arrive 160ms ease-out;
 }
@@ -4097,15 +4155,22 @@ body:not(.theme-dark)
 }
 
 .smtcmp-shell[data-skin='cmds-dark'] .smtcmp-response-pending {
-  --smtcmp-response-pending-surface: #121512;
-  border-color: #333d2d;
+  --smtcmp-response-pending-surface: color-mix(
+    in srgb,
+    var(--ach-action) 6%,
+    var(--ach-surface)
+  );
+  border-color: color-mix(in srgb, var(--ach-action) 22%, var(--ach-border));
   border-radius: 5px 14px 14px 5px;
   background: var(--smtcmp-response-pending-surface);
   box-shadow: 0 8px 22px #00000070;
 }
 
 .smtcmp-shell[data-skin='cmds-dark'] .smtcmp-response-pending::before {
-  filter: drop-shadow(0 0 4px #b6ff0061) drop-shadow(0 0 8px #00b5ad29);
+  filter: drop-shadow(
+      0 0 4px color-mix(in srgb, var(--ach-action) 38%, transparent)
+    )
+    drop-shadow(0 0 8px #00b5ad29);
 }
 
 @keyframes smtcmp-pending-arrive {
@@ -4155,7 +4220,7 @@ body:not(.theme-dark)
   overflow: hidden;
   border-color: var(--ach-border);
   background: var(--smtcmp-queue-toggle-surface);
-  box-shadow: 0 4px 14px #002e6e12;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--ach-shadow) 7%, transparent);
   font-size: 11px;
   isolation: isolate;
   text-align: left;
@@ -4256,7 +4321,7 @@ body:not(.theme-dark)
   border: 1px solid var(--ach-border);
   border-radius: 6px;
   background: var(--ach-canvas);
-  box-shadow: 0 18px 44px #002e6e2b;
+  box-shadow: 0 18px 44px color-mix(in srgb, var(--ach-shadow) 17%, transparent);
 }
 
 .smtcmp-image-queue-panel__toolbar {
@@ -4285,11 +4350,15 @@ body:not(.theme-dark)
 }
 
 .smtcmp-shell[data-skin='cmds-dark'] .smtcmp-image-queue-panel__toggle {
-  --smtcmp-queue-toggle-surface: #111610;
-  border-color: #354029;
+  --smtcmp-queue-toggle-surface: color-mix(
+    in srgb,
+    var(--ach-action) 5%,
+    var(--ach-surface)
+  );
+  border-color: color-mix(in srgb, var(--ach-action) 25%, var(--ach-border));
   background: var(--smtcmp-queue-toggle-surface);
   box-shadow:
-    inset 2px 0 0 #b6ff00,
+    inset 2px 0 0 var(--ach-action),
     0 8px 20px #00000080;
 }
 
@@ -4308,11 +4377,14 @@ body:not(.theme-dark)
     [data-task-status='running'],
     [data-task-status='queued']
   )::before {
-  filter: drop-shadow(0 0 4px #b6ff0061) drop-shadow(0 0 8px #00b5ad29);
+  filter: drop-shadow(
+      0 0 4px color-mix(in srgb, var(--ach-action) 38%, transparent)
+    )
+    drop-shadow(0 0 8px #00b5ad29);
 }
 
 .smtcmp-shell[data-skin='cmds-dark'] .smtcmp-image-queue-panel__body {
-  border-color: #354029;
+  border-color: color-mix(in srgb, var(--ach-action) 25%, var(--ach-border));
   box-shadow: 0 18px 44px #000000cc;
 }
 
@@ -4463,18 +4535,22 @@ body:not(.theme-dark)
   padding: 9px 11px;
   border: 1px solid var(--ach-border);
   border-radius: 17px 17px 17px 5px;
-  background: color-mix(in srgb, var(--ach-surface) 82%, #c3dbef 18%);
-  box-shadow: 0 5px 16px #002e6e12;
+  background: color-mix(
+    in srgb,
+    var(--ach-surface) 82%,
+    var(--ach-selected) 18%
+  );
+  box-shadow: 0 5px 16px color-mix(in srgb, var(--ach-shadow) 7%, transparent);
   font-size: 13px;
   line-height: 1.5;
 }
 
 .smtcmp-shell[data-skin='cmds-dark'] .smtcmp-chat-messages-assistant {
-  border-color: #333d2d;
+  border-color: color-mix(in srgb, var(--ach-action) 22%, var(--ach-border));
   border-radius: 5px 14px 14px 5px;
-  background: #121512;
+  background: color-mix(in srgb, var(--ach-action) 6%, var(--ach-surface));
   box-shadow:
-    inset 2px 0 0 #b6ff00,
+    inset 2px 0 0 var(--ach-action),
     0 8px 22px #00000070;
 }
 
@@ -4988,4 +5064,27 @@ body:not(.theme-dark)
   .smtcmp-document-review-comparison {
     grid-template-columns: 1fr;
   }
+}
+
+/*
+ * R-030 UX: the composer control row used to force the model name, the effort
+ * picker, and five icon buttons onto one line, so a narrow chat pane crushed
+ * the model name down to "gpt-...". Let the row wrap: the model name keeps
+ * the first line and the buttons drop below it when there is no room.
+ */
+.smtcmp-shell .smtcmp-chat-user-input-controls {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+
+.smtcmp-shell .smtcmp-chat-user-input-controls__model-select-container {
+  flex: 1 1 180px;
+}
+
+.smtcmp-shell .smtcmp-chat-user-input-controls__buttons {
+  margin-left: auto;
+}
+
+.smtcmp-shell button.smtcmp-chat-input-model-select {
+  max-width: 240px !important;
 }

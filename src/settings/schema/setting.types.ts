@@ -105,17 +105,17 @@ export const smartComposerSettingsSchema = z.object({
   appearance: z
     .object({
       /**
-       * `studio-console` keeps the owned dual skin approved in R-005
-       * (Hallym Conversation Studio / CMDS AI Operator Console).
-       * `follow-obsidian` derives the shell tokens from the active Obsidian
-       * theme instead. See R-030.
+       * `follow-obsidian` (default) derives the chat shell colors from the
+       * user's active Obsidian theme. `studio-console` opts into the owned
+       * dual skin from R-005 (Hallym Conversation Studio in light mode,
+       * CMDS AI Operator Console in dark mode). See R-030.
        */
       skinMode: z
-        .enum(['studio-console', 'follow-obsidian'])
-        .catch('studio-console'),
+        .enum(['follow-obsidian', 'studio-console'])
+        .catch('follow-obsidian'),
     })
     .catch({
-      skinMode: 'studio-console',
+      skinMode: 'follow-obsidian',
     }),
 
   // System Prompt

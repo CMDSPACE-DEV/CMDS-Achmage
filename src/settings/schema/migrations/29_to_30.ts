@@ -3,16 +3,13 @@ import { SettingMigration } from '../setting.types'
 /**
  * `appearance.skinMode` was introduced in 19_to_20 as a single-value literal
  * (`'follow-obsidian'`) that no renderer ever read: the chat shell always
- * picked the owned dual skin from the `theme-dark` body class. The field is
- * now a real choice, so the stored literal has to be remapped to the mode that
- * users actually saw.
+ * picked the owned dual skin from the `theme-dark` body class. As of 30 the
+ * field is a real choice and the renderer honors it, so the stored literal is
+ * kept verbatim: every upgraded vault starts following its own theme, which is
+ * what the settings file has claimed all along and is the product decision
+ * recorded in R-030. The owned dual skin stays available as an opt-in.
  *
- * Every existing vault was rendering the owned skin regardless of the stored
- * value, so the behavior-preserving migration is `'follow-obsidian'` ->
- * `'studio-console'`. Opting into theme following stays an explicit user
- * action rather than something an upgrade silently turns on.
- *
- * The same migration also upserts the Fable and Astra catalog entries. Adding
+ * This migration upserts the Fable and Astra catalog entries. Adding
  * them to DEFAULT_CHAT_MODELS only affects fresh installs: an existing vault
  * keeps its own stored `chatModels` array, so new models are invisible there
  * unless a migration inserts them. This mirrors `27_to_28`.
@@ -63,7 +60,10 @@ export const migrateFrom29To30: SettingMigration['migrate'] = (data) => {
     ...data,
     appearance: {
       ...appearance,
-      skinMode: 'studio-console',
+      skinMode:
+        appearance.skinMode === 'studio-console'
+          ? 'studio-console'
+          : 'follow-obsidian',
     },
     chatModels: Array.isArray(data.chatModels)
       ? insertMissingModels(data.chatModels)
