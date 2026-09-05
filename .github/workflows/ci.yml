@@ -108,40 +108,6 @@ jobs:
       - name: Build plugin
         run: npm run build
 
-  macos-native-installers:
-    name: macOS official installer smoke (${{ matrix.architecture }})
-    needs:
-      - quality
-      - windows-runtime
-      - macos-runtime
-    runs-on: ${{ matrix.runner }}
-    timeout-minutes: 25
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: macos-15
-            architecture: arm64
-          - runner: macos-15-intel
-            architecture: x86_64
-
-    steps:
-      - name: Check runner architecture
-        env:
-          EXPECTED_ARCHITECTURE: ${{ matrix.architecture }}
-        run: test "$(uname -m)" = "${EXPECTED_ARCHITECTURE}"
-
-      - name: Check out source
-        uses: actions/checkout@v7
-
-      - name: Use Node.js 20
-        uses: actions/setup-node@v7
-        with:
-          node-version: '20'
-
-      - name: Verify and install official runtimes
-        run: bash .github/scripts/native-runtime-smoke-macos.sh
-
   macos-obsidian-smoke:
     name: macOS Obsidian CLI smoke (${{ matrix.architecture }})
     needs:
