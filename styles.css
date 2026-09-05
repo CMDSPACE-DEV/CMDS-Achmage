@@ -3232,6 +3232,31 @@ button.smtcmp-research-source-main:focus-visible {
   font-family: inherit;
 }
 
+/*
+ * Both owned skins define their own focus ring; the base shell defines none,
+ * so the theme-following skin has to supply one or focused inputs lose their
+ * outline entirely. Derived from the theme accent rather than a fixed color.
+ */
+.smtcmp-shell[data-skin='obsidian']
+  .smtcmp-chat-user-input-container:focus-within {
+  border-color: var(--ach-action);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ach-action) 18%, transparent);
+}
+
+/*
+ * The persona badge is hidden by the base shell and revealed per skin, so a
+ * skin that defines neither rule silently drops it. Follow the real theme
+ * here: COWORK in light, OPERATOR in dark.
+ */
+body.theme-dark
+  .smtcmp-shell[data-skin='obsidian']
+  .smtcmp-chat-header-title__role--operator,
+body:not(.theme-dark)
+  .smtcmp-shell[data-skin='obsidian']
+  .smtcmp-chat-header-title__role--cowork {
+  display: inline;
+}
+
 .smtcmp-shell[data-skin='hallym-light'] {
   --ach-canvas: #f7f9fc;
   --ach-surface: #ffffff;

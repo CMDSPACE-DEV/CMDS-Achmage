@@ -11,7 +11,48 @@ import { SettingMigration } from '../setting.types'
  * value, so the behavior-preserving migration is `'follow-obsidian'` ->
  * `'studio-console'`. Opting into theme following stays an explicit user
  * action rather than something an upgrade silently turns on.
+ *
+ * The same migration also upserts the Fable and Astra catalog entries. Adding
+ * them to DEFAULT_CHAT_MODELS only affects fresh installs: an existing vault
+ * keeps its own stored `chatModels` array, so new models are invisible there
+ * unless a migration inserts them. This mirrors `27_to_28`.
  */
+const NEW_CHAT_MODELS: Record<string, unknown>[] = [
+  {
+    providerType: 'anthropic-plan',
+    providerId: 'anthropic-plan',
+    id: 'claude-fable-latest (plan)',
+    model: 'fable',
+    thinking: {
+      enabled: true,
+      mode: 'adaptive',
+      effort: 'high',
+      display: 'summarized',
+    },
+  },
+  {
+    providerType: 'openai-plan',
+    providerId: 'openai-plan',
+    id: 'gpt-6-astra (plan)',
+    model: 'gpt-6-astra',
+    // The installed Codex CLI rejects this model until it is upgraded, so it
+    // ships disabled like `claude-sonnet-5 (plan)`. See R-030.
+    enable: false,
+  },
+  {
+    providerType: 'anthropic',
+    providerId: 'anthropic',
+    id: 'claude-fable-5.1',
+    model: 'claude-fable-5-1',
+  },
+  {
+    providerType: 'openai',
+    providerId: 'openai',
+    id: 'gpt-6-astra',
+    model: 'gpt-6-astra',
+  },
+]
+
 export const migrateFrom29To30: SettingMigration['migrate'] = (data) => {
   const appearance =
     typeof data.appearance === 'object' && data.appearance !== null
@@ -24,6 +65,30 @@ export const migrateFrom29To30: SettingMigration['migrate'] = (data) => {
       ...appearance,
       skinMode: 'studio-console',
     },
+    chatModels: Array.isArray(data.chatModels)
+      ? insertMissingModels(data.chatModels)
+      : data.chatModels,
     version: 30,
   }
+}
+
+/**
+ * Insert-if-absent rather than merge: a user who already added one of these
+ * ids by hand, or who disabled it, keeps their own entry untouched.
+ */
+function insertMissingModels(values: unknown[]): unknown[] {
+  const existingIds = new Set(
+    values
+      .filter(isRecord)
+      .map((value) => value.id)
+      .filter((id): id is string => typeof id === 'string'),
+  )
+  const additions = NEW_CHAT_MODELS.filter(
+    (model) => !existingIds.has(model.id as string),
+  )
+  return additions.length === 0 ? values : [...additions, ...values]
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
