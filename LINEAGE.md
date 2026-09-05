@@ -8,7 +8,6 @@ CMDS Achmage는 새로 시작한 플러그인이 아니라, 이어받아 온 코
 |---|---|---|---|---|
 | 원본 | `smart-composer` | Smart Composer | Heesu Suh | [glowingjade/obsidian-smart-composer](https://github.com/glowingjade/obsidian-smart-composer) |
 | 안창현 교수 포크 | `smart-composer` | Smart Composer (릴리스 제목 `Smart_composer_Achmage`) | Heesu Suh (원본 유지) | laguna821/obsidian_smart_composer_Achmage |
-| 조직 이관(과도기) | `knowledge-base-agent` | Smart Composer | Heesu Suh (원본 유지) | CMDSPACE-DEV (구 `knowledge-base-agent`) |
 | **리브랜딩(현재)** | **`cmds-achmage`** | **CMDS Achmage** | **CMDSPACE-DEV** | [CMDSPACE-DEV/CMDS-Achmage](https://github.com/CMDSPACE-DEV/CMDS-Achmage) |
 
 ## 버전의 변천
