@@ -75,7 +75,7 @@ CMDS Achmage도 남의 배에서 출발했습니다. 잘 만들어진 옵시디�
 
 ## 출처
 
-이 플러그인은 옵시디언 커뮤니티 플러그인 [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer)를 포크한 것에서 시작되었습니다.
+이 플러그인은 옵시디언 커뮤니티 플러그인 [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer)를 포크한 것에서 시작되었습니다. 이어받아 온 이름과 버전의 변천은 [LINEAGE.md](LINEAGE.md)에 기록해 두었습니다.
 
 ## 라이선스
 
