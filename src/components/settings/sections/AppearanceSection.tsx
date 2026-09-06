@@ -16,7 +16,7 @@ export function AppearanceSection() {
 
       <ObsidianSetting
         name="Chat skin"
-        desc="By default the chat pane derives its colors from your active Obsidian theme. Operator Console / Conversation Studio switches to the plugin's own skins instead (CMDS-styled in dark mode, Hallym-styled in light mode). Spacing and type scale stay fixed; adjust those with the Style Settings plugin."
+        desc="Applies to the Chat pane and the Inline edit panel. By default both derive their colors from your active Obsidian theme. Operator Console / Conversation Studio switches to the plugin's own skins instead (CMDS-styled in dark mode, Hallym-styled in light mode). Spacing and type scale stay fixed; adjust those with the Style Settings plugin."
       >
         <ObsidianDropdown
           value={settings.appearance?.skinMode ?? 'follow-obsidian'}
