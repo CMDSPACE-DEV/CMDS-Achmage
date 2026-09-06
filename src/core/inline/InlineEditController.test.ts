@@ -351,13 +351,17 @@ describe('inline edit response helpers', () => {
     ).toBe(false)
   })
 
-  it('maps the owning Obsidian document theme to the matching inline skin', () => {
-    expect(
-      resolveInlineSkin({
-        contains: (className) => className === 'theme-dark',
-      }),
-    ).toBe('cmds-dark')
-    expect(resolveInlineSkin({ contains: () => false })).toBe('hallym-light')
+  it('follows the Obsidian theme unless the body mirrors an owned-skin opt-in', () => {
+    const body = (dark: boolean, mode: string | null) => ({
+      classList: { contains: (c: string) => dark && c === 'theme-dark' },
+      getAttribute: () => mode,
+    })
+    expect(resolveInlineSkin(body(true, null))).toBe('obsidian')
+    expect(resolveInlineSkin(body(false, 'follow-obsidian'))).toBe('obsidian')
+    expect(resolveInlineSkin(body(true, 'studio-console'))).toBe('cmds-dark')
+    expect(resolveInlineSkin(body(false, 'studio-console'))).toBe(
+      'hallym-light',
+    )
   })
 
   it('warns about changed reference snapshots without changing target safety', () => {

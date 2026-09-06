@@ -60,10 +60,7 @@ pre-existing `skinMode` field?
 
 ### Out of scope
 
-- The inline edit Shadow DOM skin (`InlineEditController`,
-  `resolveInlineSkin`). It carries its own hardcoded CSS strings and R-005
-  section 14.6 treats it as a separate isolation surface. Deferred.
-- Any change to R-005's default appearance.
+- Any change to the structure of R-005's owned skins.
 
 ## Baseline And Reproducibility
 
@@ -193,6 +190,14 @@ a sane default when omitted; "base hides it, skin shows it" fails silently.
     absent so a user's own entry or `enable` choice is never overwritten.
 12. The theme-following skin supplies its own focus ring and persona-badge
     rules, derived from theme variables and the real `theme-dark` state.
+13. The inline edit widget (Shadow DOM, `InlineEditController`) uses the same
+    three skins. It has no settings handle, so the plugin mirrors the skin
+    mode onto `<body>` as `data-ach-skin-mode` on load, on every settings
+    change, and clears it on unload; the widget's existing MutationObserver
+    watches that attribute alongside `theme-dark`. Custom properties inherit
+    across the shadow boundary, so theme variables and the Style Settings
+    `--ach-ss-*` overrides reach the widget without extra plumbing. The
+    widget's 6 hardcoded palette values are tokenized the same way.
 
 ## Expected Change Surface
 
@@ -216,7 +221,6 @@ a sane default when omitted; "base hides it, skin shows it" fails silently.
 
 - End-to-end `gpt-6-astra (plan)` remains unverified until the Codex CLI is
   upgraded. The catalog entry is disabled until then.
-- Inline edit Shadow DOM skin still ignores the new preference.
 - The two pre-existing `McpOAuthProvider` test failures are unrelated to this
   work and are tracked separately.
 
@@ -234,3 +238,7 @@ new setting is a local enum. No research artifact records account identifiers.
   report now supersedes the R-005 section 18.1 default. Palette tokenized,
   owned dark accent moved to CMDS Pink, link/heading/bold leak pinned in owned
   skins, composer controls wrap.
+- 2026-09-06: Inline edit widget brought under the same skin system via a
+  `<body>` data attribute mirror; no plugin-owned surface is left on the old
+  hardcoded palette (review/jobs modals are native Obsidian `Modal`s and were
+  already theme-native).

@@ -19,6 +19,12 @@ import type {
   ResearchEvidence,
   ResearchSourceId,
 } from '../../types/research.types'
+import {
+  type ChatSkin,
+  SKIN_MODE_BODY_ATTR,
+  readSkinModeFromBody,
+  resolveChatSkin,
+} from '../../utils/chat/chatSkin'
 import { getNestedFiles } from '../../utils/obsidian'
 import { analyzeDocumentEdit } from '../document-edit/analysis'
 import { createDocumentEditJob } from '../document-edit/createDocumentEditJob'
@@ -191,7 +197,7 @@ class InlineEditWidget extends WidgetType {
     const host = doc.createElement('div')
     host.className = 'smtcmp-inline-host'
     const applySkin = () => {
-      host.dataset.skin = resolveInlineSkin(doc.body.classList)
+      host.dataset.skin = resolveInlineSkin(doc.body)
     }
     applySkin()
     const MutationObserverConstructor = doc.defaultView?.MutationObserver
@@ -199,7 +205,7 @@ class InlineEditWidget extends WidgetType {
       this.themeObserver = new MutationObserverConstructor(applySkin)
       this.themeObserver.observe(doc.body, {
         attributes: true,
-        attributeFilter: ['class'],
+        attributeFilter: ['class', SKIN_MODE_BODY_ATTR],
       })
     }
     const shadow = host.attachShadow({ mode: 'open' })
@@ -2609,16 +2615,60 @@ function makeThinkingDots(doc: Document): HTMLElement {
   return dots
 }
 
-export type InlineSkin = 'hallym-light' | 'cmds-dark'
+export type InlineSkin = ChatSkin
 
-export function resolveInlineSkin(classList: {
-  contains: (className: string) => boolean
+/**
+ * Same resolution as the chat pane. The skin mode is read from the
+ * `data-ach-skin-mode` attribute the plugin mirrors onto <body>, so this widget
+ * needs no settings handle and updates live via the body MutationObserver.
+ */
+export function resolveInlineSkin(body: {
+  classList: { contains: (className: string) => boolean }
+  getAttribute: (name: string) => string | null
 }): InlineSkin {
-  return classList.contains('theme-dark') ? 'cmds-dark' : 'hallym-light'
+  return resolveChatSkin(
+    readSkinModeFromBody(body),
+    body.classList.contains('theme-dark'),
+  )
 }
 
 const INLINE_STYLE = `
+/*
+ * Default (:host with no owned skin) follows the user's Obsidian theme. Custom
+ * properties inherit across the shadow boundary, so theme variables and the
+ * Style Settings --ach-ss-* overrides set on <body> are readable here.
+ * Spacing and the 13px type scale stay owned so a theme cannot break layout.
+ */
 :host{
+  --ach-canvas:var(--background-secondary);
+  --ach-surface:var(--background-primary);
+  --ach-surface-raised:var(--background-secondary-alt,var(--background-secondary));
+  --ach-border:var(--background-modifier-border);
+  --ach-text:var(--text-normal);
+  --ach-muted:var(--text-muted);
+  --ach-heading:var(--text-normal);
+  --ach-action:var(--ach-ss-accent,var(--interactive-accent));
+  --ach-action-hover:var(--interactive-accent-hover,var(--ach-action));
+  --ach-on-action:var(--text-on-accent);
+  --ach-shadow:var(--text-normal);
+  --ach-motion:var(--interactive-accent-hover,var(--ach-action));
+  --ach-danger:var(--text-error);
+  --ach-before:color-mix(in srgb,var(--color-red) 12%,var(--background-primary));
+  --ach-before-border:color-mix(in srgb,var(--color-red) 35%,var(--background-modifier-border));
+  --ach-before-text:var(--color-red);
+  --ach-after:color-mix(in srgb,var(--color-green) 12%,var(--background-primary));
+  --ach-after-border:color-mix(in srgb,var(--color-green) 35%,var(--background-modifier-border));
+  --ach-after-text:var(--color-green);
+  --ach-radius:var(--ach-ss-radius-m,7px);
+  display:block;
+  min-width:0;
+  color:var(--ach-text);
+  color-scheme:normal;
+  font:13px/1.5 var(--font-interface,ui-sans-serif,system-ui,sans-serif);
+  letter-spacing:0;
+}
+/* Hallym Conversation Studio: the partner's light skin (R-005), opt-in. */
+:host([data-skin="hallym-light"]){
   --ach-canvas:#f7f9fc;
   --ach-surface:#ffffff;
   --ach-surface-raised:#f0f5fa;
@@ -2626,8 +2676,10 @@ const INLINE_STYLE = `
   --ach-text:#00102e;
   --ach-muted:#526174;
   --ach-heading:#002e6e;
-  --ach-action:#0066b3;
-  --ach-action-hover:#00528f;
+  --ach-action:var(--ach-ss-accent,#0066b3);
+  --ach-action-hover:color-mix(in srgb,var(--ach-action) 82%,#000000);
+  --ach-on-action:#ffffff;
+  --ach-shadow:#002e6e;
   --ach-motion:#00b5ad;
   --ach-danger:#a52834;
   --ach-before:#fff5f6;
@@ -2636,13 +2688,10 @@ const INLINE_STYLE = `
   --ach-after:#effaf6;
   --ach-after-border:#cce9dd;
   --ach-after-text:#123f31;
-  display:block;
-  min-width:0;
-  color:var(--ach-text);
   color-scheme:light;
-  font:13px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  letter-spacing:0;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
+/* CMDS AI Operator Console: the owned dark skin (R-005), CMDS Pink, opt-in. */
 :host([data-skin="cmds-dark"]){
   --ach-canvas:#0a0a0a;
   --ach-surface:#141414;
@@ -2650,17 +2699,19 @@ const INLINE_STYLE = `
   --ach-border:#333333;
   --ach-text:#d4d4d4;
   --ach-muted:#888888;
-  --ach-heading:#b6ff00;
-  --ach-action:#b6ff00;
-  --ach-action-hover:#d0ff5b;
+  --ach-action:var(--ach-ss-accent,#e985a2);
+  --ach-heading:var(--ach-action);
+  --ach-action-hover:color-mix(in srgb,var(--ach-action) 80%,#ffffff);
+  --ach-on-action:#0a0a0a;
+  --ach-shadow:#000000;
   --ach-motion:#00b5ad;
   --ach-danger:#ff6675;
   --ach-before:#261516;
   --ach-before-border:#573238;
   --ach-before-text:#f5c5ca;
-  --ach-after:#101a12;
-  --ach-after-border:#40542d;
-  --ach-after-text:#dfffb3;
+  --ach-after:color-mix(in srgb,var(--ach-action) 8%,#0a0a0a);
+  --ach-after-border:color-mix(in srgb,var(--ach-action) 30%,#333333);
+  --ach-after-text:color-mix(in srgb,var(--ach-action) 55%,#ffffff);
   color-scheme:dark;
   font-family:"IBM Plex Sans",Inter,ui-sans-serif,system-ui,sans-serif;
 }
@@ -2672,13 +2723,13 @@ const INLINE_STYLE = `
   padding:12px;
   overflow:hidden;
   border:1px solid var(--ach-border);
-  border-radius:7px;
+  border-radius:var(--ach-radius);
   background:var(--ach-surface);
-  box-shadow:0 8px 24px rgba(0,46,110,.09);
+  box-shadow:0 8px 24px color-mix(in srgb,var(--ach-shadow) 9%,transparent);
 }
 :host([data-skin="cmds-dark"]) .panel{
   border-radius:5px 14px 5px 14px;
-  box-shadow:inset 2px 0 0 #b6ff00,0 10px 28px rgba(0,0,0,.6);
+  box-shadow:inset 2px 0 0 var(--ach-action),0 10px 28px rgba(0,0,0,.6);
 }
 .panel[data-status="loading"],
 .panel[data-status="document-task"][data-task-status="running"],
@@ -2723,7 +2774,7 @@ const INLINE_STYLE = `
   box-shadow:0 10px 28px rgba(0,0,0,.6);
 }
 :host([data-skin="cmds-dark"]) .panel[data-status="loading"]::before{
-  filter:drop-shadow(0 0 4px rgba(182,255,0,.38)) drop-shadow(0 0 8px rgba(0,181,173,.16));
+  filter:drop-shadow(0 0 4px color-mix(in srgb,var(--ach-action) 38%,transparent)) drop-shadow(0 0 8px rgba(0,181,173,.16));
 }
 header{
   display:flex;
@@ -2895,7 +2946,7 @@ button.reference-option[data-active="true"]{
   box-shadow:0 0 0 2px color-mix(in srgb,var(--ach-action) 18%,transparent);
 }
 :host([data-skin="cmds-dark"]) .prompt-surface:focus-within{
-  box-shadow:0 0 0 1px rgba(182,255,0,.27),0 0 18px rgba(182,255,0,.1);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--ach-action) 27%,transparent),0 0 18px color-mix(in srgb,var(--ach-action) 10%,transparent);
 }
 .mode-row{
   display:flex;
@@ -2928,9 +2979,8 @@ button.mode-option{
 button.mode-option:first-child{border-left:0}
 button.mode-option[data-active="true"]{
   background:var(--ach-action);
-  color:#fff;
+  color:var(--ach-on-action);
 }
-:host([data-skin="cmds-dark"]) button.mode-option[data-active="true"]{color:#0a0a0a}
 .actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:10px}
 button{
   display:inline-flex;
@@ -2957,10 +3007,9 @@ button:focus-visible{box-shadow:0 0 0 2px color-mix(in srgb,var(--ach-action) 24
 button.primary{
   border-color:var(--ach-action);
   background:var(--ach-action);
-  color:#fff;
+  color:var(--ach-on-action);
 }
-button.primary:hover,button.primary:focus-visible{border-color:var(--ach-action-hover);background:var(--ach-action-hover);color:#fff}
-:host([data-skin="cmds-dark"]) button.primary{color:#0a0a0a}
+button.primary:hover,button.primary:focus-visible{border-color:var(--ach-action-hover);background:var(--ach-action-hover);color:var(--ach-on-action)}
 kbd{
   padding:1px 4px;
   border:1px solid currentColor;
