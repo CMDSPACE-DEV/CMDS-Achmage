@@ -221,7 +221,7 @@ export async function startMcpOAuthCallbackSession(
     throw new Error('MCP OAuth is not supported on mobile.')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-var-requires -- Node http is loaded lazily on desktop only (guarded above)
   const http = require('http') as typeof import('http')
   const path = '/mcp-oauth/callback'
   let server: Server | null = null

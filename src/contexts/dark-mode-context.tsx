@@ -27,7 +27,7 @@ export function DarkModeProvider({ children }: { children: ReactNode }) {
     handleDarkMode()
     app.workspace.on('css-change', handleDarkMode)
     return () => app.workspace.off('css-change', handleDarkMode)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount; app and handler are stable
   }, [])
 
   return (

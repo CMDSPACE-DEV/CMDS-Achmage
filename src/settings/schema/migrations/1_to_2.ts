@@ -3,12 +3,26 @@ import { z } from 'zod'
 import { SettingMigration } from '../setting.types'
 
 // Migration-local types (frozen at v2 state to avoid breaking changes when main types change)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type V2LLMProvider = any
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type V2ChatModel = any
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type V2EmbeddingModel = any
+type V2LLMProvider = {
+  type: string
+  id: string
+  baseUrl?: string
+  apiKey?: string
+}
+type V2ChatModel = {
+  providerType: string
+  providerId: string
+  id: string
+  model: string
+  streamingDisabled?: boolean
+}
+type V2EmbeddingModel = {
+  providerType: string
+  providerId: string
+  id: string
+  model: string
+  dimension?: number
+}
 
 type NativeLLMModel = {
   provider: 'openai' | 'anthropic' | 'gemini' | 'groq'

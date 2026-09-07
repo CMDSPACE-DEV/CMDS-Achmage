@@ -119,7 +119,13 @@ function StableObsidianMarkdown({
   scale = 'sm',
   active = false,
 }: ObsidianMarkdownProps & { active?: boolean }) {
-  const blocks = content.split(/(?<=\n\n)/)
+  // Split into blocks while keeping each trailing "\n\n" attached to its block.
+  // Avoids a lookbehind regex, which is unsupported on iOS < 16.4.
+  const parts = content.split(/(\n\n)/)
+  const blocks: string[] = []
+  for (let i = 0; i < parts.length; i += 2) {
+    blocks.push((parts[i] ?? '') + (parts[i + 1] ?? ''))
+  }
   return (
     <div className="smtcmp-streaming-markdown">
       {blocks.map((block, index) => (

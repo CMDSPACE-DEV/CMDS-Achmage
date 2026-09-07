@@ -1,10 +1,10 @@
 {
   "id": "cmds-achmage",
   "name": "CMDS Achmage",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "1.11.4",
   "description": "Isolated AI chat, Plan image generation, parallel inline and document-scale editing, and secure MCP connections.",
   "author": "CMDSPACE-DEV",
   "authorUrl": "https://github.com/CMDSPACE-DEV",
-  "isDesktopOnly": false
+  "isDesktopOnly": true
 }

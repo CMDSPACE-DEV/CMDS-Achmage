@@ -1,4 +1,4 @@
-import { App, PluginSettingTab } from 'obsidian'
+import { App, PluginSettingTab, Setting } from 'obsidian'
 
 import type SmartComposerPlugin from '../main'
 
@@ -64,9 +64,11 @@ export class SmartComposerSettingTab extends PluginSettingTab {
     const wrapper = this.containerEl.createDiv({
       cls: 'smtcmp-settings-load-error',
     })
-    wrapper.createEl('h2', { text: 'Smart Composer settings could not load' })
+    new Setting(wrapper)
+      .setName('CMDS Achmage settings could not load')
+      .setHeading()
     wrapper.createEl('p', {
-      text: 'Disable and re-enable Smart Composer, then open Settings again. Your saved settings have not been deleted.',
+      text: 'Disable and re-enable CMDS Achmage, then open Settings again. Your saved settings have not been deleted.',
     })
     const details = wrapper.createEl('details')
     details.createEl('summary', { text: 'Technical details' })

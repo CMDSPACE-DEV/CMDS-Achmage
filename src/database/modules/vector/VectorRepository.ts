@@ -165,7 +165,7 @@ export class VectorRepository {
     const similaritySearchResults = await this.db
       .select({
         ...(() => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured to drop the embedding column from the selection
           const { embedding, ...rest } = getTableColumns(embeddingTable)
           return rest
         })(),

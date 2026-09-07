@@ -169,9 +169,9 @@ async function nodePost(
     throw new Error('HTTP transport is not available on mobile')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-var-requires -- Node http is loaded lazily on desktop only (guarded above)
   const http = require('http') as typeof import('http')
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-var-requires -- Node https is loaded lazily on desktop only (guarded above)
   const https = require('https') as typeof import('https')
   const url = new URL(endpoint)
   const client = url.protocol === 'https:' ? https : http

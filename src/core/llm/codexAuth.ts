@@ -112,7 +112,7 @@ export async function startCodexCallbackServer(params: {
 
   await stopCodexCallbackServer()
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-var-requires -- Node http is loaded lazily on desktop only
   const http = require('http') as typeof import('http')
 
   return new Promise((resolve, reject) => {

@@ -201,7 +201,8 @@ async function writeDraft(
   } catch (error) {
     const current = app.vault.getFileByPath(path)
     if (snapshot !== null && current) await app.vault.modify(current, snapshot)
-    else if (snapshot === null && current) await app.vault.delete(current)
+    else if (snapshot === null && current)
+      await app.fileManager.trashFile(current)
     throw error
   }
   return createArtifactRecord(taskId, draft.kind, path)
@@ -527,7 +528,7 @@ async function writeWithExcalidrawAutomate(
   )
   if (createdPath !== path) {
     const unintended = app.vault.getFileByPath(createdPath)
-    if (unintended) await app.vault.delete(unintended)
+    if (unintended) await app.fileManager.trashFile(unintended)
     throw new Error(
       `Excalidraw created an unexpected path (${createdPath}); the file was removed.`,
     )

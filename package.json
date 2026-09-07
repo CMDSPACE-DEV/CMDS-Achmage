@@ -1,6 +1,6 @@
 {
   "name": "cmds-achmage",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Isolated AI chat, Plan image generation, parallel inline and document-scale editing, and secure MCP connections.",
   "main": "main.js",
   "scripts": {
