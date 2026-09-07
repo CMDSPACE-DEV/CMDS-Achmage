@@ -113,7 +113,7 @@ export default class SmartComposerPlugin extends Plugin {
     this.registerView(CHAT_VIEW_TYPE, (leaf) => new ChatView(leaf, this))
 
     // This creates an icon in the left ribbon.
-    this.addRibbonIcon('wand-sparkles', 'Open smart composer', () =>
+    this.addRibbonIcon('wand-sparkles', 'Open CMDS Achmage chat', () =>
       this.openChatView(),
     )
 

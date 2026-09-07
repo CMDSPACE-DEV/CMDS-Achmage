@@ -39,7 +39,7 @@ export class EmbeddingDbManageModal extends ReactModal<EmbeddingDbManagerModalCo
         title: 'Manage Embedding Database',
       },
     })
-    this.modalEl.style.width = '720px'
+    this.modalEl.setCssStyles({ width: '720px' })
   }
 }
 

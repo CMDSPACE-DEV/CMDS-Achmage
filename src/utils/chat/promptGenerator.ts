@@ -255,7 +255,7 @@ ${message.annotations
       let retrievalMetadata = undefined
 
       useVaultSearch =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- boolean OR is intended so vault search stays enabled when either side is true
         useVaultSearch ||
         message.mentionables.some(
           (m): m is MentionableVault => m.type === 'vault',

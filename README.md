@@ -1,7 +1,121 @@
 # CMDS Achmage
 
+A plugin for using AI agents as real working tools inside Obsidian. It is built by
+CMDSPACE together with Professor Changhyun Ahn.
+
+> **Desktop only.** CMDS Achmage relies on desktop-level capabilities (MCP
+> connections, native runtimes, and shell execution), so it does not run on
+> Obsidian Mobile.
+
+## What it can do
+
+- **Note-grounded AI chat** — mention notes and folders in the chat box to pull
+  them into the conversation. Only the material you are actually discussing is
+  sent, instead of scanning the whole vault.
+- **Folder reading and search (RAG)** — mention a whole folder and it is read in
+  one of three ways (automatic, focused, or exhaustive) depending on the
+  situation. Embedding search and rerank search are combined, and **folder
+  mentions work even without an embedding API key.**
+- **Inline editing** — select just the part of a note you want to change and edit
+  it in place, without rewriting the whole document.
+- **Document-scale editing** — an editing mode that works over a long document as a
+  whole, for when several places need to change at once.
+- **Image generation** — create images inside the conversation and drop them
+  straight into a note.
+- **Plan connections** — an experimental feature that borrows the authentication
+  of subscription accounts (Claude Pro/Max, Gemini, GPT-family) so you can use them
+  without an API key, with a per-model reasoning-effort setting you can switch right
+  from the chat input.
+- **Research — built-in MCP tools** — the plugin calls academic and public
+  databases directly. See below.
+- **MCP tool connections** — beyond the built-in tools, connect your own external
+  MCP servers. Only reviewed tools are exposed.
+- **Background tasks** — push long-running work to the background and keep working.
+
+## Built-in MCP research tools
+
+The research feature is **a bundle of official databases connected over MCP**.
+Rather than scraping the web, it calls each institution's official API, so it
+returns metadata with a clear source. Turn on only what you need and provide each
+service's own API key; keys are stored separately.
+
+- **International academic**: Web of Science Starter, Crossref + Retraction Watch,
+  OpenAlex, PubMed, Europe PMC
+- **Korean academic**: KCI, ScienceON, RISS Linked Data
+- **Korean public / legal**: Korean Law MCP, OpenDART, NTIS, KOSIS MCP
+- **News / web**: NAVER API HUB Search
+
+## Installation
+
+### Community plugins
+
+In Obsidian, go to **Settings → Community plugins → Browse**, search for
+`CMDS Achmage`, install it, and enable it.
+
+### Manual installation
+
+Download `main.js`, `manifest.json`, and `styles.css` from the
+[Releases page](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases), place them
+in your vault's `.obsidian/plugins/cmds-achmage/` folder, and restart Obsidian.
+
+## Usage
+
+1. **Enable the plugin**, then open the chat view with the ribbon icon (wand) or
+   the command **"CMDS Achmage: Open chat"**.
+2. **Add a model**: open **Settings → CMDS Achmage**, add a provider with its API
+   key, or set up Plan mode (see below). Optionally add an embedding model for
+   vector search.
+3. **Chat with your notes**: in the chat input, type `@` to mention a note or
+   folder, write your question, and send. Mentioned files become the context for
+   the answer.
+4. **Add a selection**: with text selected in a note, run
+   **"CMDS Achmage: Add selection to chat"**.
+5. **Inline edit**: select text in a note and run
+   **"CMDS Achmage: Inline edit selection"** to rewrite just that part.
+6. **Index the vault** (for embedding search): run
+   **"CMDS Achmage: Rebuild entire vault index"** once, then
+   **"CMDS Achmage: Update index for modified files"** as your notes change.
+
+All commands are available from the command palette (Ctrl/Cmd-P), prefixed with
+"CMDS Achmage".
+
+## Before using Plan mode
+
+- Plan connections are **an experimental feature that uses subscription
+  authentication and a private backend.** If a provider's policy or backend
+  changes, it may stop without notice, and it will not automatically fall back to
+  another model.
+- Each provider recommends using API authentication with third-party tools. Check
+  your own account's policy and risk guidance before connecting.
+- Back up your plugin folder and `data.json` before updating.
+- Regular models used with an API key keep working independently of this feature.
+
+## Credits
+
+Developed by CMDSPACE ([CMDSPACE-DEV](https://github.com/CMDSPACE-DEV)) together with
+Professor Changhyun Ahn. The collaboration model is described in
+[docs/CMDS-COLLABORATION.md](docs/CMDS-COLLABORATION.md).
+
+## Provenance
+
+This plugin started as a fork of the Obsidian community plugin
+[Smart Composer](https://github.com/glowingjade/obsidian-smart-composer). The
+lineage of the names and versions it inherited is recorded in
+[LINEAGE.md](LINEAGE.md).
+
+## License
+
+MIT
+
+---
+
+# 한국어
+
 옵시디언 안에서 AI 에이전트를 실제 작업 도구로 쓰기 위한 플러그인입니다.
 커맨드스페이스와 안창현 교수가 함께 개발하고 있습니다.
+
+> **데스크톱 전용입니다.** CMDS Achmage는 MCP 연결·네이티브 런타임·셸 실행 등
+> 데스크톱 기능을 사용하므로 옵시디언 모바일에서는 동작하지 않습니다.
 
 ## 테세우스의 배
 
@@ -61,6 +175,17 @@ CMDS Achmage도 남의 배에서 출발했습니다. 잘 만들어진 옵시디�
 
 **수동 설치**
 [릴리스 페이지](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases)에서 `main.js`, `manifest.json`, `styles.css` 세 파일을 받아 볼트의 `.obsidian/plugins/cmds-achmage/` 폴더에 넣고 옵시디언을 다시 시작합니다.
+
+## 사용법
+
+1. 플러그인을 켜고 리본 아이콘(지팡이)이나 **"CMDS Achmage: Open chat"** 커맨드로 채팅 뷰를 엽니다.
+2. **설정 → CMDS Achmage**에서 제공자와 API 키를 추가하거나 Plan 모드를 설정합니다. 벡터 검색을 쓰려면 임베딩 모델도 추가합니다.
+3. 채팅 입력창에서 `@`로 노트·폴더를 멘션하고 질문을 적어 보냅니다. 멘션한 파일이 답변의 맥락이 됩니다.
+4. 노트에서 텍스트를 선택한 뒤 **"CMDS Achmage: Add selection to chat"**으로 선택 영역을 대화에 넣습니다.
+5. 텍스트를 선택하고 **"CMDS Achmage: Inline edit selection"**으로 그 부분만 고쳐 씁니다.
+6. 임베딩 검색을 쓰려면 **"CMDS Achmage: Rebuild entire vault index"**를 한 번 실행하고, 이후 **"CMDS Achmage: Update index for modified files"**로 갱신합니다.
+
+모든 커맨드는 명령 팔레트(Ctrl/Cmd-P)에서 "CMDS Achmage" 접두어로 찾을 수 있습니다.
 
 ## Plan 모드를 쓰기 전에
 

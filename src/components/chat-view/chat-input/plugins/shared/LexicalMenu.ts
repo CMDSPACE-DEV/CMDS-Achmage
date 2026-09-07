@@ -541,8 +541,7 @@ export function useMenuAnchorRef(
         containerDiv.setAttribute('aria-label', 'Typeahead menu')
         containerDiv.setAttribute('id', 'typeahead-menu')
         containerDiv.setAttribute('role', 'listbox')
-        containerDiv.style.display = 'block'
-        containerDiv.style.position = 'absolute'
+        containerDiv.setCssStyles({ display: 'block', position: 'absolute' })
         parent.append(containerDiv)
       }
       anchorElementRef.current = containerDiv

@@ -516,7 +516,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
 
   useEffect(() => {
     setFocusedMessageId(inputMessage.id)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
   }, [])
 
   useEffect(() => {

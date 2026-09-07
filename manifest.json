@@ -6,5 +6,5 @@
   "description": "Isolated AI chat, Plan image generation, parallel inline and document-scale editing, and secure MCP connections.",
   "author": "CMDSPACE-DEV",
   "authorUrl": "https://github.com/CMDSPACE-DEV",
-  "isDesktopOnly": false
+  "isDesktopOnly": true
 }

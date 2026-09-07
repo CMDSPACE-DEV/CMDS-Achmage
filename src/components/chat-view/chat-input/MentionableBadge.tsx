@@ -103,7 +103,7 @@ function FolderBadge({
 }
 
 function VaultBadge({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- mentionable is destructured out of props but unused in this badge
   mentionable,
   onDelete,
   onClick,
