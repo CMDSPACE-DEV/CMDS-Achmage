@@ -64,9 +64,7 @@ export class SmartComposerSettingTab extends PluginSettingTab {
     const wrapper = this.containerEl.createDiv({
       cls: 'smtcmp-settings-load-error',
     })
-    new Setting(wrapper)
-      .setName('CMDS Achmage settings could not load')
-      .setHeading()
+    new Setting(wrapper).setName('Could not load').setHeading()
     wrapper.createEl('p', {
       text: 'Disable and re-enable CMDS Achmage, then open Settings again. Your saved settings have not been deleted.',
     })
