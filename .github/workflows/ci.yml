@@ -47,6 +47,29 @@ jobs:
       - name: Build plugin and enforce bundle budget
         run: npm run build
 
+  obsidian-review:
+    name: Obsidian community review gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: tools/obsidian-review/package-lock.json
+
+      - name: Install review tooling
+        run: npm ci
+        working-directory: tools/obsidian-review
+
+      - name: Run the community-review Error gate
+        run: node tools/obsidian-review/check.mjs
+
   windows-runtime:
     name: Windows 2025 runtime and UI tests
     runs-on: windows-2025
