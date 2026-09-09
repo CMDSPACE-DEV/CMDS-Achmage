@@ -43,3 +43,7 @@ By implementing this shim, we can use PGlite (an ESM module) within our CommonJS
 ## Memory Leak During Plugin Reloading
 
 A memory leak has been identified when reloading the plugin. This may not be critical for end-users who typically don't reload the plugin frequently, but it can become problematic for developers who reload often during the development process. If you experience Obsidian becoming unresponsive or slow after reloading the plugin multiple times, it may be due to this memory leak. We are actively investigating the root cause and working on potential fixes. Any reports or fixes in this area are appreciated.
+
+## Releasing & the Obsidian community review
+
+See [docs/obsidian-community-review.md](docs/obsidian-community-review.md) for how the community review tiers its findings (only the `obsidianmd/*` "Error" tier fails the bot), how to reproduce the reviewer locally before shipping, and the version-bump → tag → publish procedure.
