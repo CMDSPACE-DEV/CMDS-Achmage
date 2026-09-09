@@ -49,6 +49,9 @@ manifest.json
 # Obsidian
 .obsidian
 
+# Isolated Obsidian community-review lint toolchain
+tools/
+
 # Markdown
 *.md
 REFERENCES

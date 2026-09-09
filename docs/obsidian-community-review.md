@@ -48,43 +48,42 @@ follow-ups, not release blockers.
 ## Reproduce the reviewer locally (before every release)
 
 `eslint-plugin-obsidianmd` needs ESLint 9 + flat config, but this repo is pinned to
-ESLint 8. Run the reviewer's ruleset in a throwaway directory so it does not disturb
-the project toolchain:
+ESLint 8. So the gate lives in an isolated, committed toolchain at
+`tools/obsidian-review/` (its own `package.json`, lockfile, and ESLint 9 flat config)
+that never touches the project's ESLint 8 lint. Run it from the **repository root** —
+the same command the CI gate runs:
 
 ```bash
-tmp=$(mktemp -d)
-( cd "$tmp" && npm init -y >/dev/null \
-  && npm i -D --legacy-peer-deps eslint@9 eslint-plugin-obsidianmd \
-       typescript-eslint @eslint/js @eslint/json obsidian )
-
-cat > "$tmp/eslint.config.mjs" <<'EOF'
-import obsidianmd from 'eslint-plugin-obsidianmd'
-import tseslint from 'typescript-eslint'
-
-export default [
-  ...obsidianmd.configs.recommended,
-  {
-    files: ['**/*.ts', '**/*.tsx'],
-    languageOptions: {
-      parser: tseslint.parser,
-      parserOptions: { projectService: true, tsconfigRootDir: process.cwd() },
-    },
-  },
-  { ignores: ['**/*.test.ts', '**/*.test.tsx', '__mocks__/**'] },
-]
-EOF
-
-# Run with the PLUGIN REPO ROOT as the working directory — the plugin reads the
-# plugin name from ./manifest.json to enforce the heading rules.
-cd /path/to/CMDS-Achmage
-"$tmp/node_modules/.bin/eslint" --config "$tmp/eslint.config.mjs" src
+npm --prefix tools/obsidian-review ci   # first time / after tooling changes
+node tools/obsidian-review/check.mjs    # the gate
 ```
 
-Then filter the output for `obsidianmd/*` heading, static-style, and directive rules —
-those approximate the bot's Error tier. **Caveat:** the plugin's own `recommended`
-config uses different severities than the bot (e.g. it reports `no-console` as `error`;
-the bot classifies it as a Warning). So do not treat every local `error` as a blocker —
-cross-check against the tier table above.
+It exits non-zero when a review-failing **Error**-tier finding is present (or when the
+tooling fails to run) and prints nothing when clean. A green local run means a green
+`Obsidian community review gate` CI job. (The gate reads the plugin name from
+`./manifest.json`, so it must run from the repository root — `check.mjs` enforces this.)
+
+### What the gate enforces
+
+`tools/obsidian-review/eslint.config.mjs` loads the reviewer's plugin but enables
+**only** the Error-tier rule IDs (everything else off), so ESLint's exit code is the
+gate:
+
+- `eslint-comments/require-description`, `eslint-comments/no-restricted-disable`,
+  `eslint-comments/no-unlimited-disable`
+- `obsidianmd/regex-lookbehind`, `obsidianmd/no-static-styles-assignment`
+- `obsidianmd/settings-tab/no-manual-html-headings`,
+  `obsidianmd/settings-tab/no-problematic-settings-headings`
+
+Warning-class rules (`no-console`, `prefer-create-el`, popout timers, floating
+promises, …) are deliberately **not** gated — they never fail the community review, so
+gating them would keep CI red on pre-existing findings.
+
+**When a future release report surfaces a NEW Error rule,** add its rule ID to
+`GATE_RULES` in `tools/obsidian-review/eslint.config.mjs`. This list is seeded from the
+findings the bot actually failed us on (1.0.0–1.0.2); it does not claim to mirror the
+bot's full, undocumented Error set. To see everything the plugin would report (the
+Warning-class findings too), run its `recommended` config directly against `src`.
 
 ## Behavior flags (human-review context, not bot Errors)
 

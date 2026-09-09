@@ -51,6 +51,9 @@ import-meta-url-shim.js
 # Obsidian
 .obsidian
 
+# Isolated Obsidian community-review lint toolchain (own ESLint 9 flat config)
+tools/
+
 # Markdown
 *.md
 REFERENCES

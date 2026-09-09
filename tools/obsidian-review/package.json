@@ -1,0 +1,17 @@
+{
+  "name": "obsidian-review-gate",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Isolated ESLint 9 toolchain that runs the Obsidian community-review Error-tier rules as a CI gate. Kept separate from the project's ESLint 8 lint. See ../../docs/obsidian-community-review.md.",
+  "type": "module",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@eslint/json": "^2.1.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-obsidianmd": "0.4.2",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "obsidian": "1.13.1",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.70.0"
+  }
+}
