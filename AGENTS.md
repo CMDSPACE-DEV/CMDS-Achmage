@@ -44,3 +44,12 @@ R-025 is the implementation contract for the 2.6.2 native Plan onboarding
 work. Do not reduce the reported issue to a copy-only change: preserve the
 state-transition, platform, executable-discovery, updater, authentication,
 accessibility, and clean-machine test requirements recorded there.
+
+## Releasing
+
+Before cutting a release or fixing a community-review failure, read
+[docs/obsidian-community-review.md](docs/obsidian-community-review.md): it records how
+the review bot tiers findings (only the `obsidianmd/*` "Error" tier fails the gate),
+how to reproduce the reviewer locally before shipping, and the exact
+version-bump → tag → publish procedure. Keep fix PRs source-only — `main.js` and
+`meta.json` are gitignored build artifacts the release workflow rebuilds.
