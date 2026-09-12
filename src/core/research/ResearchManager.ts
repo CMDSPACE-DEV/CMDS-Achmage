@@ -506,9 +506,9 @@ export class ResearchManager {
       if (entry.expiresAt <= now) this.cache.delete(key)
     }
     while (this.cache.size > MAX_CACHE_ENTRIES) {
-      const first = this.cache.keys().next().value as string | undefined
-      if (!first) break
-      this.cache.delete(first)
+      const first = this.cache.keys().next()
+      if (first.done) break
+      this.cache.delete(first.value)
     }
   }
 }

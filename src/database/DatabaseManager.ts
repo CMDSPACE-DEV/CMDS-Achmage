@@ -44,10 +44,8 @@ export class DatabaseManager {
     }
 
     // save, vacuum callback setup
-    const saveCallback = dbManager.save.bind(dbManager) as () => Promise<void>
-    const vacuumCallback = dbManager.vacuum.bind(
-      dbManager,
-    ) as () => Promise<void>
+    const saveCallback = () => dbManager.save()
+    const vacuumCallback = () => dbManager.vacuum()
 
     managers.vectorManager.setSaveCallback(saveCallback)
     managers.vectorManager.setVacuumCallback(vacuumCallback)
