@@ -1,5 +1,3 @@
-import debounce from 'lodash.debounce'
-import isEqual from 'lodash.isequal'
 import { App } from 'obsidian'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
@@ -12,14 +10,13 @@ import {
   deserializeMentionable,
   serializeMentionable,
 } from '../utils/chat/mentionable'
+import { debounce } from '../utils/debounce'
+import { deepEqual } from '../utils/deepEqual'
 
 import { useChatManager } from './useJsonManagers'
 
 type UseChatHistory = {
-  createOrUpdateConversation: (
-    id: string,
-    messages: ChatMessage[],
-  ) => Promise<void> | undefined
+  createOrUpdateConversation: (id: string, messages: ChatMessage[]) => void
   deleteConversation: (id: string) => Promise<void>
   getChatMessagesById: (id: string) => Promise<ChatMessage[] | null>
   updateConversationTitle: (id: string, title: string) => Promise<void>
@@ -49,7 +46,7 @@ export function useChatHistory(): UseChatHistory {
           const existingConversation = await chatManager.findById(id)
 
           if (existingConversation) {
-            if (isEqual(existingConversation.messages, serializedMessages)) {
+            if (deepEqual(existingConversation.messages, serializedMessages)) {
               return
             }
             await chatManager.updateChat(existingConversation.id, {
@@ -61,10 +58,7 @@ export function useChatHistory(): UseChatHistory {
             await chatManager.createChat({
               id,
               title: firstUserMessage?.content
-                ? editorStateToPlainText(firstUserMessage.content).substring(
-                    0,
-                    50,
-                  )
+                ? editorStateToPlainText(firstUserMessage.content).slice(0, 50)
                 : 'New chat',
               messages: serializedMessages,
             })

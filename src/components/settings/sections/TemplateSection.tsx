@@ -65,7 +65,7 @@ export function TemplateSection({ app }: TemplateSectionProps) {
         onConfirm: async () => {
           try {
             await templateManager.deleteTemplate(template.id)
-            fetchTemplateList()
+            void fetchTemplateList()
           } catch (error) {
             console.error('Failed to delete template:', error)
             new Notice('Failed to delete template. Please try again.')
@@ -77,7 +77,7 @@ export function TemplateSection({ app }: TemplateSectionProps) {
   )
 
   useEffect(() => {
-    fetchTemplateList()
+    void fetchTemplateList()
   }, [fetchTemplateList])
 
   return (

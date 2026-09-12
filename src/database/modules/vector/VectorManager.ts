@@ -22,6 +22,7 @@ import {
   EmbeddingModelClient,
 } from '../../../types/embedding'
 import { chunkArray } from '../../../utils/common/chunk-array'
+import { getDocumentLineRange } from '../../../utils/documentLineRange'
 
 import { VectorRepository } from './VectorRepository'
 
@@ -160,10 +161,7 @@ export class VectorManager {
                   path: file.path,
                   mtime: file.stat.mtime,
                   content: chunk.pageContent,
-                  metadata: {
-                    startLine: chunk.metadata.loc.lines.from as number,
-                    endLine: chunk.metadata.loc.lines.to as number,
-                  },
+                  metadata: getDocumentLineRange(chunk.metadata),
                 }
               },
             )
@@ -259,10 +257,17 @@ export class VectorManager {
                   startingDelay: 2000,
                   timeMultiple: 2,
                   maxDelay: 60000,
-                  retry: (error) => {
+                  retry: (error: unknown) => {
+                    const status =
+                      typeof error === 'object' &&
+                      error !== null &&
+                      'status' in error &&
+                      typeof error.status === 'number'
+                        ? error.status
+                        : undefined
                     if (
                       error instanceof LLMRateLimitExceededException ||
-                      error.status === 429
+                      status === 429
                     ) {
                       updateProgress?.({
                         completedChunks,

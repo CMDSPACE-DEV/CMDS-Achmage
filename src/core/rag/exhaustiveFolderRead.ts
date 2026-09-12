@@ -6,6 +6,7 @@ import { QueryProgressState } from '../../components/chat-view/QueryProgress'
 import { SelectEmbedding, VectorMetaData } from '../../database/schema'
 import { SmartComposerSettings } from '../../settings/schema/setting.types'
 import { RetrievalMetadata } from '../../types/chat'
+import { getDocumentLineRange } from '../../utils/documentLineRange'
 import { tokenCount } from '../../utils/llm/token'
 
 import {
@@ -211,11 +212,7 @@ async function buildChunkCandidates(
         const documents = await textSplitter.createDocuments([content])
         throwIfAborted(signal)
         return documents.map((document): ChunkCandidate => {
-          const metadata = document.metadata.loc?.lines
-          const startLine =
-            typeof metadata?.from === 'number' ? metadata.from : 1
-          const endLine =
-            typeof metadata?.to === 'number' ? metadata.to : startLine
+          const { startLine, endLine } = getDocumentLineRange(document.metadata)
           return {
             index: 0,
             path: file.path,

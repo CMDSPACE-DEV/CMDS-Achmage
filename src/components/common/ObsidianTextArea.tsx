@@ -6,7 +6,7 @@ import { useObsidianSetting } from './ObsidianSetting'
 type ObsidianTextAreaProps = {
   value: string
   placeholder?: string
-  onChange: (value: string) => void
+  onChange: (value: string) => void | Promise<void>
 }
 
 export function ObsidianTextArea({
@@ -47,7 +47,9 @@ export function ObsidianTextArea({
 
   useEffect(() => {
     if (!textAreaComponent) return
-    textAreaComponent.onChange((v) => onChangeRef.current(v))
+    textAreaComponent.onChange((v) => {
+      void onChangeRef.current(v)
+    })
   }, [textAreaComponent])
 
   useEffect(() => {

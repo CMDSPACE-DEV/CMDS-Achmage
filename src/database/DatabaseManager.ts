@@ -56,8 +56,6 @@ export class DatabaseManager {
 
     DatabaseManager.managers.set(dbManager, managers)
 
-    console.log('Smart composer database initialized.', dbManager)
-
     return dbManager
   }
 
@@ -113,7 +111,7 @@ export class DatabaseManager {
       const db = drizzle(this.pgClient)
       return db
     } catch (error) {
-      console.log('createNewDatabase error', error)
+      console.error('createNewDatabase error', error)
       if (
         error instanceof Error &&
         error.message.includes(
@@ -149,7 +147,7 @@ export class DatabaseManager {
       })
       return drizzle(this.pgClient)
     } catch (error) {
-      console.log('loadExistingDatabase error', error)
+      console.error('loadExistingDatabase error', error)
       if (
         error instanceof Error &&
         error.message.includes(
@@ -168,8 +166,17 @@ export class DatabaseManager {
       // Workaround for running Drizzle migrations in a browser environment
       // This method uses an undocumented API to perform migrations
       // See: https://github.com/drizzle-team/drizzle-orm/discussions/2532#discussioncomment-10780523
-      // @ts-expect-error -- undocumented Drizzle browser-migration API; see linked discussion above
-      await this.db.dialect.migrate(migrations, this.db.session, {
+      const db = this.db as unknown as {
+        dialect: {
+          migrate: (
+            migrations: unknown,
+            session: unknown,
+            config: { migrationsTable: string },
+          ) => Promise<void>
+        }
+        session: unknown
+      }
+      await db.dialect.migrate(migrations, db.session, {
         migrationsTable: 'drizzle_migrations',
       })
     } catch (error) {

@@ -4,7 +4,7 @@ import type {
   NativeRuntimeProvider,
   RuntimeAuthDecision,
 } from './nativeRuntime.types'
-import { requireNode } from './nodeRuntime'
+import { childProcess, fs, path } from './nodeRuntime'
 
 type NativeProcessRunner = (
   options: NativeProcessOptions,
@@ -239,10 +239,6 @@ export async function verifyClaudePlanAuth(
  * policy outranks command-line settings and may inject billing credentials.
  */
 export function inspectClaudeManagedSettings(): string[] {
-  const fs = requireNode<typeof import('fs')>('fs')
-  const path = requireNode<typeof import('path')>('path')
-  const { spawnSync } =
-    requireNode<typeof import('child_process')>('child_process')
   const evidence: string[] = []
   const platform = process.platform
   const managedRoot =
@@ -275,7 +271,7 @@ export function inspectClaudeManagedSettings(): string[] {
       ['machine', 'HKLM\\SOFTWARE\\Policies\\ClaudeCode'],
       ['user', 'HKCU\\SOFTWARE\\Policies\\ClaudeCode'],
     ] as const) {
-      const result = spawnSync('reg.exe', ['query', registryKey], {
+      const result = childProcess.spawnSync('reg.exe', ['query', registryKey], {
         stdio: 'ignore',
         windowsHide: true,
       })
@@ -285,7 +281,7 @@ export function inspectClaudeManagedSettings(): string[] {
       }
     }
   } else if (platform === 'darwin') {
-    const result = spawnSync(
+    const result = childProcess.spawnSync(
       '/usr/bin/defaults',
       ['read', 'com.anthropic.claudecode'],
       { stdio: 'ignore' },
@@ -429,7 +425,7 @@ async function runAntigravityAuthCheck(
   else {
     externalSignal?.addEventListener('abort', abortFromCaller, { once: true })
   }
-  const timeout = setTimeout(() => {
+  const timeout = window.setTimeout(() => {
     timedOut = true
     controller.abort()
   }, ANTIGRAVITY_AUTH_TIMEOUT_MS)
@@ -441,7 +437,7 @@ async function runAntigravityAuthCheck(
     if (externalSignal?.aborted) throw createAbortError()
     return null
   } finally {
-    clearTimeout(timeout)
+    window.clearTimeout(timeout)
     externalSignal?.removeEventListener('abort', abortFromCaller)
   }
 }
@@ -907,7 +903,7 @@ function parseRecord(value: string): Record<string, unknown> | null {
   }
 }
 
-function parseJsonValue(value: string): unknown | undefined {
+function parseJsonValue(value: string): unknown {
   try {
     return JSON.parse(value) as unknown
   } catch {

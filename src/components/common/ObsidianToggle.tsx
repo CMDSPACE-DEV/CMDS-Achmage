@@ -5,7 +5,7 @@ import { useObsidianSetting } from './ObsidianSetting'
 
 type ObsidianToggleProps = {
   value: boolean
-  onChange: (value: boolean) => void
+  onChange: (value: boolean) => void | Promise<void>
   disabled?: boolean
 }
 
@@ -47,7 +47,9 @@ export function ObsidianToggle({
 
   useEffect(() => {
     if (!toggleComponent) return
-    toggleComponent.onChange((v) => onChangeRef.current(v))
+    toggleComponent.onChange((v) => {
+      void onChangeRef.current(v)
+    })
   }, [toggleComponent])
 
   useEffect(() => {

@@ -125,7 +125,7 @@ export class YoutubeTranscript {
             splittedHTML[1].split(',"videoDetails')[0].replace('\n', ''),
           ) as { playerCaptionsTracklistRenderer?: YoutubeCaptionsRenderer }
         ).playerCaptionsTracklistRenderer
-      } catch (_e) {
+      } catch {
         return undefined
       }
     })()

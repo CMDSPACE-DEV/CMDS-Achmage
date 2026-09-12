@@ -1,4 +1,4 @@
-import { ButtonComponent } from 'obsidian'
+import { ButtonComponent, requireApiVersion } from 'obsidian'
 import { useEffect, useRef, useState } from 'react'
 
 import { useObsidianSetting } from './ObsidianSetting'
@@ -7,7 +7,7 @@ type ObsidianButtonProps = {
   text?: string
   icon?: string
   tooltip?: string
-  onClick: () => void
+  onClick: () => void | Promise<void>
   cta?: boolean
   warning?: boolean
   disabled?: boolean
@@ -55,7 +55,9 @@ export function ObsidianButton({
 
   useEffect(() => {
     if (!buttonComponent) return
-    buttonComponent.onClick(() => onClickRef.current())
+    buttonComponent.onClick(() => {
+      void onClickRef.current()
+    })
   }, [buttonComponent])
 
   useEffect(() => {
@@ -65,7 +67,13 @@ export function ObsidianButton({
     if (icon) buttonComponent.setIcon(icon)
     if (tooltip) buttonComponent.setTooltip(tooltip)
     if (cta) buttonComponent.setCta()
-    if (warning) buttonComponent.setWarning()
+    if (warning) {
+      if (requireApiVersion('1.13.0')) {
+        buttonComponent.setDestructive()
+      } else {
+        buttonComponent.buttonEl.addClass('mod-warning')
+      }
+    }
     buttonComponent.setDisabled(!!disabled)
   }, [buttonComponent, text, icon, tooltip, cta, warning, disabled])
 

@@ -6,7 +6,7 @@ import { useObsidianSetting } from './ObsidianSetting'
 type ObsidianDropdownProps = {
   value: string
   options: Record<string, string>
-  onChange: (value: string) => void
+  onChange: (value: string) => void | Promise<void>
   disabled?: boolean
 }
 
@@ -49,7 +49,9 @@ export function ObsidianDropdown({
 
   useEffect(() => {
     if (!dropdownComponent) return
-    dropdownComponent.onChange((v) => onChangeRef.current(v))
+    dropdownComponent.onChange((v) => {
+      void onChangeRef.current(v)
+    })
   }, [dropdownComponent])
 
   useEffect(() => {

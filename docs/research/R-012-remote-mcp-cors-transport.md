@@ -172,3 +172,12 @@ that smoke test.
 Server operators should still add `mcp-protocol-version` to
 `Access-Control-Allow-Headers`; Smart Composer's desktop adapter provides
 compatibility rather than redefining the MCP or CORS contracts.
+
+## 6. Later implementation (community-review warning pass)
+
+`node-fetch` was later removed. `createDesktopMcpFetch()` now talks to Node
+`http` / `https` directly (same CORS bypass, same Web `Response` streams).
+`check-bundle-budget.mjs` now forbids `node-fetch` in the production bundle
+instead of requiring the Node entry. The original CORS constraint in this
+report still holds: do not fall back to Chromium `fetch` or
+`node-fetch/browser.js`.

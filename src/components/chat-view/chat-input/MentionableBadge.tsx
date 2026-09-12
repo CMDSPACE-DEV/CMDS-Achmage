@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { Eye, EyeOff, X } from 'lucide-react'
-import { PropsWithChildren, useCallback } from 'react'
+import { MouseEvent, PropsWithChildren, useCallback } from 'react'
 
 import { useSettings } from '../../../contexts/settings-context'
 import {
@@ -103,7 +103,6 @@ function FolderBadge({
 }
 
 function VaultBadge({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- mentionable is destructured out of props but unused in this badge
   mentionable,
   onDelete,
   onClick,
@@ -144,9 +143,9 @@ function CurrentFileBadge({
   const { settings, setSettings } = useSettings()
 
   const handleCurrentFileToggle = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
+    (e: MouseEvent<HTMLDivElement>) => {
       e.stopPropagation()
-      setSettings({
+      void setSettings({
         ...settings,
         chatOptions: {
           ...settings.chatOptions,

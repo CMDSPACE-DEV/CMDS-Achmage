@@ -1,7 +1,7 @@
 import * as Popover from '@radix-ui/react-popover'
 import * as Tooltip from '@radix-ui/react-tooltip'
 import { History, Pencil, Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
 
 import { useDialogContainer } from '../../contexts/dialog-container-context'
 import { ChatConversationMetadata } from '../../database/json/chat/types'
@@ -34,7 +34,7 @@ function TitleInput({
       onKeyDown={(e) => {
         e.stopPropagation()
         if (e.key === 'Enter') {
-          onSubmit(value)
+          void onSubmit(value)
         }
       }}
       autoFocus
@@ -75,7 +75,9 @@ function ChatListItem({
   return (
     <li
       ref={itemRef}
-      onClick={onSelect}
+      onClick={() => {
+        void onSelect()
+      }}
       onMouseEnter={onMouseEnter}
       className={isFocused ? 'selected' : ''}
     >
@@ -96,9 +98,9 @@ function ChatListItem({
           <Pencil />
         </button>
         <button
-          onClick={async (e) => {
+          onClick={(e) => {
             e.stopPropagation()
-            await onDelete()
+            void onDelete()
           }}
           className="clickable-icon smtcmp-chat-list-dropdown-item-icon"
           aria-label="Delete conversation"
@@ -139,13 +141,13 @@ export function ChatListDropdown({
   }, [open, chatList, currentConversationId])
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
+    (e: KeyboardEvent) => {
       if (e.key === 'ArrowUp') {
         setFocusedIndex(Math.max(0, focusedIndex - 1))
       } else if (e.key === 'ArrowDown') {
         setFocusedIndex(Math.min(chatList.length - 1, focusedIndex + 1))
       } else if (e.key === 'Enter' && chatList[focusedIndex]) {
-        onSelect(chatList[focusedIndex].id)
+        void onSelect(chatList[focusedIndex].id)
         setOpen(false)
       }
     },

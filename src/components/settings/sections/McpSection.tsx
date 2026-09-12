@@ -14,7 +14,7 @@ import {
   X,
 } from 'lucide-react'
 import { App, Notice } from 'obsidian'
-import { useCallback, useEffect, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useState } from 'react'
 
 import { useSettings } from '../../../contexts/settings-context'
 import type { McpManager } from '../../../core/mcp/mcpManager'
@@ -458,7 +458,7 @@ function ExpandedConnection({
 function McpServerStatusBadge({ status }: { status: McpServerStatus }) {
   const config: Record<
     McpServerStatus,
-    { icon: React.ReactNode; label: string; statusClass: string }
+    { icon: ReactNode; label: string; statusClass: string }
   > = {
     [McpServerStatus.Connected]: {
       icon: <Check size={16} />,

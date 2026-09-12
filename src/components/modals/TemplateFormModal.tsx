@@ -18,7 +18,7 @@ type TemplateFormComponentProps = {
   app: App
   selectedSerializedNodes?: BaseSerializedNode[] | null
   templateId?: string
-  onSubmit?: () => void
+  onSubmit?: () => void | Promise<void>
   onClose: () => void
 }
 
@@ -30,7 +30,7 @@ export class CreateTemplateModal extends ReactModal<TemplateFormComponentProps> 
   }: {
     app: App
     selectedSerializedNodes?: BaseSerializedNode[] | null
-    onSubmit?: () => void
+    onSubmit?: () => void | Promise<void>
   }) {
     super({
       app: app,
@@ -55,7 +55,7 @@ export class EditTemplateModal extends ReactModal<TemplateFormComponentProps> {
   }: {
     app: App
     templateId?: string
-    onSubmit?: () => void
+    onSubmit?: () => void | Promise<void>
   }) {
     super({
       app: app,
@@ -147,7 +147,7 @@ function TemplateFormComponent({
         `Template ${templateId === undefined ? 'created' : 'updated'}: ${templateName}`,
       )
 
-      onSubmit?.()
+      void onSubmit?.()
       onClose()
     } catch (error) {
       if (error instanceof DuplicateTemplateException) {
@@ -182,7 +182,7 @@ function TemplateFormComponent({
       }
     }
     if (templateId) {
-      fetchExistingTemplate(templateId)
+      void fetchExistingTemplate(templateId)
     }
 
     return () => {
@@ -210,7 +210,9 @@ function TemplateFormComponent({
           initialEditorState={initialEditorState}
           editorRef={editorRef}
           contentEditableRef={contentEditableRef}
-          onEnter={handleSubmit}
+          onEnter={() => {
+            void handleSubmit()
+          }}
         />
       </div>
 

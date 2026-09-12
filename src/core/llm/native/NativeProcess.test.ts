@@ -8,7 +8,7 @@ const mockSpawn = jest.fn(
 )
 
 jest.mock('./nodeRuntime', () => ({
-  requireNode: () => ({ spawn: mockSpawn }),
+  spawn: mockSpawn,
 }))
 
 import { launchVisibleTerminal } from './NativeProcess'

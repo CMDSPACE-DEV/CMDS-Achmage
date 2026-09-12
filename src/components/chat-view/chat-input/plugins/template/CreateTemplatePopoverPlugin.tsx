@@ -8,6 +8,7 @@ import {
 } from 'lexical'
 import { App } from 'obsidian'
 import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react'
+import type { JSX } from 'react'
 
 import { CreateTemplateModal } from '../../../../modals/TemplateFormModal'
 

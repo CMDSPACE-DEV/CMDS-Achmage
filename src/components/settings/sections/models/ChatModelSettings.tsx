@@ -1,5 +1,5 @@
 import { App, Notice } from 'obsidian'
-import { useState } from 'react'
+import { FC, useState } from 'react'
 
 import SmartComposerPlugin from '../../../../main'
 import {
@@ -49,7 +49,7 @@ export class ChatModelSettingsModal extends ReactModal<SettingsComponentProps> {
 
 type ModelSettingsRegistry = {
   check: (model: ChatModel) => boolean
-  SettingsComponent: React.FC<SettingsComponentProps>
+  SettingsComponent: FC<SettingsComponentProps>
 }
 
 /**

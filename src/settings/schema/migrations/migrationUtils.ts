@@ -6,6 +6,18 @@ export type DefaultProviders = readonly {
   id: string
 }[]
 
+export function asObjectRecords(value: unknown): Record<string, unknown>[] {
+  if (!Array.isArray(value)) return []
+  return value.filter(
+    (item): item is Record<string, unknown> =>
+      typeof item === 'object' && item !== null && !Array.isArray(item),
+  )
+}
+
+export function recordId(record: Record<string, unknown>): string {
+  return typeof record.id === 'string' ? record.id : ''
+}
+
 export const getMigratedProviders = (
   existingData: ExistingSettingsData,
   defaultProvidersForVersion: DefaultProviders,

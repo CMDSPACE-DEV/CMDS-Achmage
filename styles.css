@@ -139,7 +139,6 @@ settings:
   }
 
   code {
-    font-size: var(--font-ui-small);
     border-radius: var(--code-radius);
     padding: 0.1em 0.25em;
     color: var(--code-normal);
@@ -225,8 +224,6 @@ settings:
   background: var(--background-modifier-form-field);
   color: var(--text-normal);
   font-family: inherit;
-  padding: 0;
-  font-size: var(--font-ui-small);
   outline: none;
   min-height: 80px;
   max-height: 200px;
@@ -428,10 +425,6 @@ settings:
 .smtcmp-lexical-content-editable-root .mention {
   background-color: var(--tag-background);
   color: var(--tag-color);
-  padding: var(--size-2-1) calc(var(--size-2-1));
-  border-radius: var(--radius-s);
-  background-color: var(--tag-background);
-  color: var(--tag-color);
   padding: 0 calc(var(--size-2-1));
   border-radius: var(--radius-s);
   word-break: break-all;
@@ -452,15 +445,11 @@ settings:
 }
 
 .smtcmp-popover ul {
-  padding: 0;
+  padding: var(--size-4-1) 0;
   list-style: none;
   margin: 0;
   max-height: 200px;
   overflow-y: scroll;
-}
-
-.smtcmp-popover ul {
-  padding: var(--size-4-1) 0;
 }
 
 .smtcmp-popover ul li {
@@ -481,7 +470,6 @@ settings:
   max-height: 300px;
   overflow-y: auto;
   background-color: var(--background-primary);
-  border: 1px solid var(--background-modifier-border);
   margin: 0 8px 0 8px;
   padding: var(--size-2-3) var(--size-4-2);
   color: var(--text-normal);
@@ -492,11 +480,9 @@ settings:
   align-content: center;
   flex-direction: row;
   flex-shrink: 0;
-  background-color: var(--background-primary);
   border-radius: 8px;
   border: 0;
   min-height: 20px;
-  align-items: center;
   gap: var(--size-4-1);
   align-items: start;
 }
@@ -631,9 +617,10 @@ input[type='text'].smtcmp-chat-list-dropdown-item-title-input {
     font-size: var(--font-small);
   }
 
-  /* Override clickable-icon color */
-  .smtcmp-code-block-header-button.clickable-icon {
-    color: var(--text-color) !important;
+  /* Override clickable-icon color (including shell button/icon hover). */
+  button.smtcmp-code-block-header-button.clickable-icon,
+  button.smtcmp-code-block-header-button.clickable-icon:hover {
+    color: var(--text-color);
   }
 }
 
@@ -808,24 +795,24 @@ input[type='text'].smtcmp-chat-list-dropdown-item-title-input {
   }
 }
 
-button.smtcmp-chat-input-model-select {
-  display: flex !important;
-  align-items: center !important;
-  gap: var(--size-2-1) !important;
-  min-width: 0 !important;
-  flex-shrink: 1 !important;
-  background-color: transparent !important;
-  box-shadow: none !important;
-  border: 0 !important;
-  padding: 0 !important;
-  font-size: var(--font-smallest) !important;
-  font-weight: var(--font-medium) !important;
-  color: var(--text-muted) !important;
-  cursor: pointer !important;
-  height: auto !important;
+.smtcmp-shell button.smtcmp-chat-input-model-select {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2-1);
+  min-width: 0;
+  flex-shrink: 1;
+  background-color: transparent;
+  box-shadow: none;
+  border: 0;
+  padding: 0;
+  font-size: var(--font-smallest);
+  font-weight: var(--font-medium);
+  color: var(--text-muted);
+  cursor: pointer;
+  height: auto;
 
   &:hover {
-    color: var(--text-normal) !important;
+    color: var(--text-normal);
   }
 
   .smtcmp-chat-input-model-select__model-name {
@@ -843,39 +830,39 @@ button.smtcmp-chat-input-model-select {
   }
 }
 
-button.smtcmp-chat-input-effort-select {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: var(--size-2-1) !important;
-  flex-shrink: 0 !important;
-  height: 20px !important;
-  min-height: 20px !important;
-  padding: 0 var(--size-4-1) !important;
-  border: 1px solid var(--background-modifier-border) !important;
-  border-radius: 9999px !important;
-  background-color: var(--background-secondary) !important;
-  box-shadow: none !important;
-  color: var(--text-muted) !important;
-  font-size: var(--font-smallest) !important;
-  font-weight: var(--font-medium) !important;
-  line-height: 1 !important;
-  cursor: pointer !important;
+.smtcmp-shell button.smtcmp-chat-input-effort-select {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-2-1);
+  flex-shrink: 0;
+  height: 20px;
+  min-height: 20px;
+  padding: 0 var(--size-4-1);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 9999px;
+  background-color: var(--background-secondary);
+  box-shadow: none;
+  color: var(--text-muted);
+  font-size: var(--font-smallest);
+  font-weight: var(--font-medium);
+  line-height: 1;
+  cursor: pointer;
   transition:
     color 0.1s ease-in-out,
     background-color 0.1s ease-in-out,
-    border-color 0.1s ease-in-out !important;
+    border-color 0.1s ease-in-out;
 
   &:hover,
   &[data-state='open'] {
-    color: var(--text-normal) !important;
-    background-color: var(--background-modifier-hover) !important;
-    border-color: var(--background-modifier-border-hover) !important;
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+    border-color: var(--background-modifier-border-hover);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--interactive-accent) !important;
-    outline-offset: 1px !important;
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 1px;
   }
 
   .smtcmp-chat-input-effort-select__value {
@@ -1019,9 +1006,9 @@ button.smtcmp-chat-input-effort-select {
 }
 
 /* prevent setting-item:first-child overwriting padding-top and border-top */
-.smtcmp-settings-textarea-header {
-  padding-top: 0.75em !important;
-  border-top: 1px solid var(--background-modifier-border) !important;
+.setting-item.smtcmp-settings-textarea-header:first-child {
+  padding-top: 0.75em;
+  border-top: 1px solid var(--background-modifier-border);
 }
 
 .smtcmp-settings-model-container {
@@ -1261,8 +1248,7 @@ button.smtcmp-chat-input-effort-select {
 .smtcmp-llm-info-tokens-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  column-gap: var(--size-4-5);
-  row-gap: var(--size-4-2);
+  gap: var(--size-4-2) var(--size-4-5);
   font-size: var(--font-ui-small);
 }
 
@@ -2664,8 +2650,8 @@ button.smtcmp-research-source-main:focus-visible {
   }
 
   /* Show frontmatter which is hidden by default */
-  .frontmatter {
-    display: block !important;
+  &.markdown-rendered .frontmatter {
+    display: block;
     background-color: transparent;
     border-top: 1px solid var(--background-modifier-border);
     border-bottom: 1px solid var(--background-modifier-border);
@@ -2803,14 +2789,14 @@ button.smtcmp-research-source-main:focus-visible {
   display: flex;
   align-items: center;
 
-  .smtcmp-split-button-primary {
-    border-radius: var(--button-radius) 0 0 var(--button-radius) !important;
+  button.smtcmp-split-button-primary {
+    border-radius: var(--button-radius) 0 0 var(--button-radius);
   }
 
-  .smtcmp-split-button-toggle {
+  button.smtcmp-split-button-toggle {
     padding: var(--size-4-1);
-    border-radius: 0 var(--button-radius) var(--button-radius) 0 !important;
-    border-left: none !important;
+    border-radius: 0 var(--button-radius) var(--button-radius) 0;
+    border-left: none;
   }
 }
 
@@ -3191,8 +3177,6 @@ button.smtcmp-research-source-main:focus-visible {
   background: var(--ach-canvas);
   font-family:
     Inter,
-    ui-sans-serif,
-    system-ui,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
@@ -3368,7 +3352,7 @@ body:not(.theme-dark)
   );
   --blockquote-border-color: var(--ach-action);
   color-scheme: dark;
-  font-family: 'IBM Plex Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: 'IBM Plex Sans', Inter, sans-serif;
 }
 
 .smtcmp-shell *,
@@ -3408,15 +3392,15 @@ body:not(.theme-dark)
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--ach-action) 30%, transparent);
 }
 
-.smtcmp-visually-hidden-input {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
+input.smtcmp-visually-hidden-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .smtcmp-shell .smtcmp-chat-icon-button {
@@ -3744,39 +3728,39 @@ body:not(.theme-dark)
 }
 
 .smtcmp-shell button.smtcmp-chat-input-model-select {
-  min-width: 42px !important;
-  max-width: 142px !important;
-  height: 30px !important;
-  padding: 0 5px !important;
-  border: 1px solid transparent !important;
-  border-radius: 5px !important;
-  color: var(--ach-muted) !important;
+  min-width: 42px;
+  max-width: 142px;
+  height: 30px;
+  padding: 0 5px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: var(--ach-muted);
 }
 
 .smtcmp-shell button.smtcmp-chat-input-model-select:hover,
 .smtcmp-shell button.smtcmp-chat-input-model-select:focus-visible,
 .smtcmp-shell button.smtcmp-chat-input-model-select[data-state='open'] {
-  border-color: var(--ach-border) !important;
-  background: var(--ach-surface-raised) !important;
-  color: var(--ach-action) !important;
+  border-color: var(--ach-border);
+  background: var(--ach-surface-raised);
+  color: var(--ach-action);
 }
 
 .smtcmp-shell button.smtcmp-chat-input-effort-select {
-  height: 28px !important;
-  min-height: 28px !important;
-  padding: 0 6px !important;
-  border-color: transparent !important;
-  border-radius: 5px !important;
-  background: transparent !important;
-  color: var(--ach-muted) !important;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 6px;
+  border-color: transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--ach-muted);
 }
 
 .smtcmp-shell button.smtcmp-chat-input-effort-select:hover,
 .smtcmp-shell button.smtcmp-chat-input-effort-select:focus-visible,
 .smtcmp-shell button.smtcmp-chat-input-effort-select[data-state='open'] {
-  border-color: var(--ach-border) !important;
-  background: var(--ach-surface-raised) !important;
-  color: var(--ach-action) !important;
+  border-color: var(--ach-border);
+  background: var(--ach-surface-raised);
+  color: var(--ach-action);
 }
 
 .smtcmp-shell .smtcmp-tools-control-popover {
@@ -4848,12 +4832,12 @@ body:not(.theme-dark)
   }
 
   .smtcmp-shell button.smtcmp-chat-input-model-select {
-    max-width: 94px !important;
-    padding-inline: 3px !important;
+    max-width: 94px;
+    padding-inline: 3px;
   }
 
   .smtcmp-shell button.smtcmp-chat-input-effort-select {
-    padding-inline: 4px !important;
+    padding-inline: 4px;
   }
 
   .smtcmp-shell .smtcmp-chat-messages-user {
@@ -4989,8 +4973,9 @@ body:not(.theme-dark)
   font-size: var(--font-ui-small);
 }
 
+.smtcmp-document-review-summary > span.smtcmp-document-review-warning,
 .smtcmp-document-review-warning {
-  color: var(--text-error) !important;
+  color: var(--text-error);
 }
 
 .smtcmp-document-review-navigation {
@@ -5086,5 +5071,5 @@ body:not(.theme-dark)
 }
 
 .smtcmp-shell button.smtcmp-chat-input-model-select {
-  max-width: 240px !important;
+  max-width: 240px;
 }

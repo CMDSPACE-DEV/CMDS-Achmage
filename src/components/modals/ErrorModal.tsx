@@ -70,10 +70,16 @@ function ErrorModalComponent({
             className="mod-cta"
             onClick={() => {
               onClose()
-              // @ts-expect-error: setting property exists in Obsidian's App but is not typed
-              app.setting.open()
-              // @ts-expect-error: setting property exists in Obsidian's App but is not typed
-              app.setting.openTabById('cmds-achmage')
+              const setting = (
+                app as unknown as {
+                  setting: {
+                    open: () => void
+                    openTabById: (id: string) => void
+                  }
+                }
+              ).setting
+              setting.open()
+              setting.openTabById('cmds-achmage')
             }}
           >
             Open Settings

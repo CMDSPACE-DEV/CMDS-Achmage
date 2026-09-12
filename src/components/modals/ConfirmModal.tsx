@@ -6,14 +6,14 @@ export type ConfirmModalOptions = {
   title: string
   message: string
   ctaText?: string
-  onConfirm: () => void
+  onConfirm: () => void | Promise<void>
   onCancel?: () => void
 }
 
 type ConfirmModalComponentProps = {
   message: string
   ctaText?: string
-  onConfirm: () => void
+  onConfirm: () => void | Promise<void>
   onCancel?: () => void
   onClose: () => void
 }
@@ -51,7 +51,7 @@ function ConfirmModalComponent({
           className="mod-warning"
           onClick={() => {
             onClose()
-            onConfirm()
+            void onConfirm()
           }}
         >
           {ctaText ?? 'Confirm'}

@@ -140,7 +140,10 @@ function AddChatModelModalComponent({
           onChange={(value: string) =>
             setFormData((prev) => ({
               ...prev,
-              promptLevel: Number(value) as PromptLevel,
+              promptLevel:
+                value === String(PromptLevel.Simple)
+                  ? PromptLevel.Simple
+                  : PromptLevel.Default,
             }))
           }
         />

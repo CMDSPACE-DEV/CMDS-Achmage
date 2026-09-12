@@ -137,7 +137,9 @@ export function ChatModelsSubSection({
                       (v) => v.id === chatModel.id,
                     ) && (
                       <button
-                        onClick={() => handleDeleteChatModel(chatModel.id)}
+                        onClick={() => {
+                          void handleDeleteChatModel(chatModel.id)
+                        }}
                         className="clickable-icon"
                       >
                         <Trash2 />

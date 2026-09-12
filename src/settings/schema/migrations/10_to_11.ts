@@ -1,6 +1,6 @@
 import { SettingMigration } from '../setting.types'
 
-import { getMigratedChatModels } from './migrationUtils'
+import { asObjectRecords, getMigratedChatModels } from './migrationUtils'
 
 /**
  * Migration from version 10 to version 11
@@ -20,38 +20,41 @@ export const migrateFrom10To11: SettingMigration['migrate'] = (data) => {
 
   // Transform OpenAI models with reasoning_effort to new reasoning structure
   if ('chatModels' in newData && Array.isArray(newData.chatModels)) {
-    newData.chatModels = newData.chatModels.map((model) => {
+    newData.chatModels = asObjectRecords(newData.chatModels).map((model) => {
       if (model.providerType === 'openai' && 'reasoning_effort' in model) {
-        model = {
-          ...model,
+        const { reasoning_effort, ...rest } = model
+        return {
+          ...rest,
           reasoning: {
             enabled: true,
-            reasoning_effort: model.reasoning_effort,
+            reasoning_effort,
           },
         }
-        delete model.reasoning_effort
       }
-      return model as unknown
+      return model
     })
   }
 
   // Transform Anthropic models with thinking.budget_tokens to new thinking structure
   if ('chatModels' in newData && Array.isArray(newData.chatModels)) {
-    newData.chatModels = newData.chatModels.map((model) => {
+    newData.chatModels = asObjectRecords(newData.chatModels).map((model) => {
+      const thinking = model.thinking
       if (
         model.providerType === 'anthropic' &&
-        'thinking' in model &&
-        'budget_tokens' in model.thinking
+        thinking &&
+        typeof thinking === 'object' &&
+        !Array.isArray(thinking) &&
+        'budget_tokens' in thinking
       ) {
-        model = {
+        return {
           ...model,
           thinking: {
             enabled: true,
-            budget_tokens: model.thinking.budget_tokens,
+            budget_tokens: thinking.budget_tokens,
           },
         }
       }
-      return model as unknown
+      return model
     })
   }
 

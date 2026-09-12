@@ -26,7 +26,7 @@ import {
   verifyAntigravityPlanAuth,
 } from './NativeRuntimeAuth'
 import { nativeToolResultToText } from './nativeToolResult'
-import { requireNode } from './nodeRuntime'
+import { fs, os, path } from './nodeRuntime'
 
 type AntigravityFinal =
   | {
@@ -133,7 +133,7 @@ export class AntigravityProvider extends BaseLLMProvider<
     request: LLMRequestStreaming,
     environment: NodeJS.ProcessEnv,
     options?: LLMOptions,
-  ): AsyncGenerator<LLMResponseStreaming> {
+  ): AsyncIterable<LLMResponseStreaming> {
     const nativePrompt = buildNativePrompt(request.messages)
     const tools =
       request.tools?.length && options?.nativeToolExecutor ? request.tools : []
@@ -339,14 +339,10 @@ export function buildAntigravityCliArgs(params: {
 }
 
 function createEphemeralRuntimeDirectory(): string {
-  const fs = requireNode<typeof import('fs')>('fs')
-  const os = requireNode<typeof import('os')>('os')
-  const path = requireNode<typeof import('path')>('path')
   return fs.mkdtempSync(path.join(os.tmpdir(), 'smart-composer-antigravity-'))
 }
 
 function removeEphemeralRuntimeDirectory(directory: string) {
-  const fs = requireNode<typeof import('fs')>('fs')
   try {
     fs.rmSync(directory, { recursive: true, force: true })
   } catch {

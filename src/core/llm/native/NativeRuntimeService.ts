@@ -25,7 +25,7 @@ import {
   NativeRuntimeStore,
   sharedNativeRuntimeStore,
 } from './NativeRuntimeStore'
-import { requireNode } from './nodeRuntime'
+import { fs, os, path } from './nodeRuntime'
 
 const DIAGNOSTIC_TIMEOUT_MS = 30_000
 const CLAUDE_INSTALL_GUIDE_URL = 'https://code.claude.com/docs/en/installation'
@@ -204,9 +204,6 @@ export class NativeRuntimeService {
 }
 
 function createAntigravityUpdateWorkingDirectory(): string {
-  const fs = requireNode<typeof import('fs')>('fs')
-  const os = requireNode<typeof import('os')>('os')
-  const path = requireNode<typeof import('path')>('path')
   return fs.mkdtempSync(
     path.join(os.tmpdir(), 'smart-composer-antigravity-update-'),
   )
@@ -817,14 +814,14 @@ async function runWithTimeout(
   const timeoutController = new AbortController()
   const abort = () => timeoutController.abort()
   options.signal?.addEventListener('abort', abort, { once: true })
-  const timeout = setTimeout(
+  const timeout = window.setTimeout(
     () => timeoutController.abort(),
     DIAGNOSTIC_TIMEOUT_MS,
   )
   try {
     return await runner({ ...options, signal: timeoutController.signal })
   } finally {
-    clearTimeout(timeout)
+    window.clearTimeout(timeout)
     options.signal?.removeEventListener('abort', abort)
   }
 }

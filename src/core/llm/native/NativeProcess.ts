@@ -1,7 +1,6 @@
 import type { NativeRuntimeSetupShell } from './NativeRuntimeService'
-import { requireNode } from './nodeRuntime'
+import { spawn } from './nodeRuntime'
 
-type ChildProcessModule = typeof import('child_process')
 type ChildProcessWithoutNullStreams =
   import('child_process').ChildProcessWithoutNullStreams
 
@@ -25,8 +24,6 @@ export type NativeProcessOptions = {
 export function runNativeProcess(
   options: NativeProcessOptions,
 ): Promise<NativeProcessResult> {
-  const { spawn } = requireNode<ChildProcessModule>('child_process')
-
   return new Promise((resolve, reject) => {
     const child = spawn(options.executable, options.args, {
       cwd: options.cwd,
@@ -92,7 +89,6 @@ export function launchVisibleTerminal(
   preferredShell: NativeRuntimeSetupShell = 'powershell',
   workingDirectory?: string,
 ): void {
-  const { spawn } = requireNode<ChildProcessModule>('child_process')
   if (process.platform === 'win32') {
     const executable = preferredShell === 'cmd' ? 'cmd.exe' : 'powershell.exe'
     const shellArgs =
@@ -165,7 +161,6 @@ function emitLines(value: string, callback?: (line: string) => void): string {
 function terminateProcessTree(child: import('child_process').ChildProcess) {
   if (!child.pid) return
   if (process.platform === 'win32') {
-    const { spawn } = requireNode<ChildProcessModule>('child_process')
     spawn('taskkill.exe', ['/pid', String(child.pid), '/T', '/F'], {
       stdio: 'ignore',
       windowsHide: true,

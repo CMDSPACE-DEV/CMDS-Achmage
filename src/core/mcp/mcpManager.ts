@@ -20,6 +20,7 @@ import {
 
 import { createDesktopMcpFetch } from './desktopFetch'
 import { InvalidToolNameException, McpNotAvailableException } from './exception'
+import { createLegacySseTransport } from './legacySseTransport'
 import {
   McpOAuthProvider,
   generateMcpOAuthState,
@@ -513,7 +514,7 @@ export class McpManager {
               `Remote MCP task: ${message.task.status}`,
           )
         } else if (message.type === 'result') {
-          finalResult = message.result as McpToolCallResult
+          finalResult = message.result
         } else if (message.type === 'error') {
           throw new Error(message.error.message)
         }
@@ -702,11 +703,11 @@ export class McpManager {
           task.statusMessage ?? `Remote MCP task: ${task.status}`,
         )
         if (task.status === 'completed') {
-          const result = (await server.client.experimental.tasks.getTaskResult(
+          const result = await server.client.experimental.tasks.getTaskResult(
             taskId,
             CallToolResultSchema,
             { signal },
-          )) as McpToolCallResult
+          )
           if (result.isError) throw new Error(serializeToolResult(result))
           return {
             text: serializeToolResult(result),
@@ -837,9 +838,11 @@ export class McpManager {
         const createTransport = async () =>
           config.transport.type === 'streamable-http' &&
           config.transport.legacySse
-            ? new (
-                await import('@modelcontextprotocol/sdk/client/sse.js')
-              ).SSEClientTransport(url, {
+            ? // Existing `legacySse` servers still speak SSE only; StreamableHTTP
+              // is not a safe fallback. Instantiation is untyped in
+              // createLegacySseTransport so the deprecated SDK export is not
+              // referenced here.
+              createLegacySseTransport(url, {
                 authProvider: provider,
                 requestInit,
                 fetch: requestInit.headers
@@ -882,9 +885,7 @@ export class McpManager {
       }
 
       const tools = scanTools ? await listAllMcpTools(client) : []
-      const serverCapabilities = client.getServerCapabilities() as
-        | Record<string, unknown>
-        | undefined
+      const serverCapabilities = client.getServerCapabilities()
       const latestConfig = this.getConnection(config.id) ?? config
       const scannedConfig = scanTools
         ? await this.persistToolSnapshot(latestConfig, tools)
@@ -1180,7 +1181,7 @@ function validateRemoteUrl(value: string): void {
 
 function createHeaderFetch(
   baseHeaders: HeadersInit,
-  baseFetch: typeof fetch = fetch,
+  baseFetch: typeof fetch,
 ): typeof fetch {
   return (input, init) => {
     const headers = new Headers(init?.headers)
@@ -1354,10 +1355,10 @@ function delay(milliseconds: number, signal: AbortSignal): Promise<void> {
       return
     }
     const onAbort = () => {
-      clearTimeout(timeout)
+      window.clearTimeout(timeout)
       reject(new DOMException('Aborted', 'AbortError'))
     }
-    const timeout = setTimeout(() => {
+    const timeout = window.setTimeout(() => {
       signal.removeEventListener('abort', onAbort)
       resolve()
     }, milliseconds)

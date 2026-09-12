@@ -80,9 +80,9 @@ export function SettingsTabRoot({ app, plugin }: SettingsTabRootProps) {
             >
               <ObsidianButton
                 text="Buy Me a Coffee"
-                onClick={() =>
+                onClick={() => {
                   window.open('https://www.buymeacoffee.com/kevin.on', '_blank')
-                }
+                }}
                 cta
               />
             </ObsidianSetting>

@@ -726,12 +726,12 @@ function unique(values: string[]): string[] {
 async function wait(milliseconds: number, signal: AbortSignal): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const cleanup = () => signal.removeEventListener('abort', abort)
-    const timeout = setTimeout(() => {
+    const timeout = window.setTimeout(() => {
       cleanup()
       resolve()
     }, milliseconds)
     const abort = () => {
-      clearTimeout(timeout)
+      window.clearTimeout(timeout)
       cleanup()
       reject(new DOMException('Aborted', 'AbortError'))
     }

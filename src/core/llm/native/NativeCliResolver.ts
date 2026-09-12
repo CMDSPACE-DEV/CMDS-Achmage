@@ -6,11 +6,13 @@ import type {
   RuntimeDiscovery,
   RuntimeExecutableCandidate,
 } from './nativeRuntime.types'
-import { NativeRuntimePathStore } from './NativeRuntimePathStore'
-import { requireNode } from './nodeRuntime'
+import {
+  NativeRuntimePathStore,
+  sharedNativeRuntimePathStore,
+} from './NativeRuntimePathStore'
+import { fs as nodeFs, os as nodeOs, path as nodePath } from './nodeRuntime'
 
 type FsModule = typeof import('fs')
-type OsModule = typeof import('os')
 type PathModule = typeof import('path')
 
 type CandidateSpec = RuntimeExecutableCandidate & { priority: number }
@@ -29,7 +31,7 @@ export type NativeCliResolverOptions = {
  */
 export class NativeCliResolver {
   constructor(
-    private readonly pathStore: NativeRuntimePathStore = new NativeRuntimePathStore(),
+    private readonly pathStore: NativeRuntimePathStore = sharedNativeRuntimePathStore,
     private readonly options: NativeCliResolverOptions = {},
   ) {}
 
@@ -40,9 +42,9 @@ export class NativeCliResolver {
   discover(provider: NativeRuntimeProvider): RuntimeDiscovery {
     if (!Platform.isDesktop) return emptyDiscovery(provider)
 
-    const fs = this.options.fs ?? requireNode<FsModule>('fs')
-    const os = requireNode<OsModule>('os')
-    const path = this.options.path ?? requireNode<PathModule>('path')
+    const fs = this.options.fs ?? nodeFs
+    const os = nodeOs
+    const path = this.options.path ?? nodePath
     const platform = this.options.platform ?? process.platform
     const env = this.options.env ?? process.env
     const home = this.options.home ?? os.homedir()

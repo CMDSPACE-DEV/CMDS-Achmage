@@ -141,7 +141,9 @@ export function ProvidersSection({ app, plugin }: ProvidersSectionProps) {
                     </button>
                     {!DEFAULT_PROVIDERS.some((v) => v.id === provider.id) && (
                       <button
-                        onClick={() => handleDeleteProvider(provider)}
+                        onClick={() => {
+                          void handleDeleteProvider(provider)
+                        }}
                         className="clickable-icon"
                       >
                         <Trash2 />

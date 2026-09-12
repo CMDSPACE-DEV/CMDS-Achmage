@@ -1,6 +1,6 @@
 import { UseMutationResult, useMutation } from '@tanstack/react-query'
 import { Notice } from 'obsidian'
-import { useCallback, useRef, useState } from 'react'
+import { Dispatch, SetStateAction, useCallback, useRef, useState } from 'react'
 
 import { useApp } from '../../contexts/app-context'
 import { useMcp } from '../../contexts/mcp-context'
@@ -19,7 +19,7 @@ import { hasVisibleResponseOutput } from '../../utils/chat/responseState'
 import { ErrorModal } from '../modals/ErrorModal'
 
 type UseChatStreamManagerParams = {
-  setChatMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>
+  setChatMessages: Dispatch<SetStateAction<ChatMessage[]>>
   autoScrollToBottom: () => void
   promptGenerator: PromptGenerator
 }
@@ -93,7 +93,7 @@ export function useChatStreamManager({
             throw error
           }
           const firstChatModel = settings.chatModels[0]
-          setSettings({
+          void setSettings({
             ...settings,
             chatModelId: firstChatModel.id,
             chatModels: settings.chatModels.map((model) =>

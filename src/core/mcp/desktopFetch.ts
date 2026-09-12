@@ -1,15 +1,15 @@
+import type { IncomingMessage, RequestOptions } from 'http'
+import * as http from 'http'
+import * as https from 'https'
 import type { Readable } from 'stream'
 
-import type {
-  RequestInit as NodeFetchRequestInit,
-  Response as NodeFetchResponse,
-} from 'node-fetch'
-
 const NULL_BODY_STATUSES = new Set([101, 204, 205, 304])
-type NodeFetch = typeof import('node-fetch').default
+const MAX_REDIRECTS = 20
+
 type ResponseBody =
-  | NodeFetchResponse['body']
+  | IncomingMessage
   | ReadableStream<Uint8Array>
+  | Readable
   | null
 
 type FetchResponseLike = {
@@ -21,8 +21,6 @@ type FetchResponseLike = {
   statusText: string
 }
 
-let nodeFetchPromise: Promise<NodeFetch> | null = null
-
 /**
  * Uses Node's HTTP stack so desktop MCP connections are not blocked by
  * browser CORS, while preserving the Web Response streams expected by the
@@ -30,39 +28,142 @@ let nodeFetchPromise: Promise<NodeFetch> | null = null
  */
 export function createDesktopMcpFetch(): typeof fetch {
   return async (input, init) => {
-    const nodeFetch = await getNodeFetch()
     const request = new Request(input, init)
-    const headers: Record<string, string> = {}
-    request.headers.forEach((value, key) => {
-      headers[key] = value
-    })
-
-    const body =
-      request.method === 'GET' || request.method === 'HEAD'
-        ? undefined
-        : Buffer.from(await request.arrayBuffer())
-    const response = await nodeFetch(request.url, {
-      method: request.method,
-      headers,
-      body,
-      redirect: request.redirect,
-      signal: request.signal as unknown as NonNullable<
-        NodeFetchRequestInit['signal']
-      >,
-    })
-
-    return toWebResponse(response)
+    return dispatchNodeRequest(request)
   }
 }
 
-function getNodeFetch(): Promise<NodeFetch> {
-  // Import the Node entry explicitly. The plugin's browser-targeted esbuild
-  // configuration otherwise resolves the package root to node-fetch/browser.js
-  // and silently reintroduces Chromium CORS enforcement.
-  nodeFetchPromise ??= import('node-fetch/lib/index.js').then(
-    (module) => module.default,
-  )
-  return nodeFetchPromise
+async function dispatchNodeRequest(
+  request: Request,
+  redirectCount = 0,
+  body?: Buffer,
+): Promise<Response> {
+  const requestBody =
+    body ??
+    (request.method === 'GET' || request.method === 'HEAD'
+      ? undefined
+      : Buffer.from(await request.arrayBuffer()))
+  const incoming = await sendNodeRequest(request, requestBody)
+  const status = incoming.statusCode ?? 0
+  const locationHeader = headerValue(incoming.headers.location)
+  const shouldRedirect =
+    request.redirect !== 'manual' &&
+    request.redirect !== 'error' &&
+    status >= 300 &&
+    status < 400 &&
+    Boolean(locationHeader)
+
+  if (shouldRedirect) {
+    if (redirectCount >= MAX_REDIRECTS) {
+      incoming.resume()
+      throw new TypeError('Maximum MCP redirects exceeded.')
+    }
+    incoming.resume()
+    const nextUrl = new URL(locationHeader as string, request.url)
+    const nextMethod =
+      status === 303 && request.method !== 'HEAD' ? 'GET' : request.method
+    const next = new Request(nextUrl, {
+      method: nextMethod,
+      headers: request.headers,
+      redirect: request.redirect,
+      signal: request.signal,
+    })
+    return dispatchNodeRequest(
+      next,
+      redirectCount + 1,
+      nextMethod === 'GET' || nextMethod === 'HEAD' ? undefined : requestBody,
+    )
+  }
+
+  if (request.redirect === 'error' && status >= 300 && status < 400) {
+    incoming.resume()
+    throw new TypeError(`MCP redirect not allowed: ${status}`)
+  }
+
+  return toWebResponse({
+    body: incoming,
+    headers: nodeHeaders(incoming),
+    status,
+    statusText: incoming.statusMessage ?? '',
+  })
+}
+
+function sendNodeRequest(
+  request: Request,
+  body?: Buffer,
+): Promise<IncomingMessage> {
+  const url = new URL(request.url)
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw new TypeError(`Unsupported MCP URL protocol: ${url.protocol}`)
+  }
+
+  const client = url.protocol === 'https:' ? https : http
+  const headers: Record<string, string | string[]> = {}
+  request.headers.forEach((value, key) => {
+    headers[key] = value
+  })
+  if (body) {
+    headers['Content-Length'] = String(body.byteLength)
+  }
+
+  const options: RequestOptions = {
+    protocol: url.protocol,
+    hostname: url.hostname,
+    port: url.port ? Number(url.port) : undefined,
+    path: `${url.pathname}${url.search}`,
+    method: request.method,
+    headers,
+  }
+
+  return new Promise<IncomingMessage>((resolve, reject) => {
+    const nodeRequest = client.request(options, (response) => {
+      resolve(response)
+    })
+
+    const fail = (error: Error) => {
+      nodeRequest.destroy(error)
+      reject(error)
+    }
+
+    nodeRequest.on('error', reject)
+
+    if (request.signal) {
+      if (request.signal.aborted) {
+        fail(new DOMException('This operation was aborted', 'AbortError'))
+        return
+      }
+      const abortHandler = () => {
+        fail(new DOMException('This operation was aborted', 'AbortError'))
+      }
+      request.signal.addEventListener('abort', abortHandler, { once: true })
+      nodeRequest.on('close', () => {
+        request.signal.removeEventListener('abort', abortHandler)
+      })
+    }
+
+    if (body) nodeRequest.write(body)
+    nodeRequest.end()
+  })
+}
+
+function nodeHeaders(response: IncomingMessage): FetchResponseLike['headers'] {
+  return {
+    forEach(callback) {
+      for (const [key, value] of Object.entries(response.headers)) {
+        if (value === undefined) continue
+        if (Array.isArray(value)) {
+          for (const entry of value) callback(entry, key)
+        } else {
+          callback(value, key)
+        }
+      }
+    },
+  }
+}
+
+function headerValue(value: string | string[] | undefined): string | undefined {
+  if (Array.isArray(value)) return value[0]
+  return value
 }
 
 export function toWebResponse(response: FetchResponseLike): Response {

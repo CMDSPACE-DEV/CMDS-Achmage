@@ -1,6 +1,7 @@
 import type { Server } from 'http'
+import * as http from 'http'
 
-import { Platform } from 'obsidian'
+import { Platform, requestUrl } from 'obsidian'
 
 import {
   CODEX_AUTH_CLAIMS_URL,
@@ -81,7 +82,8 @@ export async function exchangeCodexCodeForTokens(params: {
   redirectUri?: string
   pkceVerifier: string
 }): Promise<CodexTokenResponse> {
-  const response = await fetch(`${CODEX_ISSUER}/oauth/token`, {
+  const response = await requestUrl({
+    url: `${CODEX_ISSUER}/oauth/token`,
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -91,11 +93,12 @@ export async function exchangeCodexCodeForTokens(params: {
       client_id: CODEX_CLIENT_ID,
       code_verifier: params.pkceVerifier,
     }).toString(),
+    throw: false,
   })
-  if (!response.ok) {
+  if (response.status < 200 || response.status >= 300) {
     throw new Error(`Codex token exchange failed: ${response.status}`)
   }
-  return (await response.json()) as CodexTokenResponse
+  return response.json as CodexTokenResponse
 }
 
 export async function startCodexCallbackServer(params: {
@@ -112,11 +115,8 @@ export async function startCodexCallbackServer(params: {
 
   await stopCodexCallbackServer()
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires -- Node http is loaded lazily on desktop only
-  const http = require('http') as typeof import('http')
-
   return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
+    const timeout = window.setTimeout(() => {
       finalize(
         new Error('OAuth callback timeout - authorization took too long'),
       )
@@ -176,7 +176,7 @@ export async function startCodexCallbackServer(params: {
     const finalize = (error?: Error, code?: string) => {
       if (isCodexCallbackStopping) return
       isCodexCallbackStopping = true
-      clearTimeout(timeout)
+      window.clearTimeout(timeout)
       server.close(() => {
         codexCallbackServer = undefined
         isCodexCallbackStopping = false
@@ -217,7 +217,8 @@ export async function stopCodexCallbackServer(): Promise<void> {
 export async function refreshCodexAccessToken(
   refreshToken: string,
 ): Promise<CodexTokenResponse> {
-  const response = await fetch(`${CODEX_ISSUER}/oauth/token`, {
+  const response = await requestUrl({
+    url: `${CODEX_ISSUER}/oauth/token`,
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -225,11 +226,12 @@ export async function refreshCodexAccessToken(
       refresh_token: refreshToken,
       client_id: CODEX_CLIENT_ID,
     }).toString(),
+    throw: false,
   })
-  if (!response.ok) {
+  if (response.status < 200 || response.status >= 300) {
     throw new Error(`Codex token refresh failed: ${response.status}`)
   }
-  return (await response.json()) as CodexTokenResponse
+  return response.json as CodexTokenResponse
 }
 
 export function parseCodexJwtClaims(

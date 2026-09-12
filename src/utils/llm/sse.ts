@@ -36,8 +36,7 @@ export async function* parseJsonSseStream<T>(
   }
 
   for await (const chunk of body) {
-    const chunkText =
-      typeof chunk === 'string' ? chunk : decoder.decode(chunk as Uint8Array)
+    const chunkText = typeof chunk === 'string' ? chunk : decoder.decode(chunk)
     buffer += chunkText
     yield* flushSseBuffer(buffer, (next) => {
       buffer = next

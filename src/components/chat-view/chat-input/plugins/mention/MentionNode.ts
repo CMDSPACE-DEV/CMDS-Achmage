@@ -43,7 +43,7 @@ function $convertMentionElement(
     domNode.getAttribute(MENTION_NODE_MENTION_NAME_ATTRIBUTE) ??
     domNode.textContent ??
     ''
-  const mentionable = JSON.parse(
+  const mentionable: unknown = JSON.parse(
     domNode.getAttribute(MENTION_NODE_MENTIONABLE_ATTRIBUTE) ?? '{}',
   )
 
@@ -111,7 +111,7 @@ export class MentionNode extends TextNode {
   }
 
   exportDOM(): DOMExportOutput {
-    const element = document.createElement('span')
+    const element = createSpan()
     element.setAttribute(MENTION_NODE_ATTRIBUTE, 'true')
     element.setAttribute(
       MENTION_NODE_MENTION_NAME_ATTRIBUTE,

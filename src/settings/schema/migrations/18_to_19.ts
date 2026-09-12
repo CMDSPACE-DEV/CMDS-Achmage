@@ -196,7 +196,9 @@ function mergeModel(
   if (defaultModel.reasoning) {
     merged.reasoning = normalizeGptReasoning(
       existing?.reasoning ?? migratedLegacy?.reasoning,
-      String(defaultModel.reasoning.reasoning_effort ?? 'medium'),
+      typeof defaultModel.reasoning.reasoning_effort === 'string'
+        ? defaultModel.reasoning.reasoning_effort
+        : 'medium',
     )
   }
   if (defaultModel.thinking) {

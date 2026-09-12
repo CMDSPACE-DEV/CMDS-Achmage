@@ -27,7 +27,7 @@ import {
   verifyClaudePlanAuth,
 } from './NativeRuntimeAuth'
 import { nativeToolResultToText } from './nativeToolResult'
-import { requireNode } from './nodeRuntime'
+import { Buffer, fs, os, path } from './nodeRuntime'
 
 type ClaudeFinal =
   | {
@@ -138,7 +138,7 @@ export class ClaudeAgentProvider extends BaseLLMProvider<
     request: LLMRequestStreaming,
     environment: NodeJS.ProcessEnv,
     options?: LLMOptions,
-  ): AsyncGenerator<LLMResponseStreaming> {
+  ): AsyncIterable<LLMResponseStreaming> {
     const nativePrompt = buildNativePrompt(request.messages)
     const tools =
       request.tools?.length && options?.nativeToolExecutor ? request.tools : []
@@ -520,9 +520,6 @@ async function materializeClaudeImages(
   })
   if (urls.length === 0) return []
 
-  const fs = requireNode<typeof import('fs')>('fs')
-  const path = requireNode<typeof import('path')>('path')
-  const { Buffer } = requireNode<typeof import('buffer')>('buffer')
   const files: string[] = []
 
   for (const [index, url] of urls.entries()) {
@@ -601,15 +598,11 @@ function createChunk(
 }
 
 function createEphemeralRuntimeDirectory(): string {
-  const fs = requireNode<typeof import('fs')>('fs')
-  const os = requireNode<typeof import('os')>('os')
-  const path = requireNode<typeof import('path')>('path')
   return fs.mkdtempSync(path.join(os.tmpdir(), 'smart-composer-claude-'))
 }
 
 function removeEphemeralRuntimeDirectory(directory: string | undefined) {
   if (!directory) return
-  const fs = requireNode<typeof import('fs')>('fs')
   try {
     fs.rmSync(directory, { recursive: true, force: true })
   } catch {

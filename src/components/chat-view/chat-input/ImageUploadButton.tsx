@@ -1,19 +1,19 @@
 import { ImageUp } from 'lucide-react'
-import { useRef } from 'react'
+import { ChangeEvent, useRef } from 'react'
 
 import { ChatIconButton } from '../ChatIconButton'
 
 export function ImageUploadButton({
   onUpload,
 }: {
-  onUpload: (files: File[]) => void
+  onUpload: (files: File[]) => void | Promise<void>
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? [])
     if (files.length > 0) {
-      onUpload(files)
+      void onUpload(files)
     }
     event.target.value = ''
   }

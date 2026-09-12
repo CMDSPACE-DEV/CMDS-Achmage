@@ -11,7 +11,8 @@ describe('prepareChatMountSurface', () => {
     const mountElement = createElementMock()
     const host = {
       ownerDocument: {
-        createElement: jest.fn(() => mountElement),
+        createDiv: jest.fn(() => mountElement),
+        createEl: jest.fn(),
       },
       replaceChildren: jest.fn(),
       attachShadow: jest.fn(),
@@ -24,6 +25,8 @@ describe('prepareChatMountSurface', () => {
 
     expect(result).toBe(mountElement)
     expect(mountElement.className).toBe('smtcmp-shell')
+    expect(host.ownerDocument.createDiv).toHaveBeenCalled()
+    expect(host.ownerDocument.createEl).not.toHaveBeenCalled()
     expect(host.replaceChildren).toHaveBeenCalledWith(mountElement)
     expect(host.attachShadow).not.toHaveBeenCalled()
   })
@@ -36,10 +39,8 @@ describe('prepareChatMountSurface', () => {
     }
     const host = {
       ownerDocument: {
-        createElement: jest
-          .fn()
-          .mockReturnValueOnce(passthroughSlot)
-          .mockReturnValueOnce(mountElement),
+        createEl: jest.fn(() => passthroughSlot),
+        createDiv: jest.fn(() => mountElement),
       },
       replaceChildren: jest.fn(),
       shadowRoot,
@@ -47,6 +48,8 @@ describe('prepareChatMountSurface', () => {
 
     prepareChatMountSurface(host as unknown as HTMLElement)
 
+    expect(host.ownerDocument.createEl).toHaveBeenCalledWith('slot')
+    expect(host.ownerDocument.createDiv).toHaveBeenCalled()
     expect(shadowRoot.replaceChildren).toHaveBeenCalledWith(passthroughSlot)
     expect(host.replaceChildren).toHaveBeenCalledWith(mountElement)
   })

@@ -11,6 +11,18 @@ export type LLMResponseBase = {
   usage?: ResponseUsage
 }
 
+/**
+ * OpenAI marks `system_fingerprint` deprecated on SDK types, but the field is
+ * still on the wire. Read it without touching the typed property so
+ * `@typescript-eslint/no-deprecated` stays clean (disabling that rule is
+ * Error-tier forbidden).
+ */
+export function readSystemFingerprint(payload: unknown): string | undefined {
+  if (payload === null || typeof payload !== 'object') return undefined
+  const value: unknown = Reflect.get(payload, 'system_fingerprint')
+  return typeof value === 'string' ? value : undefined
+}
+
 export type LLMResponseNonStreaming = LLMResponseBase & {
   choices: NonStreamingChoice[]
   object: 'chat.completion'

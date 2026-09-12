@@ -47,6 +47,9 @@ package.json
 manifest.json
 compile-migration.js
 import-meta-url-shim.js
+jest.setup.js
+langsmith-stub.js
+meta.json
 
 # Obsidian
 .obsidian

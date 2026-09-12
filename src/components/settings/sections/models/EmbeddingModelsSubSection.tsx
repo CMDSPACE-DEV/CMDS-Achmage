@@ -22,7 +22,7 @@ export function EmbeddingModelsSubSection({
   const handleDeleteEmbeddingModel = async (modelId: string) => {
     if (modelId === settings.embeddingModelId) {
       new Notice(
-        'Cannot remove model that is currently selected as Embedding Model',
+        'Cannot remove model that is currently selected as embedding model',
       )
       return
     }
@@ -90,9 +90,9 @@ export function EmbeddingModelsSubSection({
                       (v) => v.id === embeddingModel.id,
                     ) && (
                       <button
-                        onClick={() =>
-                          handleDeleteEmbeddingModel(embeddingModel.id)
-                        }
+                        onClick={() => {
+                          void handleDeleteEmbeddingModel(embeddingModel.id)
+                        }}
                         className="clickable-icon"
                       >
                         <Trash2 />

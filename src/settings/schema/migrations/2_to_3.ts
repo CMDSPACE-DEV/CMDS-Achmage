@@ -1,5 +1,7 @@
 import { SettingMigration } from '../setting.types'
 
+import { asObjectRecords, recordId } from './migrationUtils'
+
 // Provider IDs at version 3 (hardcoded to avoid dependency on current constants)
 const V3_PROVIDER_IDS = {
   'lm-studio': 'lm-studio',
@@ -54,8 +56,9 @@ export const migrateFrom2To3: SettingMigration['migrate'] = (data) => {
 
   // Handle providers migration
   if ('providers' in newData && Array.isArray(newData.providers)) {
+    const providers = asObjectRecords(newData.providers)
     const existingProvidersMap = new Map(
-      newData.providers.map((provider) => [provider.id, provider]),
+      providers.map((provider) => [recordId(provider), provider]),
     )
 
     // Add new providers, overriding provider type if ID exists
@@ -66,15 +69,17 @@ export const migrateFrom2To3: SettingMigration['migrate'] = (data) => {
         existingProvider.type = newProvider.type
       } else {
         // Add new provider
-        newData.providers.push({ ...newProvider })
+        providers.push({ ...newProvider })
       }
     }
+    newData.providers = providers
   }
 
   // Handle chat models migration
   if ('chatModels' in newData && Array.isArray(newData.chatModels)) {
+    const chatModels = asObjectRecords(newData.chatModels)
     const existingModelsMap = new Map(
-      newData.chatModels.map((model) => [model.id, model]),
+      chatModels.map((model) => [recordId(model), model]),
     )
 
     // Add new chat models, overriding if ID exists
@@ -85,9 +90,10 @@ export const migrateFrom2To3: SettingMigration['migrate'] = (data) => {
         Object.assign(existingModel, newModel)
       } else {
         // Add new model
-        newData.chatModels.push({ ...newModel })
+        chatModels.push({ ...newModel })
       }
     }
+    newData.chatModels = chatModels
   }
 
   return newData

@@ -29,7 +29,7 @@ function resolveRankModule(value: unknown): TiktokenBPE {
       return current as TiktokenBPE
     }
     if (current && typeof current === 'object' && 'default' in current) {
-      current = (current as { default: unknown }).default
+      current = current.default
       continue
     }
     break

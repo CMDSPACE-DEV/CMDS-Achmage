@@ -254,12 +254,14 @@ ${message.annotations
       let similaritySearchResults = undefined
       let retrievalMetadata = undefined
 
-      useVaultSearch =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- boolean OR is intended so vault search stays enabled when either side is true
-        useVaultSearch ||
+      if (
+        !useVaultSearch &&
         message.mentionables.some(
           (m): m is MentionableVault => m.type === 'vault',
         )
+      ) {
+        useVaultSearch = true
+      }
 
       const files = message.mentionables
         .filter((m): m is MentionableFile => m.type === 'file')

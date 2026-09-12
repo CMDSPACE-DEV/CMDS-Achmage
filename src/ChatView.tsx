@@ -137,7 +137,7 @@ export class ChatView extends ItemView {
 
 function markPerformance(name: string): void {
   try {
-    globalThis.performance?.mark(name)
+    window.performance?.mark(name)
   } catch {
     // Performance Timeline instrumentation must never affect plugin behavior.
   }
@@ -149,7 +149,7 @@ function measurePerformance(
   endMark: string,
 ): void {
   try {
-    globalThis.performance?.measure(name, startMark, endMark)
+    window.performance?.measure(name, startMark, endMark)
   } catch {
     // Performance Timeline instrumentation must never affect plugin behavior.
   }

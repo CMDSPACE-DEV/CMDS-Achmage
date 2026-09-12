@@ -254,7 +254,7 @@ function buildBase(
   draft: Extract<ArtifactDraft, { kind: 'base' }>,
   snapshot: string | null,
 ) {
-  const parsed = snapshot ? parseYaml(snapshot) : null
+  const parsed: unknown = snapshot ? parseYaml(snapshot) : null
   const previous =
     parsed && typeof parsed === 'object'
       ? (parsed as Record<string, unknown>)
@@ -392,7 +392,7 @@ function validateBaseFilter(filter: unknown): void {
   if (!filter || typeof filter !== 'object' || Array.isArray(filter)) {
     throw new Error('Invalid Base filter.')
   }
-  const entries = Object.entries(filter)
+  const entries = Object.entries(filter as Record<string, unknown>)
   if (entries.length !== 1) throw new Error('Invalid Base boolean filter.')
   const [operator, children] = entries[0]
   if (!['and', 'or', 'not'].includes(operator) || !Array.isArray(children)) {

@@ -1,10 +1,15 @@
 import path from 'path'
 import esbuild from 'esbuild'
 import process from 'process'
-import builtins from 'builtin-modules'
+import { builtinModules, createRequire } from 'node:module'
 import fs from 'fs'
 
-const nodeBuiltins = [...builtins, ...builtins.map((mod) => `node:${mod}`)]
+const require = createRequire(import.meta.url)
+
+const nodeBuiltins = [
+  ...builtinModules,
+  ...builtinModules.map((mod) => `node:${mod}`),
+]
 
 /**
  * Plugin to make pglite's IN_NODE check evaluate to false.
@@ -26,6 +31,41 @@ const pgliteShimPlugin = {
       const shimSource = `const process = {};\n${source}`
       return { contents: shimSource, loader: 'js' }
     })
+  },
+}
+
+/**
+ * MCP pulls in two copies of ajv 8 (its own nested install and
+ * ajv-formats/node_modules/ajv). Force every `ajv` / `json-schema-traverse`
+ * import onto the MCP-nested v8 tree. Do not use the repo-root ajv — that
+ * copy is v6 and would break MCP schema validation.
+ */
+const dedupeAjvPlugin = {
+  name: 'dedupe-ajv-plugin',
+  setup(build) {
+    const mcpSdkRoot = path.resolve('node_modules/@modelcontextprotocol/sdk')
+    const resolveFromMcp = (id) => require.resolve(id, { paths: [mcpSdkRoot] })
+
+    build.onResolve({ filter: /^ajv(?:\/|$)/ }, (args) => ({
+      path: resolveFromMcp(args.path),
+    }))
+    build.onResolve({ filter: /^json-schema-traverse(?:\/|$)/ }, (args) => ({
+      path: resolveFromMcp(args.path),
+    }))
+  },
+}
+
+/**
+ * LangChain statically imports LangSmith tracing. This plugin never uses
+ * LangSmith, so replace every `langsmith` specifier with a tiny local stub.
+ */
+const langsmithStubPlugin = {
+  name: 'langsmith-stub-plugin',
+  setup(build) {
+    const stubPath = path.resolve('langsmith-stub.js')
+    build.onResolve({ filter: /^langsmith(?:\/|$)/ }, () => ({
+      path: stubPath,
+    }))
   },
 }
 
@@ -91,8 +131,9 @@ const context = await esbuild.context({
   treeShaking: true,
   outfile: 'main.js',
   minify: prod,
+  legalComments: 'none',
   metafile: true,
-  plugins: [pgliteShimPlugin],
+  plugins: [pgliteShimPlugin, dedupeAjvPlugin, langsmithStubPlugin],
   loader: {
     '.css': 'text',
   },

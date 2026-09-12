@@ -58,10 +58,10 @@ export function mountInlineReferencePicker({
   let menuOpen = false
   let composing = false
 
-  const chips = doc.createElement('div')
+  const chips = doc.createDiv()
   chips.className = 'reference-chips'
   chips.setAttribute('aria-label', 'Inline edit references')
-  const list = doc.createElement('div')
+  const list = doc.createDiv()
   list.className = 'reference-list'
   list.id = `smtcmp-inline-references-${Math.random().toString(36).slice(2)}`
   list.setAttribute('role', 'listbox')
@@ -74,16 +74,16 @@ export function mountInlineReferencePicker({
     chips.replaceChildren()
     chips.hidden = references.length === 0
     for (const reference of references) {
-      const chip = doc.createElement('span')
+      const chip = doc.createSpan()
       chip.className = 'reference-chip'
       chip.title = getReferenceDescription(reference)
-      const icon = doc.createElement('span')
+      const icon = doc.createSpan()
       icon.className = 'reference-icon'
       setIcon(icon, getReferenceIcon(reference))
-      const label = doc.createElement('span')
+      const label = doc.createSpan()
       label.className = 'reference-chip-label'
       label.textContent = getReferenceLabel(reference)
-      const remove = doc.createElement('button')
+      const remove = doc.createEl('button')
       remove.type = 'button'
       remove.className = 'reference-remove'
       remove.setAttribute(
@@ -141,7 +141,7 @@ export function mountInlineReferencePicker({
     if (!menuOpen) return
 
     results.forEach((reference, index) => {
-      const option = doc.createElement('button')
+      const option = doc.createEl('button')
       option.type = 'button'
       option.className = 'reference-option'
       option.id = `${list.id}-${index}`
@@ -151,14 +151,14 @@ export function mountInlineReferencePicker({
         'aria-selected',
         index === selectedIndex ? 'true' : 'false',
       )
-      const icon = doc.createElement('span')
+      const icon = doc.createSpan()
       icon.className = 'reference-icon'
       setIcon(icon, getReferenceIcon(reference))
-      const copy = doc.createElement('span')
+      const copy = doc.createSpan()
       copy.className = 'reference-option-copy'
-      const name = doc.createElement('strong')
+      const name = doc.createEl('strong')
       name.textContent = getReferenceLabel(reference)
-      const path = doc.createElement('small')
+      const path = doc.createEl('small')
       path.textContent = getReferenceDescription(reference)
       copy.append(name, path)
       option.append(icon, copy)

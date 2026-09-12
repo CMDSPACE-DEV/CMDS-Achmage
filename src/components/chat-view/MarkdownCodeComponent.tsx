@@ -26,11 +26,13 @@ export default function MarkdownCodeComponent({
     return !language || ['markdown'].includes(language)
   }, [language])
 
+  const codeText = serializeCodeChildren(children)
+
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(String(children))
+      await navigator.clipboard.writeText(codeText)
       setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      window.setTimeout(() => setCopied(false), 2000)
     } catch (err) {
       console.error('Failed to copy text: ', err)
     }
@@ -66,7 +68,7 @@ export default function MarkdownCodeComponent({
           <button
             className="clickable-icon smtcmp-code-block-header-button"
             onClick={() => {
-              handleCopy()
+              void handleCopy()
             }}
           >
             {copied ? (
@@ -85,7 +87,7 @@ export default function MarkdownCodeComponent({
       </div>
       {isPreviewMode ? (
         <div className="smtcmp-code-block-obsidian-markdown">
-          <ObsidianMarkdown content={String(children)} scale="sm" />
+          <ObsidianMarkdown content={codeText} scale="sm" />
         </div>
       ) : (
         <MemoizedSyntaxHighlighterWrapper
@@ -94,7 +96,7 @@ export default function MarkdownCodeComponent({
           hasFilename={!!filename}
           wrapLines={wrapLines}
         >
-          {String(children)}
+          {codeText}
         </MemoizedSyntaxHighlighterWrapper>
       )}
       <div className="smtcmp-code-block-footer">
@@ -102,7 +104,7 @@ export default function MarkdownCodeComponent({
           <button
             className="clickable-icon smtcmp-code-block-header-button"
             onClick={() => {
-              handleCopy()
+              void handleCopy()
             }}
           >
             {copied ? (
@@ -121,4 +123,22 @@ export default function MarkdownCodeComponent({
       </div>
     </div>
   )
+}
+
+function serializeCodeChildren(
+  children: PropsWithChildren['children'],
+): string {
+  if (typeof children === 'string' || typeof children === 'number') {
+    return String(children)
+  }
+  if (Array.isArray(children)) {
+    return children
+      .map((child) =>
+        typeof child === 'string' || typeof child === 'number'
+          ? String(child)
+          : '',
+      )
+      .join('')
+  }
+  return ''
 }

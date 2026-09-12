@@ -46,18 +46,18 @@ export class DocumentEditReviewModal extends Modal {
       summary.createEl('strong', {
         text: `${manifest.strategy === 'transform' ? 'Document rewrite' : 'Document synthesis'} · ${formatPhase(manifest.phase)}`,
       })
-      summary.createEl('span', {
+      summary.createSpan({
         text: `${manifest.units.filter((unit) => unit.status === 'succeeded').length}/${manifest.units.length} sections checkpointed`,
       })
       const sourceFile = this.app.vault.getFileByPath(manifest.sourcePath)
       if (!sourceFile || sourceFile.stat.mtime !== manifest.sourceMtime) {
-        summary.createEl('span', {
+        summary.createSpan({
           cls: 'smtcmp-document-review-warning',
           text: 'The source note changed after this job started. The draft still uses the immutable snapshot.',
         })
       }
       for (const warning of manifest.warnings) {
-        summary.createEl('span', {
+        summary.createSpan({
           cls: 'smtcmp-document-review-warning',
           text: warning,
         })
@@ -254,10 +254,10 @@ export class DocumentEditJobsModal extends Modal {
     heading.createEl('strong', {
       text: manifest.sourcePath.split('/').at(-1) ?? manifest.sourcePath,
     })
-    heading.createEl('span', {
+    heading.createSpan({
       text: `${formatPhase(manifest.phase)} · ${manifest.strategy}`,
     })
-    card.createEl('span', {
+    card.createSpan({
       text: `${manifest.units.filter((unit) => unit.status === 'succeeded').length}/${manifest.units.length} sections · ${new Date(manifest.updatedAt).toLocaleString()}`,
     })
     const actions = card.createDiv({

@@ -17,10 +17,9 @@ const config = {
     'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'plugin:@typescript-eslint/strict',
-    'plugin:import/recommended',
-    'plugin:import/typescript',
+    'plugin:import-x/recommended',
+    'plugin:import-x/typescript',
     'prettier',
-    'plugin:react/recommended',
     'plugin:react-hooks/recommended',
   ],
   rules: {
@@ -44,9 +43,7 @@ const config = {
       },
     ],
 
-    'react/react-in-jsx-scope': 'off',
-
-    'import/no-unresolved': 'off',
+    'import-x/no-unresolved': 'off',
 
     'sort-imports': [
       'error',
@@ -58,7 +55,7 @@ const config = {
         allowSeparatedGroups: true,
       },
     ],
-    'import/order': [
+    'import-x/order': [
       'error',
       {
         'newlines-between': 'always',
@@ -69,7 +66,13 @@ const config = {
       },
     ],
   },
-  ignorePatterns: ['.eslintrc.js'],
+  ignorePatterns: [
+    '.eslintrc.js',
+    'jest.setup.js',
+    'langsmith-stub.js',
+    'main.js',
+    'meta.json',
+  ],
 }
 
 module.exports = config

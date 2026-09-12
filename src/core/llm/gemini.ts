@@ -107,15 +107,16 @@ export class GeminiProvider extends BaseLLMProvider<
         request.model,
         messageId,
       )
-    } catch (error) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error)
       const isInvalidApiKey =
-        error.message?.includes('API_KEY_INVALID') ||
-        error.message?.includes('API key not valid')
+        message.includes('API_KEY_INVALID') ||
+        message.includes('API key not valid')
 
       if (isInvalidApiKey) {
         throw new LLMAPIKeyInvalidException(
           `Provider ${this.provider.id} API key is invalid. Please update it in settings menu.`,
-          error as Error,
+          error instanceof Error ? error : undefined,
         )
       }
 
@@ -167,15 +168,16 @@ export class GeminiProvider extends BaseLLMProvider<
 
       const messageId = crypto.randomUUID() // Gemini does not return a message id
       return this.streamResponseGenerator(stream, request.model, messageId)
-    } catch (error) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error)
       const isInvalidApiKey =
-        error.message?.includes('API_KEY_INVALID') ||
-        error.message?.includes('API key not valid')
+        message.includes('API_KEY_INVALID') ||
+        message.includes('API key not valid')
 
       if (isInvalidApiKey) {
         throw new LLMAPIKeyInvalidException(
           `Gemini API key is invalid. Please update it in settings menu.`,
-          error as Error,
+          error instanceof Error ? error : undefined,
         )
       }
 
@@ -184,7 +186,7 @@ export class GeminiProvider extends BaseLLMProvider<
   }
 
   private async *streamResponseGenerator(
-    stream: AsyncGenerator<GenerateContentResponse>,
+    stream: AsyncIterable<GenerateContentResponse>,
     model: string,
     messageId: string,
   ): AsyncIterable<LLMResponseStreaming> {
@@ -248,7 +250,11 @@ export class GeminiProvider extends BaseLLMProvider<
           message.tool_calls.forEach((toolCall, index) => {
             let args: Record<string, unknown>
             try {
-              args = JSON.parse(toolCall.arguments ?? '{}')
+              const parsed: unknown = JSON.parse(toolCall.arguments ?? '{}')
+              args =
+                parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+                  ? (parsed as Record<string, unknown>)
+                  : {}
             } catch {
               args = {}
             }
@@ -563,8 +569,15 @@ export class GeminiProvider extends BaseLLMProvider<
         }),
       })
       return response.embeddings?.[0]?.values ?? []
-    } catch (error) {
-      if (error.status === 429) {
+    } catch (error: unknown) {
+      const status =
+        typeof error === 'object' &&
+        error !== null &&
+        'status' in error &&
+        typeof error.status === 'number'
+          ? error.status
+          : undefined
+      if (status === 429) {
         throw new LLMRateLimitExceededException(
           'Gemini API rate limit exceeded. Please try again later.',
         )

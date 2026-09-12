@@ -136,7 +136,7 @@ function ToolCallItem({
     }
     try {
       return JSON.stringify(JSON.parse(request.arguments), null, 2)
-    } catch (error) {
+    } catch {
       return request.arguments
     }
   }, [request.arguments])
@@ -194,7 +194,7 @@ function ToolCallItem({
               <SplitButton
                 primaryText="Allow"
                 onPrimaryClick={() => {
-                  handleToolCall()
+                  void handleToolCall()
                   setIsOpen(false)
                 }}
                 menuOptions={[
@@ -204,8 +204,8 @@ function ToolCallItem({
                         {
                           label: 'Always allow this tool',
                           onClick: () => {
-                            handleToolCall()
-                            handleAllowAutoExecution()
+                            void handleToolCall()
+                            void handleAllowAutoExecution()
                             setIsOpen(false)
                           },
                         },
@@ -214,8 +214,8 @@ function ToolCallItem({
                   {
                     label: 'Allow for this chat',
                     onClick: () => {
-                      handleToolCall()
-                      handleAllowForConversation()
+                      void handleToolCall()
+                      void handleAllowForConversation()
                       setIsOpen(false)
                     },
                   },
@@ -224,7 +224,7 @@ function ToolCallItem({
                       ? 'Run in background (resumable)'
                       : 'Run in background',
                     onClick: () => {
-                      handleBackgroundToolCall(originMessageId)
+                      void handleBackgroundToolCall(originMessageId)
                       setIsOpen(false)
                     },
                   },
@@ -232,7 +232,7 @@ function ToolCallItem({
               />
               <button
                 onClick={() => {
-                  handleReject()
+                  void handleReject()
                   setIsOpen(false)
                 }}
               >
@@ -242,7 +242,13 @@ function ToolCallItem({
           )}
           {response.status === ToolCallResponseStatus.Running && (
             <div className="smtcmp-toolcall-footer-actions">
-              <button onClick={handleAbort}>Abort</button>
+              <button
+                onClick={() => {
+                  void handleAbort()
+                }}
+              >
+                Abort
+              </button>
             </div>
           )}
         </div>
@@ -313,7 +319,7 @@ function useToolCall(
       allowAutoExecution: true,
     }
 
-    setSettings({
+    void setSettings({
       ...settings,
       mcp: {
         ...settings.mcp,

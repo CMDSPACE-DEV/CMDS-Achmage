@@ -48,10 +48,6 @@ type CodexReasoningEffort =
   | 'xhigh'
   | 'max'
 
-type CodexRequest = LLMRequest & {
-  reasoning_effort?: CodexReasoningEffort
-}
-
 type CodexResponseCreateParams = Omit<ResponseCreateParamsBase, 'reasoning'> & {
   reasoning?: {
     effort?: CodexReasoningEffort
@@ -864,13 +860,13 @@ function buildCodexProviderMetadata(
   }
   // Shared metadata intentionally treats provider wire data as opaque. The
   // request boundary validates each item before replaying it.
-  return metadata as unknown as ResponseProviderMetadata
+  return metadata
 }
 
 function getCodexReasoningEffort(
   request: LLMRequest,
 ): CodexReasoningEffort | undefined {
-  const effort = (request as CodexRequest).reasoning_effort
+  const effort = request.reasoning_effort
   if (!effort) {
     return undefined
   }

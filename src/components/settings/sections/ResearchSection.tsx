@@ -504,7 +504,9 @@ function NaverUsageMeter({
       </p>
       <button
         type="button"
-        onClick={() => window.open('https://console.ncloud.com/', '_blank')}
+        onClick={() => {
+          window.open('https://console.ncloud.com/', '_blank')
+        }}
       >
         Open exact usage in NAVER Cloud
         <ExternalLink size={13} aria-hidden="true" />

@@ -155,8 +155,15 @@ export class OpenAIAuthenticatedProvider extends BaseLLMProvider<
         ...(options?.dimensions && { dimensions: options.dimensions }),
       })
       return embedding.data[0].embedding
-    } catch (error) {
-      if (error.status === 429) {
+    } catch (error: unknown) {
+      const status =
+        typeof error === 'object' &&
+        error !== null &&
+        'status' in error &&
+        typeof error.status === 'number'
+          ? error.status
+          : undefined
+      if (status === 429) {
         throw new LLMRateLimitExceededException(
           'OpenAI API rate limit exceeded. Please try again later.',
         )

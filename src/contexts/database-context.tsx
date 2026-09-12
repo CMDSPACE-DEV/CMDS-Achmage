@@ -1,4 +1,10 @@
-import { createContext, useCallback, useContext, useMemo } from 'react'
+import {
+  ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+} from 'react'
 
 import type { DatabaseManager } from '../database/DatabaseManager'
 import type { LegacyTemplateManager } from '../database/modules/template/TemplateManager'
@@ -16,7 +22,7 @@ export function DatabaseProvider({
   children,
   getDatabaseManager,
 }: {
-  children: React.ReactNode
+  children: ReactNode
   getDatabaseManager: () => Promise<DatabaseManager>
 }) {
   const getVectorManager = useCallback(async () => {

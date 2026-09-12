@@ -6,7 +6,7 @@ import { useObsidianSetting } from './ObsidianSetting'
 type ObsidianTextInputProps = {
   value: string
   placeholder?: string
-  onChange: (value: string) => void
+  onChange: (value: string) => void | Promise<void>
   type?: 'text' | 'number' | 'password'
 }
 
@@ -48,7 +48,9 @@ export function ObsidianTextInput({
 
   useEffect(() => {
     if (!textComponent) return
-    textComponent.onChange((v) => onChangeRef.current(v))
+    textComponent.onChange((v) => {
+      void onChangeRef.current(v)
+    })
   }, [textComponent])
 
   useEffect(() => {

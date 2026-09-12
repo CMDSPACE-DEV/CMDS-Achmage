@@ -1,3 +1,4 @@
+import * as http from 'http'
 import type { Server } from 'http'
 
 import type { OAuthClientProvider } from '@modelcontextprotocol/sdk/client/auth.js'
@@ -221,8 +222,6 @@ export async function startMcpOAuthCallbackSession(
     throw new Error('MCP OAuth is not supported on mobile.')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires -- Node http is loaded lazily on desktop only (guarded above)
-  const http = require('http') as typeof import('http')
   const path = '/mcp-oauth/callback'
   let server: Server | null = null
   let closing: Promise<void> | null = null
@@ -235,7 +234,7 @@ export async function startMcpOAuthCallbackSession(
     rejectCode = reject
   })
 
-  const timeout = setTimeout(() => {
+  const timeout = window.setTimeout(() => {
     if (settled) return
     settled = true
     rejectCode(new Error('MCP OAuth authorization timed out.'))
@@ -303,14 +302,14 @@ export async function startMcpOAuthCallbackSession(
   function finish(error?: Error, code?: string): void {
     if (settled) return
     settled = true
-    clearTimeout(timeout)
+    window.clearTimeout(timeout)
     if (error) rejectCode(error)
     else if (code) resolveCode(code)
     void close()
   }
 
   async function close(): Promise<void> {
-    clearTimeout(timeout)
+    window.clearTimeout(timeout)
     if (closing) return closing
     const current = server
     server = null

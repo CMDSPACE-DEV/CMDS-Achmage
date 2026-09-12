@@ -131,7 +131,7 @@ function ConnectOpenAIPlanModalComponent({
     const effectiveState = ensured?.state ?? state
 
     if (!effectiveAuthorizeUrl || !effectivePkceVerifier || !effectiveState) {
-      new Notice('Failed to initialize OAuth flow')
+      new Notice('Failed to initialize the authorization flow')
       return
     }
 
@@ -147,7 +147,7 @@ function ConnectOpenAIPlanModalComponent({
         pkceVerifier: effectivePkceVerifier,
       })
       await applyTokens(tokens)
-      new Notice('OpenAI Plan connected')
+      new Notice('OpenAI plan connected')
       onClose()
     } catch {
       setAutoError(
@@ -191,7 +191,7 @@ function ConnectOpenAIPlanModalComponent({
       const effectivePkceVerifier = ensured?.pkceVerifier ?? pkceVerifier
       const effectiveState = ensured?.state ?? state
       if (!effectivePkceVerifier || !effectiveState) {
-        new Notice('Failed to initialize OAuth flow')
+        new Notice('Failed to initialize the authorization flow')
         return
       }
       if (redirectState !== effectiveState) {
@@ -205,7 +205,7 @@ function ConnectOpenAIPlanModalComponent({
         pkceVerifier: effectivePkceVerifier,
       })
       await applyTokens(tokens)
-      new Notice('OpenAI Plan connected')
+      new Notice('OpenAI plan connected')
       onClose()
     } catch {
       setManualError(

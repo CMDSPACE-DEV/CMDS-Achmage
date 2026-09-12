@@ -7,6 +7,7 @@ import {
   Annotation,
   LLMResponseNonStreaming,
   LLMResponseStreaming,
+  readSystemFingerprint,
 } from '../../types/llm/response'
 
 import { OpenAIMessageAdapter } from './openaiMessageAdapter'
@@ -50,7 +51,7 @@ export class PerplexityMessageAdapter extends OpenAIMessageAdapter {
       created: response.created,
       model: response.model,
       object: 'chat.completion',
-      system_fingerprint: response.system_fingerprint,
+      system_fingerprint: readSystemFingerprint(response),
       usage: response.usage,
     }
   }
@@ -79,7 +80,7 @@ export class PerplexityMessageAdapter extends OpenAIMessageAdapter {
       created: chunk.created,
       model: chunk.model,
       object: 'chat.completion.chunk',
-      system_fingerprint: chunk.system_fingerprint,
+      system_fingerprint: readSystemFingerprint(chunk),
       usage: chunk.usage ?? undefined,
     }
   }
