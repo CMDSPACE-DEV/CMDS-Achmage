@@ -9,6 +9,7 @@ import {
   BackgroundTaskRunContext,
   BackgroundTaskRunResult,
 } from '../../types/background-task'
+import { resolveAttachmentFolder } from '../../utils/vault/attachmentFolder'
 import { BackgroundTaskManager } from '../tasks/BackgroundTaskManager'
 
 export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
@@ -81,7 +82,10 @@ export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
     })
     const bytes = base64ToArrayBuffer(generated.base64)
     const dimensions = readPngDimensions(bytes)
-    const folder = normalizePath(settings.imageGeneration.outputFolder)
+    const folder = normalizePath(
+      settings.imageGeneration.outputFolder.trim() ||
+        resolveAttachmentFolder(this.app),
+    )
     await ensureFolder(this.app, folder)
     const filename = `${Date.now()}-${
       sanitizeFilename(prompt.slice(0, 48)) || 'generated-image'

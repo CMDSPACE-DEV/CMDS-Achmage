@@ -214,7 +214,7 @@ class InlineEditWidget extends WidgetType {
       panel.dataset.taskStatus = this.session.documentTask.status
     }
     panel.setAttribute('aria-live', 'polite')
-    panel.setAttribute('aria-label', 'Smart Composer inline edit')
+    panel.setAttribute('aria-label', 'CMDS Achmage inline edit')
     shadow.appendChild(panel)
 
     panel.appendChild(makeHeader(doc, this.session))

@@ -9,6 +9,7 @@ import { ObsidianDropdown } from '../../common/ObsidianDropdown'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
 import { ObsidianTextArea } from '../../common/ObsidianTextArea'
 import { ObsidianTextInput } from '../../common/ObsidianTextInput'
+import { ObsidianToggle } from '../../common/ObsidianToggle'
 import { EmbeddingDbManageModal } from '../modals/EmbeddingDbManageModal'
 import { ExcludedFilesModal } from '../modals/ExcludedFilesModal'
 import { IncludedFilesModal } from '../modals/IncludedFilesModal'
@@ -27,7 +28,7 @@ export function RAGSection({ app, plugin }: RAGSectionProps) {
 
       <ObsidianSetting
         name="Retrieval mode"
-        desc="Choose how Smart Composer selects context for large folder or vault mentions."
+        desc="Choose how CMDS Achmage selects context for large folder or vault mentions."
       >
         <ObsidianDropdown
           value={settings.ragOptions.retrievalMode}
@@ -42,6 +43,24 @@ export function RAGSection({ app, plugin }: RAGSectionProps) {
               ragOptions: {
                 ...settings.ragOptions,
                 retrievalMode: value as 'auto' | 'embedding' | 'plan-rerank',
+              },
+            })
+          }}
+        />
+      </ObsidianSetting>
+
+      <ObsidianSetting
+        name="Respect Obsidian's excluded files"
+        desc="Skip files and folders listed under Obsidian Settings -> Files and links -> Excluded files when indexing and when reading folders or the vault for context."
+      >
+        <ObsidianToggle
+          value={settings.ragOptions.respectObsidianExcludedFiles}
+          onChange={async (value: boolean) => {
+            await setSettings({
+              ...settings,
+              ragOptions: {
+                ...settings.ragOptions,
+                respectObsidianExcludedFiles: value,
               },
             })
           }}

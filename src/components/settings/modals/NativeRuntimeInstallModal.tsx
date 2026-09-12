@@ -188,7 +188,7 @@ export function NativeRuntimeInstallModalComponent({
     if (!isSelectedCurrentPlatform) return
     try {
       // Deliberately opens an empty terminal. The installer is never executed
-      // by Smart Composer; the user pastes and runs the copied command.
+      // by CMDS Achmage; the user pastes and runs the copied command.
       service.openSetupTerminal(guide.shell)
       setTerminalOpened(true)
       setStatusMessage(
@@ -291,7 +291,7 @@ export function NativeRuntimeInstallModalComponent({
   return (
     <div className="smtcmp-runtime-installer" data-runtime-installer={provider}>
       <div className="smtcmp-runtime-installer-intro">
-        이 안내는 공식 설치 명령을 그대로 보여 줍니다. Smart Composer는 설치
+        이 안내는 공식 설치 명령을 그대로 보여 줍니다. CMDS Achmage는 설치
         프로그램을 자동 실행하거나 보안 설정을 변경하지 않습니다.
       </div>
 

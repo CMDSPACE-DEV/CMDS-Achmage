@@ -26,7 +26,7 @@ export class SmartComposerSettingTab extends PluginSettingTab {
         renderer.render()
       })
       .catch((error) => {
-        console.error('Failed to render Smart Composer settings:', error)
+        console.error('Failed to render CMDS Achmage settings:', error)
         if (!this.visible || generation !== this.displayGeneration) return
         this.renderLoadFailure(error)
       })

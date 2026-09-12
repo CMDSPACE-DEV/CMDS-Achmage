@@ -96,7 +96,7 @@ export function ChatSection({
 
           <ObsidianSetting
             name="Document draft folder"
-            desc="Vault-relative folder for completed large replacement drafts."
+            desc="Vault-relative folder for completed large replacement drafts. New drafts get achmage-source / achmage-generated / achmage-model frontmatter keys so they can be told apart from originals; your own keys are never rewritten."
           >
             <ObsidianTextInput
               value={settings.documentEditing.destinationFolder}
@@ -174,7 +174,7 @@ export function ChatSection({
 
           <ObsidianSetting
             name="Image output folder"
-            desc="Vault-relative folder used for every generated image before R2 upload or note insertion. The task card shows the exact saved path."
+            desc="Leave empty to use Obsidian's own attachment folder (Settings -> Files and links -> Default location for new attachments). Set a vault-relative folder to override. The task card shows the exact saved path."
           >
             <ObsidianTextInput
               value={settings.imageGeneration.outputFolder}
@@ -185,6 +185,21 @@ export function ChatSection({
                     ...settings.imageGeneration,
                     outputFolder: value,
                   },
+                })
+              }}
+            />
+          </ObsidianSetting>
+
+          <ObsidianSetting
+            name="Artifact output folder"
+            desc="Vault-relative folder for generated Canvas, Base, and Excalidraw files. The model only names the file; it can never create folders."
+          >
+            <ObsidianTextInput
+              value={settings.artifacts.outputFolder}
+              onChange={async (value) => {
+                await setSettings({
+                  ...settings,
+                  artifacts: { ...settings.artifacts, outputFolder: value },
                 })
               }}
             />

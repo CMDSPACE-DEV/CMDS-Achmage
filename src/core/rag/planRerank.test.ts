@@ -86,7 +86,7 @@ describe('processQueryWithPlanRerank', () => {
     const { results, retrievalMetadata } = await processQueryWithPlanRerank({
       app,
       settings: {
-        version: 30,
+        version: 31,
         providers: [],
         chatModels: [],
         embeddingModels: [],
@@ -94,13 +94,14 @@ describe('processQueryWithPlanRerank', () => {
         inlineEdit: { modelId: null, contextCharacters: 4000 },
         imageGeneration: {
           modelId: 'gpt-5.6-sol (plan)',
-          outputFolder: 'Smart Composer/Generated Images',
+          outputFolder: 'CMDS Achmage/Generated Images',
           quality: 'high',
           concurrency: 1,
         },
+        artifacts: { outputFolder: 'CMDS Achmage/Artifacts' },
         documentEditing: {
           largeEditRouting: 'auto-confirm',
-          destinationFolder: 'Smart Composer/Document Drafts',
+          destinationFolder: 'CMDS Achmage/Document Drafts',
           preserveFrontmatter: true,
           concurrency: 1,
           retryLimit: 2,
@@ -119,6 +120,7 @@ describe('processQueryWithPlanRerank', () => {
           planRerankCandidateLimit: 2,
           excludePatterns: [],
           includePatterns: [],
+          respectObsidianExcludedFiles: true,
         },
         mcp: {
           routingMode: 'auto',
@@ -199,7 +201,7 @@ describe('processQueryWithPlanRerank', () => {
     const result = await processQueryWithPlanRerank({
       app,
       settings: {
-        version: 30,
+        version: 31,
         providers: [],
         chatModels: [],
         embeddingModels: [],
@@ -207,13 +209,14 @@ describe('processQueryWithPlanRerank', () => {
         inlineEdit: { modelId: null, contextCharacters: 4000 },
         imageGeneration: {
           modelId: 'gpt-5.6-sol (plan)',
-          outputFolder: 'Smart Composer/Generated Images',
+          outputFolder: 'CMDS Achmage/Generated Images',
           quality: 'high',
           concurrency: 1,
         },
+        artifacts: { outputFolder: 'CMDS Achmage/Artifacts' },
         documentEditing: {
           largeEditRouting: 'auto-confirm',
-          destinationFolder: 'Smart Composer/Document Drafts',
+          destinationFolder: 'CMDS Achmage/Document Drafts',
           preserveFrontmatter: true,
           concurrency: 1,
           retryLimit: 2,
@@ -232,6 +235,7 @@ describe('processQueryWithPlanRerank', () => {
           planRerankCandidateLimit: 2,
           excludePatterns: [],
           includePatterns: [],
+          respectObsidianExcludedFiles: true,
         },
         mcp: {
           routingMode: 'auto',

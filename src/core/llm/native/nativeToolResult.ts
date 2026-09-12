@@ -25,7 +25,7 @@ export function nativeToolResultToText(response: ToolCallResponse): {
       }
     case ToolCallResponseStatus.PendingApproval:
       return {
-        text: 'Tool execution requires approval in Smart Composer.',
+        text: 'Tool execution requires approval in CMDS Achmage.',
         isError: true,
       }
     case ToolCallResponseStatus.Rejected:

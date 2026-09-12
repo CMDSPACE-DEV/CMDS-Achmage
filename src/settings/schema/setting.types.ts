@@ -32,6 +32,8 @@ const ragOptionsSchema = z.object({
   planRerankCandidateLimit: z.number().catch(40),
   excludePatterns: z.array(z.string()).catch([]),
   includePatterns: z.array(z.string()).catch([]),
+  /** Skip files Obsidian itself hides via Settings -> Files and links -> Excluded files. */
+  respectObsidianExcludedFiles: z.boolean().catch(true),
 })
 
 /**
@@ -82,7 +84,7 @@ export const smartComposerSettingsSchema = z.object({
     })
     .catch({
       largeEditRouting: 'auto-confirm',
-      destinationFolder: 'Smart Composer/Document Drafts',
+      destinationFolder: 'CMDS Achmage/Document Drafts',
       preserveFrontmatter: true,
       concurrency: 1,
       retryLimit: 2,
@@ -97,9 +99,22 @@ export const smartComposerSettingsSchema = z.object({
     })
     .catch({
       modelId: 'gpt-5.6-sol (plan)',
-      outputFolder: 'Smart Composer/Generated Images',
+      // '' = Obsidian's own attachment folder (Settings -> Files and links).
+      outputFolder: '',
       quality: 'high',
       concurrency: 1,
+    }),
+
+  artifacts: z
+    .object({
+      /**
+       * Canvas, Base, and Excalidraw drafts land here. The model supplies only
+       * a file name; the folder is the user's choice, never the model's.
+       */
+      outputFolder: z.string().catch('CMDS Achmage/Artifacts'),
+    })
+    .catch({
+      outputFolder: 'CMDS Achmage/Artifacts',
     }),
 
   appearance: z
@@ -133,6 +148,7 @@ export const smartComposerSettingsSchema = z.object({
     planRerankCandidateLimit: 40,
     excludePatterns: [],
     includePatterns: [],
+    respectObsidianExcludedFiles: true,
   }),
 
   // MCP configuration

@@ -56,7 +56,7 @@ export class DatabaseManager {
 
     DatabaseManager.managers.set(dbManager, managers)
 
-    console.log('Smart composer database initialized.', dbManager)
+    console.log('CMDS Achmage database initialized.', dbManager)
 
     return dbManager
   }

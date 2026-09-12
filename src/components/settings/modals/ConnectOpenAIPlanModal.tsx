@@ -222,7 +222,7 @@ function ConnectOpenAIPlanModalComponent({
         <div className="smtcmp-plan-connect-steps-title">How it works</div>
         <ol>
           <li>Login to OpenAI in your browser</li>
-          <li>Smart Composer connects automatically when you return</li>
+          <li>CMDS Achmage connects automatically when you return</li>
           <li>
             If automatic connect fails, paste the full redirect URL below and
             click &quot;Connect with URL&quot;
@@ -232,7 +232,7 @@ function ConnectOpenAIPlanModalComponent({
 
       <ObsidianSetting
         name="OpenAI login"
-        desc="Login to OpenAI in your browser. Smart Composer connects automatically when you return."
+        desc="Login to OpenAI in your browser. CMDS Achmage connects automatically when you return."
       >
         <ObsidianButton
           text="Login to OpenAI"

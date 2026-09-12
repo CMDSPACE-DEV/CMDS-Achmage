@@ -197,7 +197,7 @@ export class AntigravityProvider extends BaseLLMProvider<
         )
         if (!definition || !options?.nativeToolExecutor) {
           throw new Error(
-            `Antigravity requested an unavailable Smart Composer tool: ${decision.tool}`,
+            `Antigravity requested an unavailable CMDS Achmage tool: ${decision.tool}`,
           )
         }
         const response = await options.nativeToolExecutor({
@@ -220,7 +220,7 @@ export class AntigravityProvider extends BaseLLMProvider<
     }
 
     throw new Error(
-      "Antigravity reached Smart Composer's 12-step tool safety limit.",
+      "Antigravity reached CMDS Achmage's 12-step tool safety limit.",
     )
   }
 }
@@ -370,7 +370,7 @@ function buildAntigravityIterationPrompt(params: {
   }))
   return [
     params.systemPrompt,
-    'You may use only the Smart Composer tools in the catalog below. Return a JSON object matching the required schema. Use type "tool_call" for exactly one required tool call, or type "final" when ready to answer. Never claim a tool result that is not present in the transcript.',
+    'You may use only the CMDS Achmage tools in the catalog below. Return a JSON object matching the required schema. Use type "tool_call" for exactly one required tool call, or type "final" when ready to answer. Never claim a tool result that is not present in the transcript.',
     `[SMART COMPOSER TOOL CATALOG]\n${JSON.stringify(catalog)}`,
     params.prompt,
     ...params.toolTranscript,

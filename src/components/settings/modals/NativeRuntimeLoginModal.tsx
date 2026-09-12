@@ -137,8 +137,8 @@ export function NativeRuntimeLoginModalComponent({
   return (
     <div className="smtcmp-runtime-installer">
       <div className="smtcmp-runtime-installer-intro">
-        Smart Composer는 로그인 토큰이나 일회용 코드를 저장하지 않습니다. 공식
-        CLI 창에서 인증을 마친 뒤 안전한 연결 상태만 확인합니다.
+        CMDS Achmage는 로그인 토큰이나 일회용 코드를 저장하지 않습니다. 공식 CLI
+        창에서 인증을 마친 뒤 안전한 연결 상태만 확인합니다.
       </div>
 
       <section className="smtcmp-runtime-install-step">
@@ -282,7 +282,7 @@ function initialStatusMessage(
   ) {
     return policyBlockMessage(provider, snapshot)
   }
-  return '아래 순서대로 진행하세요. 로그인 창은 Smart Composer와 별도로 열립니다.'
+  return '아래 순서대로 진행하세요. 로그인 창은 CMDS Achmage와 별도로 열립니다.'
 }
 
 function policyBlockMessage(

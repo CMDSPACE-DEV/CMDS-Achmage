@@ -1,5 +1,6 @@
 import { App, normalizePath } from 'obsidian'
 
+import { stampDraftProvenance } from './draftProvenance'
 import { stableTextHash } from './markdownSplitter'
 import type {
   CreateDocumentEditJobInput,
@@ -140,25 +141,32 @@ export class DocumentJobRepository {
     destinationFolder: string
     content: string
     existingPath?: string
+    provenance?: { modelId?: string }
   }): Promise<string> {
     if (input.existingPath) {
       await this.atomicWrite(input.existingPath, input.content)
       return normalizePath(input.existingPath)
     }
+    const content = input.provenance
+      ? stampDraftProvenance(input.content, {
+          sourcePath: input.sourcePath,
+          modelId: input.provenance.modelId,
+        })
+      : input.content
     const folder = normalizePath(
-      input.destinationFolder.trim() || 'Smart Composer/Document Drafts',
+      input.destinationFolder.trim() || 'CMDS Achmage/Document Drafts',
     )
     await this.ensureDirectory(folder)
     const sourceName =
       input.sourcePath.split('/').pop()?.replace(/\.md$/i, '') ?? 'Document'
-    const base = normalizePath(`${folder}/${sourceName} - Smart Composer draft`)
+    const base = normalizePath(`${folder}/${sourceName} - CMDS Achmage draft`)
     let path = `${base}.md`
     let suffix = 2
     while (await this.app.vault.adapter.exists(path)) {
       path = `${base} ${suffix}.md`
       suffix += 1
     }
-    await this.atomicWrite(path, input.content)
+    await this.atomicWrite(path, content)
     return path
   }
 
@@ -221,6 +229,7 @@ export class DocumentJobRepository {
     const finalResultPath = await this.writeFinalResult(jobId, content)
     const draftPath = await this.writeVisibleDraft({
       sourcePath: manifest.sourcePath,
+      provenance: { modelId: manifest.modelId },
       destinationFolder,
       content,
       existingPath: manifest.draftPath,
@@ -250,6 +259,7 @@ export class DocumentJobRepository {
     const content = await this.readText(manifest.finalResultPath)
     const draftPath = await this.writeVisibleDraft({
       sourcePath: manifest.sourcePath,
+      provenance: { modelId: manifest.modelId },
       destinationFolder,
       content,
     })

@@ -487,7 +487,7 @@ export function getUpdateDecision(
       command: quoteForShell(discovery.selectedPath),
       shell,
       reason:
-        'Opening the installed Antigravity CLI gives its documented background updater an opportunity to run. Smart Composer does not invent an `agy update` command that is absent from the current CLI reference.',
+        'Opening the installed Antigravity CLI gives its documented background updater an opportunity to run. CMDS Achmage does not invent an `agy update` command that is absent from the current CLI reference.',
       discovery,
     }
   }
