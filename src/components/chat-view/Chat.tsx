@@ -19,6 +19,7 @@ import { useSettings } from '../../contexts/settings-context'
 import { QueuedPrompt } from '../../core/conversation/ConversationRunManager'
 import {
   applyImagePromptTemplate,
+  composeImagePrompt,
   findImagePromptTemplate,
 } from '../../core/image/image-prompt-templates'
 import { ImageGenerationSubmission } from '../../core/image/image-request'
@@ -625,12 +626,14 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
       settings.imageGeneration.promptTemplates,
       submission.templateId,
     )
-    const templated = template
-      ? {
-          ...request,
-          prompt: applyImagePromptTemplate(request.prompt, template),
-        }
-      : request
+    const templated = {
+      ...request,
+      prompt: composeImagePrompt({
+        brief: request.prompt,
+        template,
+        globalInstructions: settings.imageGeneration.globalInstructions,
+      }),
+    }
     if (templated.requestedCount > MAX_IMAGE_BATCH_COUNT) {
       new Notice(
         `A maximum of ${MAX_IMAGE_BATCH_COUNT} images can be queued at once. Queuing ${MAX_IMAGE_BATCH_COUNT}.`,

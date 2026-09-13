@@ -42,6 +42,27 @@ export function ImagePromptTemplateSettings() {
   return (
     <>
       <ObsidianSetting
+        name="Always-on image instructions"
+        desc="Appended to every image prompt after the template and the brief, from every entry point (composer, modal, commands, inline edit). Put your standing rules here, e.g. 'No Korean words or any text inside the image. No watermark. 3:2 landscape unless asked otherwise.'"
+      >
+        <ObsidianTextArea
+          value={settings.imageGeneration.globalInstructions}
+          placeholder={
+            'No Korean words or any text inside the image.\nNo watermark, no logo.'
+          }
+          onChange={async (value) => {
+            await setSettings({
+              ...settings,
+              imageGeneration: {
+                ...settings.imageGeneration,
+                globalInstructions: value,
+              },
+            })
+          }}
+        />
+      </ObsidianSetting>
+
+      <ObsidianSetting
         name="Image prompt templates"
         desc="Slots offered in the composer's image mode. The chosen template is prepended to your brief, so write the style, palette, and format rules here and keep the subject in the chat. Add your own or reset to the CMDS defaults."
       >

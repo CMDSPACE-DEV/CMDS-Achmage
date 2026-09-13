@@ -15,6 +15,7 @@ import {
 import {
   DEFAULT_IMAGE_PROMPT_TEMPLATES,
   applyImagePromptTemplate,
+  composeImagePrompt,
   findImagePromptTemplate,
 } from './image-prompt-templates'
 import { resolveImageGenerationModel } from './resolve-image-model'
@@ -153,5 +154,21 @@ describe('image prompt templates', () => {
     expect(
       findImagePromptTemplate(DEFAULT_IMAGE_PROMPT_TEMPLATES, ''),
     ).toBeUndefined()
+  })
+})
+
+describe('composeImagePrompt', () => {
+  it('orders template, brief, then always-on rules', () => {
+    const out = composeImagePrompt({
+      brief: 'a lighthouse at dusk',
+      template: { id: 't', name: 't', prompt: 'Flat vector style.' },
+      globalInstructions: 'No Korean words.\nNo watermark.',
+    })
+    expect(out).toBe(
+      'Flat vector style.\n\na lighthouse at dusk\n\nAlways follow these rules:\nNo Korean words.\nNo watermark.',
+    )
+    expect(composeImagePrompt({ brief: 'x', globalInstructions: '  ' })).toBe(
+      'x',
+    )
   })
 })
