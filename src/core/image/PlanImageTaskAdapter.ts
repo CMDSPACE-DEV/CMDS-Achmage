@@ -13,6 +13,12 @@ import { BackgroundTaskManager } from '../tasks/BackgroundTaskManager'
 
 import { uploadWithCmdsEagle } from './CmdsEagleBridge'
 import { importArtifactToEagle } from './eagle-artifact'
+import {
+  IMAGE_EXTENSION_BY_MIME,
+  isImageGenerator,
+  sniffImageMimeType,
+} from './image-generator'
+import { resolveImageGenerationModel } from './resolve-image-model'
 
 export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
   readonly kind = 'image-generation' as const
@@ -43,25 +49,21 @@ export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
     const requestedModelId =
       typeof task.input.modelId === 'string'
         ? task.input.modelId
-        : settings.imageGeneration.modelId
-    const [{ getChatModelClient }, { OpenAICodexProvider }] = await Promise.all(
-      [import('../llm/manager'), import('../llm/openaiCodexProvider')],
-    )
+        : (resolveImageGenerationModel(settings).model?.id ??
+          settings.imageGeneration.modelId)
+    const { getChatModelClient } = await import('../llm/manager')
     const { providerClient, model } = getChatModelClient({
       modelId: requestedModelId,
       settings,
       setSettings: this.setSettings,
     })
-    if (
-      !(providerClient instanceof OpenAICodexProvider) ||
-      model.providerType !== 'openai-plan'
-    ) {
-      throw new Error('Native image generation requires a GPT Plan model.')
+    if (!isImageGenerator(providerClient)) {
+      throw new Error(`Model "${model.id}" cannot generate images.`)
     }
 
     await context.updateProgress({
       phase: 'preparing',
-      message: 'Preparing Plan image request',
+      message: `Preparing image request (${model.id})`,
     })
     const generated = await providerClient.generateImage(model, prompt, {
       quality: settings.imageGeneration.quality,
@@ -83,12 +85,14 @@ export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
       message: 'Saving recoverable local image',
     })
     const bytes = base64ToArrayBuffer(generated.base64)
+    const mimeType =
+      sniffImageMimeType(bytes) ?? generated.mimeType ?? 'image/png'
     const dimensions = readPngDimensions(bytes)
     const folder = normalizePath(settings.imageGeneration.outputFolder)
     await ensureFolder(this.app, folder)
     const filename = `${Date.now()}-${
       sanitizeFilename(prompt.slice(0, 48)) || 'generated-image'
-    }.png`
+    }.${IMAGE_EXTENSION_BY_MIME[mimeType] ?? 'png'}`
     const path = await getAvailablePath(this.app, folder, filename)
     await this.app.vault.createBinary(path, bytes)
 
@@ -99,7 +103,7 @@ export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
       kind: 'image',
       createdAt: Date.now(),
       localPath: path,
-      mimeType: generated.mimeType,
+      mimeType,
       byteSize: bytes.byteLength,
       width: dimensions?.width,
       height: dimensions?.height,

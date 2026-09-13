@@ -68,8 +68,9 @@ export async function deliverToEagle(
 
   try {
     hooks.onStatus?.('Importing into Eagle')
-    const folderId =
-      input.target.folderId || input.fallbackFolderId || undefined
+    const folderId = input.target.folderId
+      ? input.target.folderId
+      : input.fallbackFolderId
     const itemId = await client.addFromPath({
       path: input.absolutePath,
       name: input.name,

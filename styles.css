@@ -5229,3 +5229,21 @@ body:not(.theme-dark)
 .smtcmp-shell button.smtcmp-chat-input-model-select {
   max-width: 240px !important;
 }
+
+/* R-035: image prompt template picker, shown only in image mode. */
+.smtcmp-shell .smtcmp-chat-input-template-select {
+  max-width: 11em;
+  height: 26px;
+  padding: 0 6px;
+  border: 1px solid var(--ach-border);
+  border-radius: var(--radius-m);
+  background: var(--ach-surface);
+  color: var(--ach-text);
+  font-size: var(--font-ui-smaller);
+}
+
+.smtcmp-shell .smtcmp-chat-input-template-select:focus-visible {
+  outline: none;
+  border-color: var(--ach-action);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ach-action) 18%, transparent);
+}

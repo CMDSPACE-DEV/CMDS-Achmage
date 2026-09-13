@@ -153,7 +153,7 @@ export class OpenAICodexProvider extends BaseLLMProvider<
   }
 
   async generateImage(
-    model: Extract<ChatModel, { providerType: 'openai-plan' }>,
+    model: ChatModel,
     prompt: string,
     options: {
       quality: 'low' | 'medium' | 'high'
@@ -161,6 +161,9 @@ export class OpenAICodexProvider extends BaseLLMProvider<
       onProgress?: (phase: string, partialImageIndex?: number) => void
     },
   ): Promise<PlanImageResult> {
+    if (model.providerType !== 'openai-plan') {
+      throw new Error('Native image generation requires a GPT Plan model.')
+    }
     return this.withAuthRetry(async (authHeaders) => {
       const stream = await postStream(
         this.imageEndpoint,

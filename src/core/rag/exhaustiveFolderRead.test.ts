@@ -1,6 +1,7 @@
 import { App, TFile } from 'obsidian'
 
 import { DEFAULT_CHAT_MODELS, DEFAULT_PROVIDERS } from '../../constants'
+import { DEFAULT_IMAGE_PROMPT_TEMPLATES } from '../../core/image/image-prompt-templates'
 import { SmartComposerSettings } from '../../settings/schema/setting.types'
 import { DEFAULT_RESEARCH_SOURCES } from '../../types/research.types'
 import { getChatModelClient } from '../llm/manager'
@@ -53,7 +54,9 @@ function createSettings(
         removeVaultCopy: false,
         tags: 'cmds-achmage',
       },
+      promptTemplates: DEFAULT_IMAGE_PROMPT_TEMPLATES,
     },
+    imageAnalysis: { modelId: null },
     documentEditing: {
       largeEditRouting: 'auto-confirm',
       destinationFolder: 'Smart Composer/Document Drafts',

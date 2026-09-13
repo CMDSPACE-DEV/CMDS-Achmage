@@ -19,7 +19,8 @@ import {
 import { useApp } from '../../../contexts/app-context'
 import { usePlugin } from '../../../contexts/plugin-context'
 import { useSettings } from '../../../contexts/settings-context'
-import { getProviderCapabilities } from '../../../core/llm/providerCapabilities'
+import { NO_IMAGE_TEMPLATE } from '../../../core/image/image-prompt-templates'
+import { resolveImageGenerationModel } from '../../../core/image/resolve-image-model'
 import {
   Mentionable,
   MentionableImage,
@@ -62,6 +63,7 @@ export type ChatUserInputProps = {
     content: SerializedEditorState,
     useVaultSearch?: boolean,
     mode?: 'chat' | 'image',
+    imageTemplateId?: string,
   ) => void
   onFocus: () => void
   mentionables: Mentionable[]
@@ -91,16 +93,14 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
     const app = useApp()
     const plugin = usePlugin()
     const { settings } = useSettings()
-    const selectedModel = settings.chatModels.find(
-      (model) => model.id === settings.chatModelId,
-    )
-    const canGenerateImages =
-      !!selectedModel && getProviderCapabilities(selectedModel).imageGeneration
+    const canGenerateImages = !!resolveImageGenerationModel(settings).model
 
     const editorRef = useRef<LexicalEditor | null>(null)
     const contentEditableRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const [composerMode, setComposerMode] = useState<ComposerMode>('chat')
+    const [imageTemplateId, setImageTemplateId] =
+      useState<string>(NO_IMAGE_TEMPLATE)
 
     const [displayedMentionableKey, setDisplayedMentionableKey] = useState<
       string | null
@@ -251,7 +251,12 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
       }
 
       const submission = getComposerSubmission(targetMode)
-      onSubmit(content, submission.useVaultSearch, submission.mode)
+      onSubmit(
+        content,
+        submission.useVaultSearch,
+        submission.mode,
+        submission.mode === 'image' ? imageTemplateId : undefined,
+      )
       setComposerMode('chat')
     }
 
@@ -355,6 +360,22 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
                   setComposerMode((mode) => toggleComposerMode(mode, 'image'))
                 }
               />
+            )}
+            {composerMode === 'image' && purpose === 'new-message' && (
+              <select
+                className="smtcmp-chat-input-template-select"
+                aria-label="Image prompt template"
+                title="Prompt template prepended to your brief"
+                value={imageTemplateId}
+                onChange={(event) => setImageTemplateId(event.target.value)}
+              >
+                <option value={NO_IMAGE_TEMPLATE}>No template</option>
+                {settings.imageGeneration.promptTemplates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                  </option>
+                ))}
+              </select>
             )}
             <ToolsControl />
             <ChatIconButton

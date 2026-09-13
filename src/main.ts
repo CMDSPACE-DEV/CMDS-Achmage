@@ -1,5 +1,6 @@
 import { Editor, MarkdownView, Notice, Plugin } from 'obsidian'
 
+
 import { ChatView } from './ChatView'
 import type { ChatProps } from './components/chat-view/Chat'
 import { InstallerUpdateRequiredModal } from './components/modals/InstallerUpdateRequiredModal'
@@ -19,6 +20,13 @@ import {
 } from './core/research/ResearchSecretStore'
 import { BackgroundTaskManager } from './core/tasks/BackgroundTaskManager'
 import { LazyBackgroundTaskAdapter } from './core/tasks/LazyBackgroundTaskAdapter'
+import {
+  IMAGE_STRUCTURE_LABELS,
+  IMAGE_STRUCTURE_MODES,
+  ImageStructureMode,
+  convertImageToMarkdown,
+  readClipboardImage,
+} from './core/vision/imageToMarkdown'
 import type { DatabaseManager } from './database/DatabaseManager'
 import { PGLiteAbortedException } from './database/exception'
 import {
@@ -154,6 +162,16 @@ export default class SmartComposerPlugin extends Plugin {
         void this.openInlineEdit(editor, view)
       },
     })
+
+    for (const structureMode of IMAGE_STRUCTURE_MODES) {
+      this.addCommand({
+        id: `clipboard-image-to-${structureMode}`,
+        name: `Convert clipboard image to ${IMAGE_STRUCTURE_LABELS[structureMode]}`,
+        editorCallback: (editor: Editor) => {
+          void this.convertClipboardImage(editor, structureMode)
+        },
+      })
+    }
 
     this.addCommand({
       id: 'review-document-edit-jobs',
@@ -394,6 +412,45 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
     this.app.workspace.revealLeaf(
       this.app.workspace.getLeavesOfType(CHAT_VIEW_TYPE)[0],
     )
+  }
+
+  /**
+   * Clipboard image → Markdown at the cursor (R-035). The image never touches
+   * the vault; only the resulting Markdown is inserted.
+   */
+  async convertClipboardImage(editor: Editor, mode: ImageStructureMode) {
+    const image = await readClipboardImage()
+    if (!image) {
+      new Notice(
+        'No image on the clipboard. Copy a screenshot or an image first.',
+      )
+      return
+    }
+    const notice = new Notice(
+      `Reading the image as ${IMAGE_STRUCTURE_LABELS[mode]}…`,
+      0,
+    )
+    try {
+      const cursorLine = editor.getLine(editor.getCursor().line).trim()
+      const markdown = await convertImageToMarkdown({
+        settings: this.settings,
+        setSettings: (next) => this.setSettings(next),
+        image,
+        mode,
+        hint: cursorLine || undefined,
+      })
+      const selection = editor.getSelection()
+      const block = `${markdown}\n`
+      if (selection) editor.replaceSelection(block)
+      else editor.replaceRange(block, editor.getCursor())
+      notice.hide()
+      new Notice('Inserted Markdown from the clipboard image.')
+    } catch (error) {
+      notice.hide()
+      new Notice(
+        `Image conversion failed: ${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
   }
 
   async addSelectionToChat(editor: Editor, view: MarkdownView) {

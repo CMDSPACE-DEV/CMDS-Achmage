@@ -11,6 +11,7 @@ import {
   EAGLE_LINK_STYLES,
   IMAGE_DESTINATIONS,
 } from '../../core/image/image-destination'
+import { DEFAULT_IMAGE_PROMPT_TEMPLATES } from '../../core/image/image-prompt-templates'
 import { chatModelSchema } from '../../types/chat-model.types'
 import { embeddingModelSchema } from '../../types/embedding-model.types'
 import {
@@ -118,6 +119,15 @@ export const smartComposerSettingsSchema = z.object({
           tags: z.string().catch(DEFAULT_EAGLE_TARGET.tags),
         })
         .catch({ ...DEFAULT_EAGLE_TARGET }),
+      promptTemplates: z
+        .array(
+          z.object({
+            id: z.string(),
+            name: z.string(),
+            prompt: z.string(),
+          }),
+        )
+        .catch(DEFAULT_IMAGE_PROMPT_TEMPLATES),
     })
     .catch({
       modelId: 'gpt-5.6-sol (plan)',
@@ -126,7 +136,15 @@ export const smartComposerSettingsSchema = z.object({
       concurrency: 1,
       destination: 'ask',
       eagle: { ...DEFAULT_EAGLE_TARGET },
+      promptTemplates: DEFAULT_IMAGE_PROMPT_TEMPLATES,
     }),
+
+  /** Clipboard image → Markdown commands (R-035). `null` = the chat model. */
+  imageAnalysis: z
+    .object({
+      modelId: z.string().nullable().catch(null),
+    })
+    .catch({ modelId: null }),
 
   appearance: z
     .object({

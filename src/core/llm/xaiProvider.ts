@@ -11,9 +11,15 @@ import {
   LLMResponseStreaming,
 } from '../../types/llm/response'
 import { LLMProvider } from '../../types/provider.types'
+import {
+  GeneratedImage,
+  ImageGenerationOptions,
+} from '../image/image-generator'
 
 import { BaseLLMProvider } from './base'
+import { LLMAPIKeyNotSetException } from './exception'
 import { OpenAIMessageAdapter } from './openaiMessageAdapter'
+import { extractXaiImage } from './xaiImage'
 
 export class XaiProvider extends BaseLLMProvider<
   Extract<LLMProvider, { type: 'xai' }>
@@ -55,6 +61,33 @@ export class XaiProvider extends BaseLLMProvider<
     }
 
     return this.adapter.streamResponse(this.client, request, options)
+  }
+
+  /** Text-to-image through xAI's Images endpoint (API key; Grok has no Plan route). */
+  async generateImage(
+    model: ChatModel,
+    prompt: string,
+    options: ImageGenerationOptions,
+  ): Promise<GeneratedImage> {
+    if (model.providerType !== 'xai') {
+      throw new Error('Model is not an xAI model')
+    }
+    if (!this.provider.apiKey) {
+      throw new LLMAPIKeyNotSetException(
+        `Provider ${String(this.provider.id)} API key is missing. Please set it in settings menu.`,
+      )
+    }
+    options.onProgress?.('generating')
+    const response = await this.client.images.generate(
+      {
+        model: model.model,
+        prompt,
+        n: 1,
+        response_format: 'b64_json',
+      },
+      { signal: options.signal },
+    )
+    return extractXaiImage(response)
   }
 
   async getEmbedding(

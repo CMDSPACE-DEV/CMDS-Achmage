@@ -17,7 +17,11 @@ import { usePlugin } from '../../contexts/plugin-context'
 import { useRAG } from '../../contexts/rag-context'
 import { useSettings } from '../../contexts/settings-context'
 import { QueuedPrompt } from '../../core/conversation/ConversationRunManager'
-import { getProviderCapabilities } from '../../core/llm/providerCapabilities'
+import {
+  applyImagePromptTemplate,
+  findImagePromptTemplate,
+} from '../../core/image/image-prompt-templates'
+import { resolveImageGenerationModel } from '../../core/image/resolve-image-model'
 import { useChatHistory } from '../../hooks/useChatHistory'
 import type { BackgroundTaskRecord } from '../../types/background-task'
 import {
@@ -837,15 +841,11 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
             content,
           }))
         }}
-        onSubmit={(content, useVaultSearch, mode = 'chat') => {
+        onSubmit={(content, useVaultSearch, mode = 'chat', imageTemplateId) => {
           const plainText = editorStateToPlainText(content).trim()
           if (plainText === '') return
-          const selectedModel = settings.chatModels.find(
-            (model) => model.id === settings.chatModelId,
-          )
-          const canGenerateImages =
-            !!selectedModel &&
-            getProviderCapabilities(selectedModel).imageGeneration
+          const imageModel = resolveImageGenerationModel(settings).model
+          const canGenerateImages = !!imageModel
           const taskManager = plugin.backgroundTaskManager
           const conversationImageTasks =
             taskManager
@@ -870,10 +870,23 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
               break
             }
           }
-          const imageRequest = parseImageGenerationRequest(plainText, {
+          const parsedImageRequest = parseImageGenerationRequest(plainText, {
             force: mode === 'image',
             previousPrompt: previousImagePrompt,
           })
+          const imageTemplate = findImagePromptTemplate(
+            settings.imageGeneration.promptTemplates,
+            imageTemplateId,
+          )
+          const imageRequest = parsedImageRequest
+            ? {
+                ...parsedImageRequest,
+                prompt: applyImagePromptTemplate(
+                  parsedImageRequest.prompt,
+                  imageTemplate,
+                ),
+              }
+            : parsedImageRequest
           const artifactMatch = matchArtifactRequest(plainText)
           if (artifactMatch && taskManager) {
             const artifactKind = artifactMatch.kind
@@ -909,7 +922,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
                   originMessageId: inputMessage.id,
                   sourcePrompt:
                     getImageGenerationPrompt(plainText) || plainText,
-                  modelId: settings.chatModelId,
+                  modelId: imageModel.id,
                   targetFilePath,
                 },
               )

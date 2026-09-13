@@ -2,6 +2,7 @@ import { SerializedEditorState, SerializedElementNode } from 'lexical'
 import { App, TFile, TFolder } from 'obsidian'
 
 import { DEFAULT_CHAT_MODELS, DEFAULT_PROVIDERS } from '../../constants'
+import { DEFAULT_IMAGE_PROMPT_TEMPLATES } from '../../core/image/image-prompt-templates'
 import { AnthropicProvider } from '../../core/llm/anthropic'
 import { processQueryWithExhaustiveFolderRead } from '../../core/rag/exhaustiveFolderRead'
 import { processQueryWithPlanRerank } from '../../core/rag/planRerank'
@@ -124,7 +125,9 @@ function createSettings(
         removeVaultCopy: false,
         tags: 'cmds-achmage',
       },
+      promptTemplates: DEFAULT_IMAGE_PROMPT_TEMPLATES,
     },
+    imageAnalysis: { modelId: null },
     documentEditing: {
       largeEditRouting: 'auto-confirm',
       destinationFolder: 'Smart Composer/Document Drafts',
