@@ -12,8 +12,8 @@ import {
   parseInlineResponse,
   rebaseInlineEditSessions,
   recordAcceptedInlineInsertion,
-  resolveInlineEditPlacement,
   resolveInlineAppearance,
+  resolveInlineEditPlacement,
   resolveInlineSkin,
   updateInlineEditSessionMap,
 } from './InlineEditController'
