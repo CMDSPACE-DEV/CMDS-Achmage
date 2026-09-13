@@ -109,6 +109,7 @@ export function ChatSection({
             desc="Vault-relative folder for completed large replacement drafts."
           >
             <ObsidianTextInput
+              folderSuggest={app}
               value={settings.documentEditing.destinationFolder}
               onChange={async (value) => {
                 await setSettings({
@@ -227,6 +228,7 @@ export function ChatSection({
             desc="Vault-relative folder used for every generated image before R2 upload or note insertion. The task card shows the exact saved path."
           >
             <ObsidianTextInput
+              folderSuggest={app}
               value={settings.imageGeneration.outputFolder}
               onChange={async (value) => {
                 await setSettings({

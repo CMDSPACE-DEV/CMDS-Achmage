@@ -77,6 +77,11 @@ export class XaiProvider extends BaseLLMProvider<
         `Provider ${String(this.provider.id)} API key is missing. Please set it in settings menu.`,
       )
     }
+    if (options.referenceImages && options.referenceImages.length > 0) {
+      throw new Error(
+        `${model.id} is text-to-image only. Remove the reference images or pick a GPT Plan or Gemini image model.`,
+      )
+    }
     options.onProgress?.('generating')
     const response = await this.client.images.generate(
       {

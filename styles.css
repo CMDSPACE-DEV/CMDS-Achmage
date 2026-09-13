@@ -5265,3 +5265,44 @@ body:not(.theme-dark)
 .smtcmp-settings-footer__links a {
   color: var(--text-accent);
 }
+
+/* R-036: Generate image modal */
+.smtcmp-generate-image-modal .smtcmp-generate-image-modal__brief {
+  width: 100%;
+  min-width: 320px;
+}
+
+.smtcmp-generate-image-modal__references {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 4px 0 12px;
+}
+
+.smtcmp-generate-image-modal__ref {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 120px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+.smtcmp-generate-image-modal__ref img {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+}
+
+.smtcmp-generate-image-modal__ref span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.smtcmp-generate-image-modal__empty {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}

@@ -1,11 +1,17 @@
 import { Editor, MarkdownView, Notice, Plugin } from 'obsidian'
 
-
 import { ChatView } from './ChatView'
 import type { ChatProps } from './components/chat-view/Chat'
+import { GenerateImageModal } from './components/modals/GenerateImageModal'
 import { InstallerUpdateRequiredModal } from './components/modals/InstallerUpdateRequiredModal'
 import { CHAT_VIEW_TYPE } from './constants'
 import { ConversationRunManager } from './core/conversation/ConversationRunManager'
+import {
+  needsBriefSynthesis,
+  stripFrontmatter,
+  writeImageBriefFromText,
+} from './core/image/image-brief'
+import type { ImageGenerationSubmission } from './core/image/image-request'
 import type { InlineEditController } from './core/inline/InlineEditController'
 import type { McpManager } from './core/mcp/mcpManager'
 import {
@@ -163,6 +169,51 @@ export default class SmartComposerPlugin extends Plugin {
       },
     })
 
+    this.addCommand({
+      id: 'generate-image',
+      name: 'Generate image (text to image)…',
+      callback: () => new GenerateImageModal(this).open(),
+    })
+
+    this.addCommand({
+      id: 'generate-image-from-selection',
+      name: 'Generate image from selection',
+      editorCallback: (editor: Editor, view: MarkdownView) => {
+        void this.openImageFromText(editor.getSelection(), view, 'selection')
+      },
+    })
+
+    this.addCommand({
+      id: 'generate-image-from-note',
+      name: 'Generate image from current note',
+      editorCallback: (editor: Editor, view: MarkdownView) => {
+        void this.openImageFromText(editor.getValue(), view, 'note')
+      },
+    })
+
+    this.addCommand({
+      id: 'generate-image-from-clipboard',
+      name: 'Generate image from clipboard image (image to image)…',
+      callback: async () => {
+        const image = await readClipboardImage()
+        if (!image) {
+          new Notice('No image on the clipboard. Copy an image first.')
+          return
+        }
+        new GenerateImageModal(this, {
+          title: 'Generate image from clipboard image',
+          referenceImages: [
+            {
+              name: 'clipboard.png',
+              mimeType: image.mimeType,
+              data: image.dataUrl,
+            },
+          ],
+          origin: 'clipboard',
+        }).open()
+      },
+    })
+
     for (const structureMode of IMAGE_STRUCTURE_MODES) {
       this.addCommand({
         id: `clipboard-image-to-${structureMode}`,
@@ -190,11 +241,29 @@ export default class SmartComposerPlugin extends Plugin {
         if (!(info instanceof MarkdownView)) return
         menu.addItem((item) => {
           item
-            .setTitle('Smart Composer: Inline edit')
+            .setTitle('CMDS Achmage: Inline edit')
             .setIcon('wand-sparkles')
             .setSection('action')
             .onClick(() => {
               void this.openInlineEdit(editor, info)
+            })
+        })
+        const selection = editor.getSelection()
+        menu.addItem((item) => {
+          item
+            .setTitle(
+              selection
+                ? 'CMDS Achmage: Generate image from selection'
+                : 'CMDS Achmage: Generate image from note',
+            )
+            .setIcon('image')
+            .setSection('action')
+            .onClick(() => {
+              void this.openImageFromText(
+                selection || editor.getValue(),
+                info,
+                selection ? 'selection' : 'note',
+              )
             })
         })
       }),
@@ -412,6 +481,65 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
     this.app.workspace.revealLeaf(
       this.app.workspace.getLeavesOfType(CHAT_VIEW_TYPE)[0],
     )
+  }
+
+  /** Route every image job through the chat view's queue (R-036). */
+  async generateImage(submission: ImageGenerationSubmission): Promise<void> {
+    const leaves = this.app.workspace.getLeavesOfType(CHAT_VIEW_TYPE)
+    if (leaves.length === 0 || !(leaves[0].view instanceof ChatView)) {
+      await this.activateChatView()
+    }
+    const leaf = this.app.workspace.getLeavesOfType(CHAT_VIEW_TYPE)[0]
+    if (!leaf || !(leaf.view instanceof ChatView)) {
+      new Notice('Could not open the chat pane for the image queue.')
+      return
+    }
+    await this.app.workspace.revealLeaf(leaf)
+    leaf.view.generateImage(submission)
+  }
+
+  /**
+   * Note / selection → image: short text is the brief itself, long text is
+   * condensed into a brief by the chat model, then the modal opens for review.
+   */
+  async openImageFromText(
+    text: string,
+    view: MarkdownView,
+    origin: 'selection' | 'note',
+  ): Promise<void> {
+    const source = stripFrontmatter(text)
+    if (!source) {
+      new Notice('Nothing to work from: the selection or note is empty.')
+      return
+    }
+    let brief = source
+    if (needsBriefSynthesis(source)) {
+      const notice = new Notice('Writing an image brief from the note…', 0)
+      try {
+        brief = await writeImageBriefFromText({
+          settings: this.settings,
+          setSettings: (next) => this.setSettings(next),
+          text: source,
+          title: view.file?.basename,
+        })
+      } catch (error) {
+        notice.hide()
+        new Notice(
+          `Could not write a brief: ${error instanceof Error ? error.message : String(error)}`,
+        )
+        return
+      }
+      notice.hide()
+    }
+    new GenerateImageModal(this, {
+      title:
+        origin === 'note'
+          ? `Generate image from “${view.file?.basename ?? 'note'}”`
+          : 'Generate image from selection',
+      brief,
+      targetFilePath: view.file?.path,
+      origin,
+    }).open()
   }
 
   /**

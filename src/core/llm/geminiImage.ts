@@ -1,5 +1,6 @@
 import type { Content, GenerateContentResponse } from '@google/genai'
 
+import { parseImageDataUrl } from '../../utils/llm/image'
 import { GeneratedImage } from '../image/image-generator'
 
 /** Generated images share the landscape format used for GPT Plan images. */
@@ -10,8 +11,22 @@ const IMAGE_SIZE_BY_QUALITY: Record<'low' | 'medium' | 'high', string> = {
   high: '2K',
 }
 
-export function buildGeminiImageContents(prompt: string): Content[] {
-  return [{ role: 'user', parts: [{ text: prompt }] }]
+export function buildGeminiImageContents(
+  prompt: string,
+  referenceImages: string[] = [],
+): Content[] {
+  return [
+    {
+      role: 'user',
+      parts: [
+        ...referenceImages.map((url) => {
+          const { mimeType, base64Data } = parseImageDataUrl(url)
+          return { inlineData: { mimeType, data: base64Data } }
+        }),
+        { text: prompt },
+      ],
+    },
+  ]
 }
 
 export function buildGeminiImageConfig(quality: 'low' | 'medium' | 'high') {

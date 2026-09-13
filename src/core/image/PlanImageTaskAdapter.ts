@@ -18,6 +18,10 @@ import {
   isImageGenerator,
   sniffImageMimeType,
 } from './image-generator'
+import {
+  loadReferenceImageDataUrls,
+  readReferenceImagePaths,
+} from './reference-image-store'
 import { resolveImageGenerationModel } from './resolve-image-model'
 
 export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
@@ -65,8 +69,13 @@ export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
       phase: 'preparing',
       message: `Preparing image request (${model.id})`,
     })
+    const referenceImages = await loadReferenceImageDataUrls({
+      app: this.app,
+      paths: readReferenceImagePaths(task.input),
+    })
     const generated = await providerClient.generateImage(model, prompt, {
       quality: settings.imageGeneration.quality,
+      referenceImages,
       signal: context.signal,
       onProgress: (phase, partialImageIndex) => {
         void context.updateProgress({

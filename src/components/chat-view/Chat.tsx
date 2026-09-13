@@ -21,6 +21,8 @@ import {
   applyImagePromptTemplate,
   findImagePromptTemplate,
 } from '../../core/image/image-prompt-templates'
+import { ImageGenerationSubmission } from '../../core/image/image-request'
+import { storeReferenceImages } from '../../core/image/reference-image-store'
 import { resolveImageGenerationModel } from '../../core/image/resolve-image-model'
 import { useChatHistory } from '../../hooks/useChatHistory'
 import type { BackgroundTaskRecord } from '../../types/background-task'
@@ -34,10 +36,12 @@ import {
   MentionableBlock,
   MentionableBlockData,
   MentionableCurrentFile,
+  MentionableImage,
 } from '../../types/mentionable'
 import { ToolCallResponseStatus } from '../../types/tool-call.types'
 import { enqueueImageGenerationBatch } from '../../utils/chat/imageBatch'
 import {
+  ImageGenerationRequest,
   MAX_IMAGE_BATCH_COUNT,
   getImageGenerationPrompt,
   isImageGenerationContinuation,
@@ -86,6 +90,8 @@ export type ChatRef = {
   openNewChat: (selectedBlock?: MentionableBlockData) => void
   addSelectionToChat: (selectedBlock: MentionableBlockData) => void
   focusMessage: () => void
+  /** Queue an image job from outside the composer (modal, commands, menus). */
+  generateImage: (submission: ImageGenerationSubmission) => Promise<void>
 }
 
 export type ChatProps = {
@@ -585,6 +591,88 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     }
   }, [app.workspace, handleActiveLeafChange])
 
+  /**
+   * Shared image queue entry (R-036): composer image mode, the Generate image
+   * modal, editor menu, and commands all end here so one code path handles
+   * template, references, model resolution, and batching.
+   */
+  const enqueueImageJob = async ({
+    request,
+    sourcePrompt,
+    originMessageId,
+    submission,
+  }: {
+    request: ImageGenerationRequest
+    sourcePrompt: string
+    originMessageId: string
+    submission: Omit<ImageGenerationSubmission, 'brief' | 'count'>
+  }): Promise<boolean> => {
+    const taskManager = plugin.backgroundTaskManager
+    if (!taskManager) {
+      new Notice('Background tasks are not ready yet. Try again in a moment.')
+      return false
+    }
+    const imageModel = submission.modelId
+      ? settings.chatModels.find((model) => model.id === submission.modelId)
+      : resolveImageGenerationModel(settings).model
+    if (!imageModel) {
+      new Notice(
+        'No image-capable model is available. Pick one under Settings → Image model.',
+      )
+      return false
+    }
+    const template = findImagePromptTemplate(
+      settings.imageGeneration.promptTemplates,
+      submission.templateId,
+    )
+    const templated = template
+      ? {
+          ...request,
+          prompt: applyImagePromptTemplate(request.prompt, template),
+        }
+      : request
+    if (templated.requestedCount > MAX_IMAGE_BATCH_COUNT) {
+      new Notice(
+        `A maximum of ${MAX_IMAGE_BATCH_COUNT} images can be queued at once. Queuing ${MAX_IMAGE_BATCH_COUNT}.`,
+      )
+    }
+    let referenceImagePaths: string[] = []
+    try {
+      referenceImagePaths = await storeReferenceImages({
+        app,
+        images: submission.referenceImages,
+        batchId: originMessageId,
+      })
+    } catch (error) {
+      new Notice(
+        `Reference images could not be saved: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      )
+      return false
+    }
+    const result = await enqueueImageGenerationBatch(taskManager, templated, {
+      conversationId: currentConversationId,
+      originMessageId,
+      sourcePrompt,
+      modelId: imageModel.id,
+      targetFilePath:
+        submission.targetFilePath ?? app.workspace.getActiveFile()?.path,
+      referenceImagePaths,
+      origin: submission.origin,
+    })
+    if (result.error) {
+      new Notice(
+        `Queued ${result.queuedCount} of ${result.total} images. ${
+          result.error instanceof Error
+            ? result.error.message
+            : String(result.error)
+        }`,
+      )
+    }
+    return result.queuedCount > 0
+  }
+
   useImperativeHandle(ref, () => ({
     openNewChat: (selectedBlock?: MentionableBlockData) =>
       handleNewChat(selectedBlock),
@@ -645,6 +733,33 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     focusMessage: () => {
       if (!focusedMessageId) return
       chatUserInputRefs.current.get(focusedMessageId)?.focus()
+    },
+    generateImage: async (submission: ImageGenerationSubmission) => {
+      const brief = submission.brief.trim()
+      if (!brief) {
+        new Notice('Write a brief for the image first.')
+        return
+      }
+      const count = Math.max(
+        1,
+        Math.min(submission.count, MAX_IMAGE_BATCH_COUNT),
+      )
+      const queued = await enqueueImageJob({
+        request: {
+          prompt: brief,
+          count,
+          requestedCount: submission.count,
+          usedPreviousPrompt: false,
+        },
+        sourcePrompt: brief,
+        originMessageId: uuidv4(),
+        submission,
+      })
+      if (queued) {
+        new Notice(
+          `${count === 1 ? 'Image' : `${count} images`} queued · watch the image queue in the chat pane`,
+        )
+      }
     },
   }))
 
@@ -907,35 +1022,26 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
           if (canGenerateImages && imageRequest && taskManager) {
             const userMessage = { ...inputMessage, content }
             setChatMessages((messages) => [...messages, userMessage])
-            if (imageRequest.requestedCount > MAX_IMAGE_BATCH_COUNT) {
-              new Notice(
-                `A maximum of ${MAX_IMAGE_BATCH_COUNT} images can be queued at once. Queuing ${MAX_IMAGE_BATCH_COUNT}.`,
+            const referenceImages = inputMessage.mentionables
+              .filter(
+                (mentionable): mentionable is MentionableImage =>
+                  mentionable.type === 'image',
               )
-            }
-            const targetFilePath = app.workspace.getActiveFile()?.path
-            void (async () => {
-              const result = await enqueueImageGenerationBatch(
-                taskManager,
-                imageRequest,
-                {
-                  conversationId: currentConversationId,
-                  originMessageId: inputMessage.id,
-                  sourcePrompt:
-                    getImageGenerationPrompt(plainText) || plainText,
-                  modelId: imageModel.id,
-                  targetFilePath,
-                },
-              )
-              if (result.error) {
-                new Notice(
-                  `Queued ${result.queuedCount} of ${result.total} images. ${
-                    result.error instanceof Error
-                      ? result.error.message
-                      : String(result.error)
-                  }`,
-                )
-              }
-            })()
+              .map((image) => ({
+                name: image.name,
+                mimeType: image.mimeType,
+                data: image.data,
+              }))
+            void enqueueImageJob({
+              request: imageRequest,
+              sourcePrompt: getImageGenerationPrompt(plainText) || plainText,
+              originMessageId: inputMessage.id,
+              submission: {
+                referenceImages,
+                targetFilePath: app.workspace.getActiveFile()?.path,
+                origin: 'composer',
+              },
+            })
             setInputMessage(getNewInputMessage(app))
             return
           }

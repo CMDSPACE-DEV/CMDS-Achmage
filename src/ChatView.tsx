@@ -3,6 +3,7 @@ import { ItemView, WorkspaceLeaf } from 'obsidian'
 import type { ChatViewRenderer } from './ChatViewRenderer'
 import type { ChatProps } from './components/chat-view/Chat'
 import { CHAT_VIEW_TYPE } from './constants'
+import { ImageGenerationSubmission } from './core/image/image-request'
 import type SmartComposerPlugin from './main'
 import type { MentionableBlockData } from './types/mentionable'
 import { prepareChatMountSurface } from './utils/chat/chatMountSurface'
@@ -75,6 +76,10 @@ export class ChatView extends ItemView {
 
   focusMessage() {
     this.runOrQueue((renderer) => renderer.focusMessage())
+  }
+
+  generateImage(submission: ImageGenerationSubmission) {
+    this.runOrQueue((renderer) => void renderer.generateImage(submission))
   }
 
   private ensureMountSurface(): HTMLDivElement {

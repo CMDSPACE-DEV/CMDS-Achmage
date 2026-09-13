@@ -29,6 +29,8 @@ export async function enqueueImageGenerationBatch(
     sourcePrompt: string
     modelId: string
     targetFilePath?: string
+    referenceImagePaths?: string[]
+    origin?: string
   },
 ): Promise<ImageBatchEnqueueResult> {
   const prompts = buildImageGenerationPrompts(request)
@@ -52,6 +54,10 @@ export async function enqueueImageGenerationBatch(
           sourcePrompt: context.sourcePrompt,
           modelId: context.modelId,
           targetFilePath: context.targetFilePath,
+          ...(context.referenceImagePaths?.length
+            ? { referenceImagePaths: context.referenceImagePaths }
+            : {}),
+          ...(context.origin ? { origin: context.origin } : {}),
         },
       })
       queuedCount += 1

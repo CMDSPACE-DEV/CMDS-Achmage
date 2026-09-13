@@ -8,6 +8,8 @@ export type GeneratedImage = {
 
 export type ImageGenerationOptions = {
   quality: 'low' | 'medium' | 'high'
+  /** Data URLs of reference images for image-to-image; may be empty. */
+  referenceImages?: string[]
   signal?: AbortSignal
   onProgress?: (phase: string, partialImageIndex?: number) => void
 }

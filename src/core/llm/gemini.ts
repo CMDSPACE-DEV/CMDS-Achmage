@@ -208,7 +208,7 @@ export class GeminiProvider extends BaseLLMProvider<
     options.onProgress?.('generating')
     const response = await this.client.models.generateContent({
       model: model.model,
-      contents: buildGeminiImageContents(prompt),
+      contents: buildGeminiImageContents(prompt, options.referenceImages),
       config: {
         ...buildGeminiImageConfig(options.quality),
         abortSignal: options.signal,
