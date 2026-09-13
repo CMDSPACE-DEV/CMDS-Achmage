@@ -7,9 +7,11 @@
   four clipboard commands registered. Unit coverage for the generator
   interface, byte sniffing, model resolution, template application, and the
   vision prompt builders.
+- **Verified live**: clipboard screenshot → Markdown table through the Claude
+  Plan chat model (Electron clipboard path, 17.8 s, two tables with Korean
+  text intact).
 - **Not exercised live**: a Gemini or Grok generation (needs API keys on this
-  machine) and an end-to-end clipboard conversion through the Claude Plan
-  path — see "Known limits".
+  machine) — see "Known limits".
 - **Relationship**: extends R-001 (Plan image generation) and R-034 (Eagle
   delivery). Reference implementation for the providers: roughian's fork,
   commit `d48b662`.
@@ -65,10 +67,10 @@ line is passed as a hint. The image is never written to the vault.
 ## Known limits
 
 - Image input requires a model whose transport forwards `image_url` content
-  parts. The OpenAI, Gemini, and xAI API-key providers do; whether the Claude
-  Plan CLI transport does is unverified in this session. Pick an API-key
-  vision model in Settings → Clipboard image analysis model if a Plan model
-  returns text-only errors.
-- `navigator.clipboard.read()` needs the Obsidian window focused; the command
-  reports "No image on the clipboard" otherwise.
+  parts. Claude Plan, OpenAI, Gemini, and xAI do; if another model returns
+  text-only errors, pick a vision model in Settings → Clipboard image analysis
+  model.
+- The clipboard is read through Electron on desktop (focus-independent; the
+  renderer-access deprecation warning is Electron's, not an error). The web
+  clipboard API is the fallback and needs the window focused.
 - Reference images for Gemini generation (fork feature) are not ported.
