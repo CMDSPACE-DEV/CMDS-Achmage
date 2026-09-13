@@ -41,6 +41,8 @@ describe('parseSmartComposerSettings', () => {
       },
       appearance: {
         skinMode: 'follow-obsidian',
+        accentPreset: 'skin',
+        glow: 'skin',
       },
 
       systemPrompt: '',

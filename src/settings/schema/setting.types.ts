@@ -18,6 +18,12 @@ import {
   DEFAULT_RESEARCH_SOURCES,
   researchSettingsSchema,
 } from '../../types/research.types'
+import {
+  ACCENT_PRESETS,
+  DEFAULT_APPEARANCE,
+  GLOW_LEVELS,
+  SKIN_MODES,
+} from '../../utils/chat/chatSkin'
 
 import { SETTINGS_SCHEMA_VERSION } from './migrations'
 
@@ -105,18 +111,17 @@ export const smartComposerSettingsSchema = z.object({
   appearance: z
     .object({
       /**
-       * `follow-obsidian` (default) derives the chat shell colors from the
-       * user's active Obsidian theme. `studio-console` opts into the owned
-       * dual skin from R-005 (Hallym Conversation Studio in light mode,
-       * CMDS AI Operator Console in dark mode). See R-030.
+       * Base skin. `follow-obsidian` (default) derives the chat shell colors
+       * from the user's active Obsidian theme; the other values opt into the
+       * owned skins from R-005 (theme-switched or pinned). See R-030, R-033.
        */
-      skinMode: z
-        .enum(['follow-obsidian', 'studio-console'])
-        .catch('follow-obsidian'),
+      skinMode: z.enum(SKIN_MODES).catch('follow-obsidian'),
+      /** Accent preset layered on the base skin; `skin` keeps the skin's own. */
+      accentPreset: z.enum(ACCENT_PRESETS).catch('skin'),
+      /** Glow strength for blur shadows; `skin` keeps the skin's own level. */
+      glow: z.enum(GLOW_LEVELS).catch('skin'),
     })
-    .catch({
-      skinMode: 'follow-obsidian',
-    }),
+    .catch({ ...DEFAULT_APPEARANCE }),
 
   // System Prompt
   systemPrompt: z.string().catch(''),

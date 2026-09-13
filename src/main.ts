@@ -28,7 +28,7 @@ import {
 import { parseSmartComposerSettings } from './settings/schema/settings'
 import { SmartComposerSettingTab } from './settings/SettingTab'
 import {
-  applySkinModeToBody,
+  applyAppearanceToBody,
   clearSkinModeFromBody,
 } from './utils/chat/chatSkin'
 import { getMentionableBlockData } from './utils/obsidian'
@@ -116,12 +116,13 @@ export default class SmartComposerPlugin extends Plugin {
 
     this.registerView(CHAT_VIEW_TYPE, (leaf) => new ChatView(leaf, this))
 
-    // Mirror the skin mode onto <body> for surfaces without a settings handle
-    // (the inline edit Shadow DOM widget). See utils/chat/chatSkin.ts.
-    applySkinModeToBody(document.body, this.settings.appearance?.skinMode)
+    // Mirror the appearance (skin, accent preset, glow) onto <body> for
+    // surfaces without a settings handle (the inline edit Shadow DOM widget).
+    // See utils/chat/chatSkin.ts.
+    applyAppearanceToBody(document.body, this.settings.appearance)
     this.register(
       this.addSettingsChangeListener((settings) =>
-        applySkinModeToBody(document.body, settings.appearance?.skinMode),
+        applyAppearanceToBody(document.body, settings.appearance),
       ),
     )
 

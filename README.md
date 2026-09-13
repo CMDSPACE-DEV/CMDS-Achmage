@@ -79,6 +79,19 @@ in your vault's `.obsidian/plugins/cmds-achmage/` folder, and restart Obsidian.
 All commands are available from the command palette (Ctrl/Cmd-P), prefixed with
 "CMDS Achmage".
 
+### Appearance
+
+The Chat pane and the Inline edit panel follow your Obsidian theme by default.
+**Settings → CMDS Achmage → Appearance** offers one-click presets (Follow
+Obsidian theme, CMDS Studio / Console, CMDS Operator Console, Neon Lime Console,
+Hallym Conversation Studio, Theme colors with neon glow) and three independent
+dials underneath: **Base skin**, **Accent**, and **Glow**. Exact colors and sizes
+(accent, text on accent, heading color, motion color, glow strength, corner
+radius, UI text sizes, line height) are in the
+[Style Settings](https://github.com/mgmeyers/obsidian-style-settings) plugin
+under the **CMDS Achmage** section and apply on top of the chosen preset.
+Nothing here restyles the editor, other panes, or other plugins.
+
 ## Before using Plan mode
 
 - Plan connections are **an experimental feature that uses subscription
@@ -186,6 +199,10 @@ CMDS Achmage도 남의 배에서 출발했습니다. 잘 만들어진 옵시디�
 6. 임베딩 검색을 쓰려면 **"CMDS Achmage: Rebuild entire vault index"**를 한 번 실행하고, 이후 **"CMDS Achmage: Update index for modified files"**로 갱신합니다.
 
 모든 커맨드는 명령 팔레트(Ctrl/Cmd-P)에서 "CMDS Achmage" 접두어로 찾을 수 있습니다.
+
+### 외관
+
+채팅 패널과 인라인 편집 패널은 기본적으로 옵시디언 테마를 따릅니다. **설정 → CMDS Achmage → Appearance**에서 원클릭 프리셋(Follow Obsidian theme, CMDS Studio / Console, CMDS Operator Console, Neon Lime Console, Hallym Conversation Studio, Theme colors with neon glow)을 고르거나, 그 아래 **Base skin**·**Accent**·**Glow** 세 항목을 따로 조합할 수 있습니다. 정확한 색과 크기(액센트, 액센트 위 글자색, 제목색, 모션색, 발광 강도, 모서리 반경, UI 글자 크기, 줄 간격)는 [Style Settings](https://github.com/mgmeyers/obsidian-style-settings) 플러그인의 **CMDS Achmage** 섹션에서 조정하며, 선택한 프리셋 위에 덧씌워집니다. 에디터나 다른 패널, 다른 플러그인은 건드리지 않습니다.
 
 ## Plan 모드를 쓰기 전에
 

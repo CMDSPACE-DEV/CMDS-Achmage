@@ -6,7 +6,7 @@ import { CHAT_VIEW_TYPE } from './constants'
 import type SmartComposerPlugin from './main'
 import type { MentionableBlockData } from './types/mentionable'
 import { prepareChatMountSurface } from './utils/chat/chatMountSurface'
-import { resolveChatSkin } from './utils/chat/chatSkin'
+import { resolveSurfaceAttributes } from './utils/chat/chatSkin'
 
 export class ChatView extends ItemView {
   private initialChatProps?: ChatProps
@@ -82,13 +82,13 @@ export class ChatView extends ItemView {
     const host = this.containerEl.children[1] as HTMLElement
     this.mountEl = prepareChatMountSurface(host)
     const applyTheme = () => {
-      this.mountEl?.setAttribute(
-        'data-skin',
-        resolveChatSkin(
-          this.plugin.settings.appearance?.skinMode,
-          host.ownerDocument.body.classList.contains('theme-dark'),
-        ),
+      const { skin, accent, glow } = resolveSurfaceAttributes(
+        this.plugin.settings.appearance,
+        host.ownerDocument.body.classList.contains('theme-dark'),
       )
+      this.mountEl?.setAttribute('data-skin', skin)
+      this.mountEl?.setAttribute('data-accent', accent)
+      this.mountEl?.setAttribute('data-glow', glow)
     }
     applyTheme()
     this.registerEvent(this.app.workspace.on('css-change', applyTheme))

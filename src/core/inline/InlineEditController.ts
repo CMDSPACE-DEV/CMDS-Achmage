@@ -20,10 +20,10 @@ import type {
   ResearchSourceId,
 } from '../../types/research.types'
 import {
+  APPEARANCE_BODY_ATTRS,
   type ChatSkin,
-  SKIN_MODE_BODY_ATTR,
-  readSkinModeFromBody,
-  resolveChatSkin,
+  readAppearanceFromBody,
+  resolveSurfaceAttributes,
 } from '../../utils/chat/chatSkin'
 import { getNestedFiles } from '../../utils/obsidian'
 import { analyzeDocumentEdit } from '../document-edit/analysis'
@@ -197,7 +197,10 @@ class InlineEditWidget extends WidgetType {
     const host = doc.createElement('div')
     host.className = 'smtcmp-inline-host'
     const applySkin = () => {
-      host.dataset.skin = resolveInlineSkin(doc.body)
+      const { skin, accent, glow } = resolveInlineAppearance(doc.body)
+      host.dataset.skin = skin
+      host.dataset.accent = accent
+      host.dataset.glow = glow
     }
     applySkin()
     const MutationObserverConstructor = doc.defaultView?.MutationObserver
@@ -205,7 +208,7 @@ class InlineEditWidget extends WidgetType {
       this.themeObserver = new MutationObserverConstructor(applySkin)
       this.themeObserver.observe(doc.body, {
         attributes: true,
-        attributeFilter: ['class', SKIN_MODE_BODY_ATTR],
+        attributeFilter: ['class', ...APPEARANCE_BODY_ATTRS],
       })
     }
     const shadow = host.attachShadow({ mode: 'open' })
@@ -2626,8 +2629,15 @@ export function resolveInlineSkin(body: {
   classList: { contains: (className: string) => boolean }
   getAttribute: (name: string) => string | null
 }): InlineSkin {
-  return resolveChatSkin(
-    readSkinModeFromBody(body),
+  return resolveInlineAppearance(body).skin
+}
+
+export function resolveInlineAppearance(body: {
+  classList: { contains: (className: string) => boolean }
+  getAttribute: (name: string) => string | null
+}): ReturnType<typeof resolveSurfaceAttributes> {
+  return resolveSurfaceAttributes(
+    readAppearanceFromBody(body),
     body.classList.contains('theme-dark'),
   )
 }
@@ -2646,12 +2656,13 @@ const INLINE_STYLE = `
   --ach-border:var(--background-modifier-border);
   --ach-text:var(--text-normal);
   --ach-muted:var(--text-muted);
-  --ach-heading:var(--text-normal);
-  --ach-action:var(--ach-ss-accent,var(--interactive-accent));
+  --ach-heading:var(--ach-ss-heading,var(--text-normal));
+  --ach-action:var(--ach-ss-accent,var(--ach-preset-accent,var(--interactive-accent)));
   --ach-action-hover:var(--interactive-accent-hover,var(--ach-action));
-  --ach-on-action:var(--text-on-accent);
+  --ach-on-action:var(--ach-ss-on-action,var(--ach-preset-on-action,var(--text-on-accent)));
+  --ach-glow:var(--ach-ss-glow,var(--ach-glow-level,0.35));
   --ach-shadow:var(--text-normal);
-  --ach-motion:var(--interactive-accent-hover,var(--ach-action));
+  --ach-motion:var(--ach-ss-motion,var(--ach-preset-motion,var(--interactive-accent-hover,var(--ach-action))));
   --ach-danger:var(--text-error);
   --ach-before:color-mix(in srgb,var(--color-red) 12%,var(--background-primary));
   --ach-before-border:color-mix(in srgb,var(--color-red) 35%,var(--background-modifier-border));
@@ -2675,12 +2686,13 @@ const INLINE_STYLE = `
   --ach-border:#d7e1ec;
   --ach-text:#00102e;
   --ach-muted:#526174;
-  --ach-heading:#002e6e;
-  --ach-action:var(--ach-ss-accent,#0066b3);
+  --ach-heading:var(--ach-ss-heading,#002e6e);
+  --ach-action:var(--ach-ss-accent,var(--ach-preset-accent,#0066b3));
   --ach-action-hover:color-mix(in srgb,var(--ach-action) 82%,#000000);
-  --ach-on-action:#ffffff;
+  --ach-on-action:var(--ach-ss-on-action,var(--ach-preset-on-action,#ffffff));
+  --ach-glow:var(--ach-ss-glow,var(--ach-glow-level,0.6));
   --ach-shadow:#002e6e;
-  --ach-motion:#00b5ad;
+  --ach-motion:var(--ach-ss-motion,var(--ach-preset-motion,#00b5ad));
   --ach-danger:#a52834;
   --ach-before:#fff5f6;
   --ach-before-border:#efd3d7;
@@ -2699,12 +2711,13 @@ const INLINE_STYLE = `
   --ach-border:#333333;
   --ach-text:#d4d4d4;
   --ach-muted:#888888;
-  --ach-action:var(--ach-ss-accent,#e985a2);
-  --ach-heading:var(--ach-action);
+  --ach-action:var(--ach-ss-accent,var(--ach-preset-accent,#e985a2));
+  --ach-heading:var(--ach-ss-heading,var(--ach-action));
   --ach-action-hover:color-mix(in srgb,var(--ach-action) 80%,#ffffff);
-  --ach-on-action:#0a0a0a;
+  --ach-on-action:var(--ach-ss-on-action,var(--ach-preset-on-action,#0a0a0a));
+  --ach-glow:var(--ach-ss-glow,var(--ach-glow-level,1));
   --ach-shadow:#000000;
-  --ach-motion:#00b5ad;
+  --ach-motion:var(--ach-ss-motion,var(--ach-preset-motion,#00b5ad));
   --ach-danger:#ff6675;
   --ach-before:#261516;
   --ach-before-border:#573238;
@@ -2715,6 +2728,18 @@ const INLINE_STYLE = `
   color-scheme:dark;
   font-family:"IBM Plex Sans",Inter,ui-sans-serif,system-ui,sans-serif;
 }
+/* R-033: accent presets and glow levels; precedence Style Settings > preset > skin. */
+:host([data-accent="cmds-pink"]){--ach-preset-accent:#e985a2;--ach-preset-on-action:#0a0a0a;--ach-preset-motion:#00b5ad}
+:host([data-accent="neon-lime"]){--ach-preset-accent:#b6ff00;--ach-preset-on-action:#0a0a0a;--ach-preset-motion:#00b5ad}
+:host([data-accent="hallym-blue"]){--ach-preset-accent:#0066b3;--ach-preset-on-action:#ffffff;--ach-preset-motion:#00b5ad}
+:host([data-accent="signal-teal"]){--ach-preset-accent:#00b5ad;--ach-preset-on-action:#04201f;--ach-preset-motion:#b6ff00}
+:host([data-accent="graphite"]){--ach-preset-accent:#8a8f98;--ach-preset-on-action:#ffffff;--ach-preset-motion:#b0b6c0}
+:host([data-glow="off"]){--ach-glow-level:0}
+:host([data-glow="soft"]){--ach-glow-level:0.6}
+:host([data-glow="neon"]){--ach-glow-level:1.7}
+:host([data-glow="neon"]) .panel{box-shadow:inset 2px 0 0 var(--ach-action),0 0 calc(18px * var(--ach-glow,1)) color-mix(in srgb,var(--ach-action) 22%,transparent),0 10px 28px color-mix(in srgb,var(--ach-shadow) 30%,transparent)}
+:host([data-glow="neon"]) .prompt-surface:focus-within{box-shadow:0 0 0 1px color-mix(in srgb,var(--ach-action) 30%,transparent),0 0 calc(18px * var(--ach-glow,1)) color-mix(in srgb,var(--ach-action) 22%,transparent)}
+:host([data-glow="neon"]) button.primary{box-shadow:0 0 calc(14px * var(--ach-glow,1)) color-mix(in srgb,var(--ach-action) 45%,transparent)}
 *,*::before,*::after{box-sizing:border-box}
 .panel{
   position:relative;
@@ -2752,7 +2777,7 @@ const INLINE_STYLE = `
     var(--ach-motion) 85%,
     transparent 94% 100%
   );
-  filter:drop-shadow(0 0 4px color-mix(in srgb,var(--ach-motion) 36%,transparent));
+  filter:drop-shadow(0 0 calc(4px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-motion) 36%,transparent));
   transform:translate(-50%,-50%) rotate(0deg);
   animation:inline-panel-border-orbit 1.8s linear infinite;
 }
@@ -2774,7 +2799,7 @@ const INLINE_STYLE = `
   box-shadow:0 10px 28px rgba(0,0,0,.6);
 }
 :host([data-skin="cmds-dark"]) .panel[data-status="loading"]::before{
-  filter:drop-shadow(0 0 4px color-mix(in srgb,var(--ach-action) 38%,transparent)) drop-shadow(0 0 8px rgba(0,181,173,.16));
+  filter:drop-shadow(0 0 calc(4px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-action) 38%,transparent)) drop-shadow(0 0 calc(8px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-motion) 16%,transparent));
 }
 header{
   display:flex;
@@ -2794,7 +2819,7 @@ header{
   flex:0 0 auto;
   border-radius:2px;
   background:var(--ach-action);
-  box-shadow:0 0 9px color-mix(in srgb,var(--ach-action) 42%,transparent);
+  box-shadow:0 0 calc(9px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-action) 42%,transparent);
   transform:rotate(45deg);
 }
 .context{
@@ -2946,7 +2971,7 @@ button.reference-option[data-active="true"]{
   box-shadow:0 0 0 2px color-mix(in srgb,var(--ach-action) 18%,transparent);
 }
 :host([data-skin="cmds-dark"]) .prompt-surface:focus-within{
-  box-shadow:0 0 0 1px color-mix(in srgb,var(--ach-action) 27%,transparent),0 0 18px color-mix(in srgb,var(--ach-action) 10%,transparent);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--ach-action) 27%,transparent),0 0 calc(18px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-action) 10%,transparent);
 }
 .mode-row{
   display:flex;
@@ -3029,7 +3054,7 @@ kbd{
 .loading-copy strong{color:var(--ach-heading);font-size:13px;font-weight:650}
 .loading-copy small{overflow:hidden;color:var(--ach-muted);font-size:11px;text-overflow:ellipsis;white-space:nowrap}
 .thinking-dots{display:flex;align-items:center;justify-content:center;gap:3px;width:28px;height:28px;flex:0 0 auto}
-.thinking-dots i{width:4px;height:4px;border-radius:50%;background:var(--ach-heading);box-shadow:0 0 5px color-mix(in srgb,var(--ach-action) 34%,transparent);opacity:.58}
+.thinking-dots i{width:4px;height:4px;border-radius:50%;background:var(--ach-heading);box-shadow:0 0 calc(5px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-action) 34%,transparent);opacity:.58}
 .thinking-dots i:nth-child(2){opacity:1}
 .document-preflight,.document-progress,.document-ready{display:flex;min-width:0;flex-direction:column;gap:9px}
 .document-preflight__message,.document-ready p{margin:0;color:var(--ach-text)}
