@@ -14,12 +14,12 @@ import { BackgroundTaskManager } from '../tasks/BackgroundTaskManager'
 import { copyImageToClipboard } from './clipboard-image'
 import { uploadWithCmdsEagle } from './CmdsEagleBridge'
 import { importArtifactToEagle } from './eagle-artifact'
-import { resolveImageOutputFolder } from './output-folder'
 import {
   IMAGE_EXTENSION_BY_MIME,
   isImageGenerator,
   sniffImageMimeType,
 } from './image-generator'
+import { resolveImageOutputFolder } from './output-folder'
 import {
   loadReferenceImageDataUrls,
   readReferenceImagePaths,
