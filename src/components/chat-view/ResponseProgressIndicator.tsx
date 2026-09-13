@@ -15,7 +15,7 @@ import {
 } from '../../utils/chat/responseProgress'
 
 const PHASE_LABEL: Record<ResponseProgress['phase'], string> = {
-  connecting: 'Connecting',
+  connecting: 'Waiting for the model (thinking)',
   thinking: 'Thinking',
   tool: 'Calling tools',
   writing: 'Writing',
