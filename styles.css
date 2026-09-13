@@ -5415,3 +5415,86 @@ body:not(.theme-dark)
 .smtcmp-edit-apply-all button:disabled {
   opacity: 0.6;
 }
+
+/* R-043: live response progress (phase · elapsed · tokens · tools) */
+.smtcmp-response-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-self: flex-start;
+  max-width: 100%;
+  margin: 2px 0 6px;
+  padding: 7px 12px;
+  border: 1px solid var(--ach-border);
+  border-radius: 14px 14px 14px 5px;
+  background: color-mix(
+    in srgb,
+    var(--ach-surface) 82%,
+    var(--ach-selected) 18%
+  );
+  color: var(--ach-muted);
+  font-size: var(--font-ui-smaller);
+  animation: smtcmp-pending-arrive 160ms ease-out;
+}
+
+.smtcmp-response-progress__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.smtcmp-response-progress__icon {
+  color: var(--ach-action);
+}
+
+.smtcmp-response-progress__phase {
+  color: var(--ach-text);
+  font-weight: 600;
+}
+
+.smtcmp-response-progress__meta {
+  margin-left: auto;
+  opacity: 0.8;
+}
+
+.smtcmp-response-progress__dots {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.smtcmp-response-progress__dots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ach-action);
+  opacity: 0.5;
+  animation: smtcmp-dot-pulse 1.05s ease-in-out infinite;
+}
+
+.smtcmp-response-progress__dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.smtcmp-response-progress__dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.smtcmp-response-progress__tokens span,
+.smtcmp-response-progress__tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ach-action) 9%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+.smtcmp-response-progress__tool[data-status='done'] {
+  background: color-mix(in srgb, var(--color-green) 14%, transparent);
+}
+
+.smtcmp-response-progress__tool[data-status='error'] {
+  background: color-mix(in srgb, var(--text-error) 14%, transparent);
+}

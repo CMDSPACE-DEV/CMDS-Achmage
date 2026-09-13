@@ -65,6 +65,7 @@ import { ImageQueuePanel } from './ImageQueuePanel'
 import QueryProgress, { QueryProgressState } from './QueryProgress'
 import { QueuedPrompts } from './QueuedPrompts'
 import { ResponsePendingIndicator } from './ResponsePendingIndicator'
+import { ResponseProgressIndicator } from './ResponseProgressIndicator'
 import { useAutoScroll } from './useAutoScroll'
 import { useChatStreamManager } from './useChatStreamManager'
 import UserMessageItem from './UserMessageItem'
@@ -186,12 +187,16 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     scrollContainerRef: chatMessagesRef,
   })
 
-  const { abortActiveStreams, responsePhase, submitChatMutation } =
-    useChatStreamManager({
-      setChatMessages,
-      autoScrollToBottom,
-      promptGenerator,
-    })
+  const {
+    abortActiveStreams,
+    responsePhase,
+    responseProgress,
+    submitChatMutation,
+  } = useChatStreamManager({
+    setChatMessages,
+    autoScrollToBottom,
+    promptGenerator,
+  })
 
   const handleUseBackgroundResult = useCallback(
     (task: BackgroundTaskRecord, result: string) => {
@@ -844,8 +849,12 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
         )}
         <QueryProgress state={queryProgress} />
         {submitChatMutation.isPending &&
-          responsePhase === 'waiting' &&
-          queryProgress.type === 'idle' && <ResponsePendingIndicator />}
+          queryProgress.type === 'idle' &&
+          (responseProgress ? (
+            <ResponseProgressIndicator progress={responseProgress} />
+          ) : (
+            responsePhase === 'waiting' && <ResponsePendingIndicator />
+          ))}
         {showContinueResponseButton && (
           <div className="smtcmp-continue-response-button-container">
             <button
