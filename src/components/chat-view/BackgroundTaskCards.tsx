@@ -4,6 +4,7 @@ import {
   CircleEllipsis,
   CloudUpload,
   Expand,
+  Feather,
   FolderOpen,
   LoaderCircle,
   LocateFixed,
@@ -16,7 +17,12 @@ import { useMemo, useState } from 'react'
 
 import { useApp } from '../../contexts/app-context'
 import { useBackgroundTasks } from '../../contexts/background-tasks-context'
+import { useSettings } from '../../contexts/settings-context'
 import { uploadWithCmdsEagle } from '../../core/image/CmdsEagleBridge'
+import {
+  importArtifactToEagle,
+  readEagleArtifactMetadata,
+} from '../../core/image/eagle-artifact'
 import {
   ArtifactRecord,
   BackgroundTaskRecord,
@@ -42,6 +48,7 @@ export function BackgroundTaskCards({
 }) {
   const app = useApp()
   const { artifacts, manager, tasks: allTasks } = useBackgroundTasks()
+  const { settings } = useSettings()
   const [expanded, setExpanded] = useState<string | null>(null)
 
   const tasks = useMemo(
@@ -117,6 +124,70 @@ export function BackgroundTaskCards({
       await manager.updateProgress(task.id, {
         phase: 'upload-failed',
         message: 'R2 upload failed · local image preserved',
+      })
+      new Notice(message)
+    }
+  }
+
+  const sendToEagle = async (
+    task: BackgroundTaskRecord,
+    artifact: ArtifactRecord,
+  ) => {
+    if (!artifact.localPath) return
+    const eagleTarget = settings.imageGeneration.eagle
+    try {
+      let current = artifact
+      let markdown = readEagleArtifactMetadata(artifact)?.eagleMarkdown
+      if (!markdown) {
+        await manager.updateProgress(task.id, {
+          phase: 'delivering',
+          message: 'Importing into Eagle',
+        })
+        const imported = await importArtifactToEagle({
+          app,
+          settings,
+          artifact,
+          annotation:
+            typeof task.input.prompt === 'string'
+              ? task.input.prompt
+              : undefined,
+          onStatus: (message) =>
+            void manager.updateProgress(task.id, {
+              phase: 'delivering',
+              message,
+            }),
+        })
+        current = imported.artifact
+        markdown = imported.result.markdown
+        await manager.saveArtifact(current)
+      }
+      if (!insertMarkdown(task, markdown)) {
+        await manager.updateProgress(task.id, {
+          phase: 'awaiting-destination',
+          message: 'Imported into Eagle · select an open note to insert',
+        })
+        return
+      }
+      if (
+        eagleTarget.removeVaultCopy &&
+        eagleTarget.linkStyle !== 'vault-embed' &&
+        current.localPath
+      ) {
+        const file = app.vault.getAbstractFileByPath(current.localPath)
+        if (file instanceof TFile) await app.fileManager.trashFile(file)
+        await manager.saveArtifact({ ...current, localPath: undefined })
+      }
+      await manager.complete(task.id, {
+        progress: {
+          phase: 'eagle-inserted',
+          message: 'Imported into Eagle and inserted',
+        },
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      await manager.updateProgress(task.id, {
+        phase: 'awaiting-destination',
+        message: 'Eagle import failed · local image preserved',
       })
       new Notice(message)
     }
@@ -301,13 +372,35 @@ export function BackgroundTaskCards({
                 R2: {artifact.remoteUrl}
               </a>
             )}
+            {(() => {
+              const eagle = readEagleArtifactMetadata(artifact)
+              return eagle ? (
+                <a
+                  className="smtcmp-task-card__remote"
+                  href={eagle.eagleDeeplink}
+                  title={eagle.eagleLibraryPath}
+                >
+                  Eagle: {eagle.eagleItemId}
+                </a>
+              ) : null
+            })()}
             {task.status === 'awaiting-destination' && artifact && (
               <div className="smtcmp-task-card__actions">
                 <button onClick={() => void finishLocal(task, artifact, false)}>
                   <Check size={14} /> Keep in folder
                 </button>
-                <button onClick={() => void finishLocal(task, artifact, true)}>
-                  <Check size={14} /> Insert embed
+                {artifact.localPath && (
+                  <button
+                    onClick={() => void finishLocal(task, artifact, true)}
+                  >
+                    <Check size={14} /> Insert embed
+                  </button>
+                )}
+                <button onClick={() => void sendToEagle(task, artifact)}>
+                  <Feather size={14} />
+                  {readEagleArtifactMetadata(artifact)
+                    ? 'Insert Eagle link'
+                    : 'Send to Eagle'}
                 </button>
                 <button onClick={() => void uploadR2(task, artifact)}>
                   <CloudUpload size={14} />

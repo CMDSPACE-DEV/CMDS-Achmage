@@ -11,6 +11,9 @@ import {
 } from '../../types/background-task'
 import { BackgroundTaskManager } from '../tasks/BackgroundTaskManager'
 
+import { uploadWithCmdsEagle } from './CmdsEagleBridge'
+import { importArtifactToEagle } from './eagle-artifact'
+
 export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
   readonly kind = 'image-generation' as const
 
@@ -103,13 +106,61 @@ export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
       checksum: await sha256(bytes),
     }
     await this.taskManager.saveArtifact(artifact)
+    const delivered = await this.preDeliver(artifact, prompt, context)
     await context.updateProgress({
       phase: 'awaiting-destination',
-      message: 'Image ready · choose a destination',
+      message: delivered ?? 'Image ready · choose a destination',
     })
     return {
       status: 'awaiting-destination',
       artifactIds: [artifact.id],
+    }
+  }
+
+  /**
+   * Runs the configured destination (R-034) right after the vault copy exists.
+   * Eagle and cloud hand-offs are recorded on the artifact so the task card can
+   * insert the resulting link; the card still decides what goes into the note.
+   * Any failure keeps the vault copy and is reported in the progress message.
+   */
+  private async preDeliver(
+    artifact: ArtifactRecord,
+    prompt: string,
+    context: BackgroundTaskRunContext,
+  ): Promise<string | null> {
+    const settings = this.getSettings()
+    const destination = settings.imageGeneration.destination
+    if (!artifact.localPath || !artifact.mimeType) return null
+    try {
+      if (destination === 'eagle') {
+        const { artifact: updated } = await importArtifactToEagle({
+          app: this.app,
+          settings,
+          artifact,
+          annotation: prompt,
+          onStatus: (message) =>
+            void context.updateProgress({ phase: 'delivering', message }),
+        })
+        await this.taskManager.saveArtifact(updated)
+        return 'Imported into Eagle · insert the link'
+      }
+      if (destination === 'cloud') {
+        await context.updateProgress({
+          phase: 'delivering',
+          message: 'Uploading through CMDS Eagle',
+        })
+        const url = await uploadWithCmdsEagle(
+          this.app,
+          artifact.localPath,
+          artifact.mimeType,
+        )
+        await this.taskManager.saveArtifact({ ...artifact, remoteUrl: url })
+        return 'Uploaded to cloud · insert the link'
+      }
+      return null
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      return `${destination === 'eagle' ? 'Eagle import' : 'Cloud upload'} failed · local image preserved (${message})`
     }
   }
 }

@@ -6,6 +6,11 @@ import {
   DEFAULT_EMBEDDING_MODELS,
   DEFAULT_PROVIDERS,
 } from '../../constants'
+import {
+  DEFAULT_EAGLE_TARGET,
+  EAGLE_LINK_STYLES,
+  IMAGE_DESTINATIONS,
+} from '../../core/image/image-destination'
 import { chatModelSchema } from '../../types/chat-model.types'
 import { embeddingModelSchema } from '../../types/embedding-model.types'
 import {
@@ -100,12 +105,27 @@ export const smartComposerSettingsSchema = z.object({
       outputFolder: z.string(),
       quality: z.enum(['low', 'medium', 'high']),
       concurrency: z.literal(1),
+      // Field-level catch: older data keeps its folder and quality (R-034).
+      destination: z.enum(IMAGE_DESTINATIONS).catch('ask'),
+      eagle: z
+        .object({
+          apiBaseUrl: z.string().catch(DEFAULT_EAGLE_TARGET.apiBaseUrl),
+          libraryPath: z.string().catch(''),
+          folderId: z.string().catch(''),
+          folderPath: z.string().catch(''),
+          linkStyle: z.enum(EAGLE_LINK_STYLES).catch('vault-embed'),
+          removeVaultCopy: z.boolean().catch(false),
+          tags: z.string().catch(DEFAULT_EAGLE_TARGET.tags),
+        })
+        .catch({ ...DEFAULT_EAGLE_TARGET }),
     })
     .catch({
       modelId: 'gpt-5.6-sol (plan)',
       outputFolder: 'Smart Composer/Generated Images',
       quality: 'high',
       concurrency: 1,
+      destination: 'ask',
+      eagle: { ...DEFAULT_EAGLE_TARGET },
     }),
 
   appearance: z

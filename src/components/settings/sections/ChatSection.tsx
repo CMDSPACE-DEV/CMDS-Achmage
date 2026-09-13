@@ -6,6 +6,8 @@ import { ObsidianTextArea } from '../../common/ObsidianTextArea'
 import { ObsidianTextInput } from '../../common/ObsidianTextInput'
 import { ObsidianToggle } from '../../common/ObsidianToggle'
 
+import { ImageDestinationSettings } from './ImageDestinationSettings'
+
 export function ChatSection({
   mode = 'all',
 }: {
@@ -212,6 +214,8 @@ export function ChatSection({
               }}
             />
           </ObsidianSetting>
+
+          <ImageDestinationSettings />
         </>
       )}
 

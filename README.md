@@ -92,6 +92,16 @@ radius, UI text sizes, line height) are in the
 under the **CMDS Achmage** section and apply on top of the chosen preset.
 Nothing here restyles the editor, other panes, or other plugins.
 
+### Generated images and Eagle
+
+Every generated image is saved to the vault output folder first. **Settings →
+CMDS Achmage → Image destination** decides what happens next: ask on the task
+card, keep in the vault, send to an [Eagle](https://eagle.cool) library, or
+upload through the CMDS Eagle plugin's cloud provider. For Eagle you pick the
+library (Eagle's own history plus CMDS Eagle's remembered libraries), the
+folder, the link style the note receives (vault embed, Eagle original file, or
+deep link), tags, and whether to drop the vault copy afterwards.
+
 ## Before using Plan mode
 
 - Plan connections are **an experimental feature that uses subscription
@@ -203,6 +213,10 @@ CMDS Achmage도 남의 배에서 출발했습니다. 잘 만들어진 옵시디�
 ### 외관
 
 채팅 패널과 인라인 편집 패널은 기본적으로 옵시디언 테마를 따릅니다. **설정 → CMDS Achmage → Appearance**에서 원클릭 프리셋(Follow Obsidian theme, CMDS Studio / Console, CMDS Operator Console, Neon Lime Console, Hallym Conversation Studio, Theme colors with neon glow)을 고르거나, 그 아래 **Base skin**·**Accent**·**Glow** 세 항목을 따로 조합할 수 있습니다. 정확한 색과 크기(액센트, 액센트 위 글자색, 제목색, 모션색, 발광 강도, 모서리 반경, UI 글자 크기, 줄 간격)는 [Style Settings](https://github.com/mgmeyers/obsidian-style-settings) 플러그인의 **CMDS Achmage** 섹션에서 조정하며, 선택한 프리셋 위에 덧씌워집니다. 에디터나 다른 패널, 다른 플러그인은 건드리지 않습니다.
+
+### 생성 이미지와 Eagle
+
+생성된 이미지는 항상 볼트 출력 폴더에 먼저 저장됩니다. **설정 → CMDS Achmage → Image destination**에서 그 다음을 정합니다: 태스크 카드에서 매번 선택, 볼트에 보관, [Eagle](https://eagle.cool) 라이브러리로 전송, CMDS Eagle 플러그인의 클라우드 업로드. Eagle을 고르면 라이브러리(Eagle 열람 이력 + CMDS Eagle이 기억하는 라이브러리), 폴더, 노트에 들어갈 링크 형식(볼트 임베드 / Eagle 원본 파일 / 딥링크), 태그, 볼트 복사본 삭제 여부를 정할 수 있습니다.
 
 ## Plan 모드를 쓰기 전에
 

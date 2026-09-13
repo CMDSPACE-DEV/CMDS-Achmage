@@ -38,6 +38,16 @@ describe('parseSmartComposerSettings', () => {
         outputFolder: 'Smart Composer/Generated Images',
         quality: 'high',
         concurrency: 1,
+        destination: 'ask',
+        eagle: {
+          apiBaseUrl: 'http://localhost:41595',
+          libraryPath: '',
+          folderId: '',
+          folderPath: '',
+          linkStyle: 'vault-embed',
+          removeVaultCopy: false,
+          tags: 'cmds-achmage',
+        },
       },
       appearance: {
         skinMode: 'follow-obsidian',
