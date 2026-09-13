@@ -27,7 +27,7 @@ export function RAGSection({ app, plugin }: RAGSectionProps) {
 
       <ObsidianSetting
         name="Retrieval mode"
-        desc="Choose how Smart Composer selects context for large folder or vault mentions."
+        desc="Choose how CMDS Achmage selects context for large folder or vault mentions."
       >
         <ObsidianDropdown
           value={settings.ragOptions.retrievalMode}

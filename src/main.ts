@@ -733,7 +733,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
         await manager.initialize()
         if (this.unloading) {
           manager.cleanup()
-          throw new Error('Smart Composer unloaded during MCP initialization.')
+          throw new Error('CMDS Achmage unloaded during MCP initialization.')
         }
         this.mcpManager = manager
         return manager
@@ -765,7 +765,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
           if (this.unloading) {
             manager.cleanup()
             throw new Error(
-              'Smart Composer unloaded during research initialization.',
+              'CMDS Achmage unloaded during research initialization.',
             )
           }
           this.researchManager = manager
@@ -828,7 +828,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
     } catch (error) {
       if (this.unloading) return
       console.error('Failed to initialize inline edit:', error)
-      new Notice('Smart Composer inline edit could not be initialized.')
+      new Notice('CMDS Achmage inline edit could not be initialized.')
     }
   }
 
@@ -845,7 +845,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
           if (this.unloading) {
             controller.cleanup()
             throw new Error(
-              'Smart Composer unloaded during inline edit initialization.',
+              'CMDS Achmage unloaded during inline edit initialization.',
             )
           }
           this.inlineEditController = controller

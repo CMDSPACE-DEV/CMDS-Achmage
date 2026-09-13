@@ -56,7 +56,7 @@ export function PlanConnectionsSection({
   const disconnectOpenAI = () => {
     new ConfirmModal(app, {
       title: 'Disconnect subscription',
-      message: 'Disconnect OpenAI from Smart Composer?',
+      message: 'Disconnect OpenAI from CMDS Achmage?',
       ctaText: 'Disconnect',
       onConfirm: () => {
         const currentSettings = plugin.settings
@@ -117,7 +117,7 @@ export function PlanConnectionsSection({
 
       <div className="smtcmp-settings-desc">
         Claude와 Gemini 연결은 이 컴퓨터에 설치된 공식 CLI에 인증을 위임합니다.
-        Smart Composer는 로그인 토큰을 저장하지 않으며, vault 접근은 Smart
+        CMDS Achmage는 로그인 토큰을 저장하지 않으며, vault 접근은 Smart
         Composer가 검토한 도구로만 제한됩니다.
         <div className="smtcmp-settings-desc-warning">
           Claude Plan은 개인용 실험 기능입니다. Anthropic은 타사 제품에 API key
@@ -259,7 +259,7 @@ export function NativeRuntimeCard({
     if (!updateDecision.command) {
       new ConfirmModal(app, {
         title: 'Claude Code 업데이트 방법 확인',
-        message: `${updateDecision.reason}\n\n${claudeUpdateHelp(snapshot)}\n\nSmart Composer는 설치 방법이 불명확할 때 임의의 updater를 실행하지 않습니다.`,
+        message: `${updateDecision.reason}\n\n${claudeUpdateHelp(snapshot)}\n\nCMDS Achmage는 설치 방법이 불명확할 때 임의의 updater를 실행하지 않습니다.`,
         ctaText: '공식 문서 열기',
         onConfirm: () => openExternal(CLAUDE_INSTALL_URL),
       }).open()
@@ -355,7 +355,7 @@ export function NativeRuntimeCard({
               Antigravity 로그인과 사용 가능한 모델 목록을 확인했습니다.
             </span>
             <small>
-              할당량 유형은 Antigravity에서 관리하며 현재 Smart Composer에는
+              할당량 유형은 Antigravity에서 관리하며 현재 CMDS Achmage에는
               표시되지 않습니다.
             </small>
           </div>

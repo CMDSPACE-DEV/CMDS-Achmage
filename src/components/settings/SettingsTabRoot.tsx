@@ -2,8 +2,6 @@ import { App } from 'obsidian'
 import { useState } from 'react'
 
 import SmartComposerPlugin from '../../main'
-import { ObsidianButton } from '../common/ObsidianButton'
-import { ObsidianSetting } from '../common/ObsidianSetting'
 
 import { AppearanceSection } from './sections/AppearanceSection'
 import { ChatSection } from './sections/ChatSection'
@@ -79,20 +77,6 @@ export function SettingsTabRoot({ app, plugin }: SettingsTabRootProps) {
             <ProvidersSection app={app} plugin={plugin} />
             <ModelsSection app={app} plugin={plugin} />
             <EtcSection app={app} plugin={plugin} />
-            <ObsidianSetting
-              name="Support Smart Composer"
-              desc="If you find Smart Composer valuable, consider supporting its development!"
-              heading
-              className="smtcmp-settings-support-smart-composer"
-            >
-              <ObsidianButton
-                text="Buy Me a Coffee"
-                onClick={() =>
-                  window.open('https://www.buymeacoffee.com/kevin.on', '_blank')
-                }
-                cta
-              />
-            </ObsidianSetting>
           </>
         )}
       </div>

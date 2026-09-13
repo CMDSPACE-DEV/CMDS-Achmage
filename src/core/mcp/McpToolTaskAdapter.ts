@@ -61,7 +61,7 @@ export class McpToolTaskAdapter implements BackgroundTaskAdapter {
       })
       const resultText =
         result.text.length > MAX_STORED_RESULT_CHARACTERS
-          ? `${result.text.slice(0, MAX_STORED_RESULT_CHARACTERS)}\n\n[Result truncated by Smart Composer]`
+          ? `${result.text.slice(0, MAX_STORED_RESULT_CHARACTERS)}\n\n[Result truncated by CMDS Achmage]`
           : result.text
       return {
         status: 'succeeded',

@@ -52,7 +52,7 @@ export function NativeRuntimeLoginSteps({
         </li>
       </ol>
       <div className="smtcmp-runtime-login-secret">
-        OAuth 코드나 계정 정보는 Smart Composer에 붙여넣지 마세요. 인증은 공식
+        OAuth 코드나 계정 정보는 CMDS Achmage에 붙여넣지 마세요. 인증은 공식
         Antigravity CLI와 운영체제의 보안 저장소에서만 처리됩니다.
       </div>
     </>
