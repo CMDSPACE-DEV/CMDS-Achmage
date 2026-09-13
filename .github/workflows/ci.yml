@@ -29,6 +29,17 @@ jobs:
           node-version: '20'
           cache: npm
 
+      - name: Fail if a build artifact is tracked
+        # main.js / meta.json are gitignored build outputs. A tracked copy is a
+        # stale bundle: any vault that runs from a checkout loads it silently in
+        # place of the current source (R-032).
+        run: |
+          tracked=$(git ls-files main.js meta.json)
+          if [[ -n "${tracked}" ]]; then
+            echo "Build artifacts must not be committed: ${tracked}" >&2
+            exit 1
+          fi
+
       - name: Verify version parity across manifest, package, lock, and versions
         run: node check-version-parity.mjs
 
