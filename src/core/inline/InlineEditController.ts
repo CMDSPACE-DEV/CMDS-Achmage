@@ -35,6 +35,11 @@ import type {
   DocumentEditStrategy,
 } from '../document-edit/types'
 import {
+  needsBriefSynthesis,
+  stripFrontmatter,
+  writeImageBriefFromText,
+} from '../image/image-brief'
+import {
   CompiledVaultReferences,
   VaultReferenceScope,
   compileVaultReferences,
@@ -116,6 +121,10 @@ type InlineSession = {
   ) => void
   accept: () => void
   close: () => void
+  /** Image output (R-038): templates for the picker and the submit path. */
+  imageTemplates?: { id: string; name: string }[]
+  defaultImageTemplateId?: string
+  submitImage?: (brief: string, templateId: string) => void
   startDocumentJob?: () => void
   runSingleResponse?: () => void
   setDocumentStrategy?: (strategy: DocumentEditStrategy) => void
@@ -289,6 +298,49 @@ class InlineEditWidget extends WidgetType {
         persistDraft()
       })
       modeControl.hidden = this.session.status === 'clarification'
+      // Output: text edit (default) or an image job (R-038).
+      let outputMode: 'text' | 'image' = 'text'
+      let selectedImageTemplate = this.session.defaultImageTemplateId ?? ''
+      const templateRow = doc.createElement('div')
+      templateRow.className = 'mode-row template-row'
+      const templateLabel = doc.createElement('span')
+      templateLabel.className = 'mode-label'
+      templateLabel.textContent = 'Guide template'
+      const templateSelect = doc.createElement('select')
+      templateSelect.className = 'template-select'
+      templateSelect.setAttribute('aria-label', 'Image prompt template')
+      const noneOption = doc.createElement('option')
+      noneOption.value = ''
+      noneOption.textContent = 'No template'
+      templateSelect.append(noneOption)
+      for (const template of this.session.imageTemplates ?? []) {
+        const option = doc.createElement('option')
+        option.value = template.id
+        option.textContent = template.name
+        templateSelect.append(option)
+      }
+      templateSelect.value = selectedImageTemplate
+      templateSelect.addEventListener('change', () => {
+        selectedImageTemplate = templateSelect.value
+      })
+      templateRow.append(templateLabel, templateSelect)
+      const applyOutputMode = () => {
+        const image = outputMode === 'image'
+        templateRow.hidden = !image
+        modeControl.hidden = image || this.session.status === 'clarification'
+        input.placeholder = image
+          ? 'Describe the image (empty = draw from the selected text)…'
+          : this.session.status === 'clarification'
+            ? 'Clarify the change...'
+            : 'Describe the edit...'
+      }
+      const outputControl = makeOutputControl(doc, outputMode, (next) => {
+        outputMode = next
+        applyOutputMode()
+      })
+      outputControl.hidden =
+        this.session.status === 'clarification' || !this.session.submitImage
+      applyOutputMode()
       const scopeControl = makeReferenceScopeControl(
         doc,
         selectedReferenceScope,
@@ -349,6 +401,10 @@ class InlineEditWidget extends WidgetType {
         'Generate',
         () => {
           const value = input.value.trim()
+          if (outputMode === 'image' && this.session.submitImage) {
+            this.session.submitImage(value, selectedImageTemplate)
+            return
+          }
           if (value) {
             this.session.submit(
               value,
@@ -365,6 +421,8 @@ class InlineEditWidget extends WidgetType {
       panel.append(
         referenceRegion,
         promptSurface,
+        outputControl,
+        templateRow,
         modeControl,
         scopeControl.element,
         actions,
@@ -1036,6 +1094,82 @@ export class InlineEditController {
       accept,
       close,
       renderMarkdown,
+      imageTemplates: this.plugin.settings.imageGeneration.promptTemplates.map(
+        (template) => ({ id: template.id, name: template.name }),
+      ),
+      defaultImageTemplateId:
+        this.plugin.settings.imageGeneration.templateByPurpose.selection,
+      submitImage: (brief, templateId) => {
+        close()
+        void this.submitImageGeneration({
+          brief,
+          templateId,
+          original,
+          filePath,
+          title: markdownView.file?.basename,
+        })
+      },
+    })
+  }
+
+  /**
+   * Inline panel → image queue (R-038). An empty brief means "draw the selected
+   * text": short selections are used verbatim, long ones are condensed by the
+   * chat model first. The guide template is prepended like everywhere else.
+   */
+  private async submitImageGeneration({
+    brief,
+    templateId,
+    original,
+    filePath,
+    title,
+  }: {
+    brief: string
+    templateId: string
+    original: string
+    filePath: string
+    title?: string
+  }): Promise<void> {
+    let finalBrief = brief.trim()
+    if (!finalBrief) {
+      const source = stripFrontmatter(original)
+      if (!source) {
+        new Notice('Describe the image or select some text first.')
+        return
+      }
+      if (needsBriefSynthesis(source)) {
+        const notice = new Notice(
+          'Writing an image brief from the selection…',
+          0,
+        )
+        try {
+          finalBrief = await writeImageBriefFromText({
+            settings: this.plugin.settings,
+            setSettings: (next) => this.plugin.setSettings(next),
+            text: source,
+            title,
+          })
+        } catch (error) {
+          notice.hide()
+          new Notice(
+            `Could not write a brief: ${error instanceof Error ? error.message : String(error)}`,
+          )
+          return
+        }
+        notice.hide()
+      } else {
+        finalBrief = source
+      }
+    } else if (original.trim()) {
+      finalBrief = `${finalBrief}\n\nSource text:\n${stripFrontmatter(original).slice(0, 1500)}`
+    }
+    await this.plugin.generateImage({
+      brief: finalBrief,
+      templateId: templateId || undefined,
+      count: 1,
+      referenceImages: [],
+      targetFilePath: filePath,
+      origin: 'selection',
     })
   }
 
@@ -2164,6 +2298,54 @@ export function parseInlineResponse(value: string): {
   return { type: 'replacement', content: stripped }
 }
 
+function makeOutputControl(
+  doc: Document,
+  initial: 'text' | 'image',
+  onChange: (mode: 'text' | 'image') => void,
+): HTMLElement {
+  const row = doc.createElement('div')
+  row.className = 'mode-row output-row'
+  const label = doc.createElement('span')
+  label.className = 'mode-label'
+  label.textContent = 'Output'
+  const group = doc.createElement('div')
+  group.className = 'mode-control'
+  group.setAttribute('role', 'radiogroup')
+  group.setAttribute('aria-label', 'Inline edit output')
+  const options: { mode: 'text' | 'image'; label: string; title: string }[] = [
+    { mode: 'text', label: 'Text edit', title: 'Rewrite the selection' },
+    {
+      mode: 'image',
+      label: 'Image',
+      title: 'Generate an image from the prompt or the selected text',
+    },
+  ]
+  const buttons: HTMLButtonElement[] = []
+  const select = (mode: 'text' | 'image') => {
+    for (const button of buttons) {
+      const active = button.dataset.output === mode
+      button.dataset.active = active ? 'true' : 'false'
+      button.setAttribute('aria-checked', active ? 'true' : 'false')
+    }
+    onChange(mode)
+  }
+  for (const option of options) {
+    const button = doc.createElement('button')
+    button.type = 'button'
+    button.className = 'mode-option'
+    button.dataset.output = option.mode
+    button.title = option.title
+    button.setAttribute('role', 'radio')
+    button.textContent = option.label
+    button.addEventListener('click', () => select(option.mode))
+    buttons.push(button)
+    group.append(button)
+  }
+  row.append(label, group)
+  select(initial)
+  return row
+}
+
 function makeModeControl(
   doc: Document,
   initialMode: InlineEditMode,
@@ -3002,6 +3184,8 @@ button.mode-option{
   font-size:11px;
 }
 button.mode-option:first-child{border-left:0}
+select.template-select{max-width:16em;height:28px;padding:0 8px;border:1px solid var(--ach-border);border-radius:var(--ach-radius);background:var(--ach-surface-raised);color:var(--ach-text);font:inherit;font-size:12px}
+select.template-select:focus-visible{outline:none;border-color:var(--ach-action);box-shadow:0 0 0 2px color-mix(in srgb,var(--ach-action) 18%,transparent)}
 button.mode-option[data-active="true"]{
   background:var(--ach-action);
   color:var(--ach-on-action);
