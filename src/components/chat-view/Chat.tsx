@@ -19,11 +19,10 @@ import { useSettings } from '../../contexts/settings-context'
 import { QueuedPrompt } from '../../core/conversation/ConversationRunManager'
 import {
   applyImagePromptTemplate,
-  composeImagePrompt,
   findImagePromptTemplate,
 } from '../../core/image/image-prompt-templates'
 import { ImageGenerationSubmission } from '../../core/image/image-request'
-import { storeReferenceImages } from '../../core/image/reference-image-store'
+import { queueImageJob } from '../../core/image/queue-image-job'
 import { resolveImageGenerationModel } from '../../core/image/resolve-image-model'
 import { useChatHistory } from '../../hooks/useChatHistory'
 import type { BackgroundTaskRecord } from '../../types/background-task'
@@ -40,7 +39,6 @@ import {
   MentionableImage,
 } from '../../types/mentionable'
 import { ToolCallResponseStatus } from '../../types/tool-call.types'
-import { enqueueImageGenerationBatch } from '../../utils/chat/imageBatch'
 import {
   ImageGenerationRequest,
   MAX_IMAGE_BATCH_COUNT,
@@ -597,6 +595,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
    * modal, editor menu, and commands all end here so one code path handles
    * template, references, model resolution, and batching.
    */
+  /** Composer / modal / command jobs share the plugin-wide queue (R-036). */
   const enqueueImageJob = async ({
     request,
     sourcePrompt,
@@ -608,72 +607,17 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     originMessageId: string
     submission: Omit<ImageGenerationSubmission, 'brief' | 'count'>
   }): Promise<boolean> => {
-    const taskManager = plugin.backgroundTaskManager
-    if (!taskManager) {
-      new Notice('Background tasks are not ready yet. Try again in a moment.')
-      return false
-    }
-    const imageModel = submission.modelId
-      ? settings.chatModels.find((model) => model.id === submission.modelId)
-      : resolveImageGenerationModel(settings).model
-    if (!imageModel) {
-      new Notice(
-        'No image-capable model is available. Pick one under Settings → Image model.',
-      )
-      return false
-    }
-    const template = findImagePromptTemplate(
-      settings.imageGeneration.promptTemplates,
-      submission.templateId,
-    )
-    const templated = {
-      ...request,
-      prompt: composeImagePrompt({
-        brief: request.prompt,
-        template,
-        globalInstructions: settings.imageGeneration.globalInstructions,
-      }),
-    }
-    if (templated.requestedCount > MAX_IMAGE_BATCH_COUNT) {
-      new Notice(
-        `A maximum of ${MAX_IMAGE_BATCH_COUNT} images can be queued at once. Queuing ${MAX_IMAGE_BATCH_COUNT}.`,
-      )
-    }
-    let referenceImagePaths: string[] = []
-    try {
-      referenceImagePaths = await storeReferenceImages({
-        app,
-        images: submission.referenceImages,
-        batchId: originMessageId,
-      })
-    } catch (error) {
-      new Notice(
-        `Reference images could not be saved: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      )
-      return false
-    }
-    const result = await enqueueImageGenerationBatch(taskManager, templated, {
+    const result = await queueImageJob({
+      app,
+      settings,
+      taskManager: plugin.backgroundTaskManager,
+      request,
+      sourcePrompt,
       conversationId: currentConversationId,
       originMessageId,
-      sourcePrompt,
-      modelId: imageModel.id,
-      targetFilePath:
-        submission.targetFilePath ?? app.workspace.getActiveFile()?.path,
-      referenceImagePaths,
-      origin: submission.origin,
+      submission,
     })
-    if (result.error) {
-      new Notice(
-        `Queued ${result.queuedCount} of ${result.total} images. ${
-          result.error instanceof Error
-            ? result.error.message
-            : String(result.error)
-        }`,
-      )
-    }
-    return result.queuedCount > 0
+    return result.queued > 0
   }
 
   useImperativeHandle(ref, () => ({

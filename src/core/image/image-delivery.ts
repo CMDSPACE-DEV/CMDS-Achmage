@@ -29,6 +29,8 @@ export type EagleDeliveryResult = {
   markdown: string
   /** True when Eagle was switched to another library for the import. */
   switchedLibrary: boolean
+  /** Non-fatal problems, e.g. Eagle stayed on the target library afterwards. */
+  warnings: string[]
 }
 
 export type EagleDeliveryHooks = {
@@ -66,6 +68,7 @@ export async function deliverToEagle(
     }
   }
 
+  const warnings: string[] = []
   try {
     hooks.onStatus?.('Importing into Eagle')
     const folderId = input.target.folderId
@@ -93,11 +96,17 @@ export async function deliverToEagle(
         vaultEmbed: input.vaultEmbed,
       }),
       switchedLibrary: mustSwitch,
+      warnings,
     }
   } finally {
     if (mustSwitch && hooks.restoreLibrary !== false) {
       hooks.onStatus?.(`Restoring Eagle library ${active.name}`)
-      await client.switchLibrary(active.path)
+      const restored = await client.switchLibrary(active.path)
+      if (!restored.success) {
+        warnings.push(
+          `Eagle stayed on ${targetPath}: ${restored.error ?? 'switch back failed'}.`,
+        )
+      }
     }
   }
 }

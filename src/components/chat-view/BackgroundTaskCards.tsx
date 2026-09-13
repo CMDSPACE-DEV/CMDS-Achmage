@@ -22,6 +22,7 @@ import { useSettings } from '../../contexts/settings-context'
 import { copyImageToClipboard } from '../../core/image/clipboard-image'
 import { uploadWithCmdsEagle } from '../../core/image/CmdsEagleBridge'
 import {
+  describeEagleDelivery,
   importArtifactToEagle,
   readEagleArtifactMetadata,
 } from '../../core/image/eagle-artifact'
@@ -177,6 +178,10 @@ export function BackgroundTaskCards({
         current = imported.artifact
         markdown = imported.result.markdown
         await manager.saveArtifact(current)
+        new Notice(
+          `Imported into Eagle · ${describeEagleDelivery(imported.result, eagleTarget.folderPath)}`,
+        )
+        for (const warning of imported.result.warnings) new Notice(warning)
       }
       if (!insertMarkdown(task, markdown)) {
         await manager.updateProgress(task.id, {

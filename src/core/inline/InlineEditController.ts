@@ -13,7 +13,10 @@ import { v4 as uuidv4 } from 'uuid'
 
 import type { QueryProgressState } from '../../components/chat-view/QueryProgress'
 import type SmartComposerPlugin from '../../main'
-import type { BackgroundTaskRecord } from '../../types/background-task'
+import type {
+  ArtifactRecord,
+  BackgroundTaskRecord,
+} from '../../types/background-task'
 import { RetrievalMetadata } from '../../types/chat'
 import type {
   ResearchEvidence,
@@ -34,11 +37,17 @@ import type {
   DocumentEditJobManifest,
   DocumentEditStrategy,
 } from '../document-edit/types'
+import { copyImageToClipboard } from '../image/clipboard-image'
+import {
+  describeEagleDelivery,
+  importArtifactToEagle,
+} from '../image/eagle-artifact'
 import {
   needsBriefSynthesis,
   stripFrontmatter,
   writeImageBriefFromText,
 } from '../image/image-brief'
+import { queueImageJob } from '../image/queue-image-job'
 import {
   CompiledVaultReferences,
   VaultReferenceScope,
@@ -57,6 +66,7 @@ import {
 
 type InlineStatus =
   | 'prompt'
+  | 'image-task'
   | 'loading'
   | 'clarification'
   | 'preview'
@@ -125,6 +135,16 @@ type InlineSession = {
   imageTemplates?: { id: string; name: string }[]
   defaultImageTemplateId?: string
   submitImage?: (brief: string, templateId: string) => void
+  /** Image job running from this panel (R-040); rendered in place of the prompt. */
+  imageTask?: BackgroundTaskRecord
+  imageArtifact?: ArtifactRecord
+  imageActions?: {
+    insert: () => void
+    sendToEagle: () => void
+    copy: () => void
+    keep: () => void
+    cancel: () => void
+  }
   startDocumentJob?: () => void
   runSingleResponse?: () => void
   setDocumentStrategy?: (strategy: DocumentEditStrategy) => void
@@ -197,7 +217,9 @@ class InlineEditWidget extends WidgetType {
         getDocumentTaskSummary(this.session.documentTask) &&
       other.session.documentDraftPath === this.session.documentDraftPath &&
       other.session.documentResultPath === this.session.documentResultPath &&
-      getRetrievalSummary(other.session) === getRetrievalSummary(this.session)
+      getRetrievalSummary(other.session) ===
+        getRetrievalSummary(this.session) &&
+      getImageTaskSummary(other.session) === getImageTaskSummary(this.session)
     )
   }
 
@@ -459,6 +481,101 @@ class InlineEditWidget extends WidgetType {
       queueMicrotask(() => {
         input.focus({ preventScroll: true })
         input.setSelectionRange(input.value.length, input.value.length)
+      })
+    } else if (this.session.status === 'image-task') {
+      const task = this.session.imageTask
+      const artifact = this.session.imageArtifact
+      const box = doc.createElement('div')
+      box.className = 'image-progress'
+      const status = doc.createElement('div')
+      status.className = 'document-progress__status'
+      const title = doc.createElement('strong')
+      title.textContent = !task
+        ? 'Preparing image brief'
+        : task.status === 'awaiting-destination'
+          ? 'Image ready'
+          : task.status === 'failed'
+            ? 'Image generation failed'
+            : task.status === 'canceled'
+              ? 'Canceled'
+              : 'Generating image'
+      const detail = doc.createElement('small')
+      detail.textContent =
+        task?.progress?.message ??
+        task?.error ??
+        (task ? task.status.replace(/-/g, ' ') : 'Reading the selection…')
+      status.append(title, detail)
+      box.append(status)
+      const busy =
+        !task || task.status === 'queued' || task.status === 'running'
+      if (busy) {
+        const meter = doc.createElement('progress')
+        meter.removeAttribute('value')
+        meter.setAttribute('aria-label', 'Generating image')
+        box.append(meter)
+      }
+      const artifactPath = artifact?.localPath
+      if (artifactPath) {
+        const file = this.session.app.vault.getAbstractFileByPath(artifactPath)
+        if (file instanceof TFile) {
+          const preview = doc.createElement('div')
+          preview.className = 'image-preview'
+          const img = doc.createElement('img')
+          img.src = this.session.app.vault.getResourcePath(file)
+          img.alt = 'Generated image preview'
+          img.draggable = true
+          img.addEventListener('dragstart', (event) => {
+            event.dataTransfer?.setData(
+              'text/plain',
+              `![[${artifact.localPath}]]`,
+            )
+          })
+          preview.append(img)
+          box.append(preview)
+        }
+      }
+      const actions = doc.createElement('div')
+      actions.className = 'actions'
+      const acts = this.session.imageActions
+      if (
+        task?.status === 'awaiting-destination' &&
+        artifact?.localPath &&
+        acts
+      ) {
+        actions.append(
+          makeButton(doc, 'Insert', acts.insert, 'primary', 'Enter'),
+          makeButton(doc, 'Send to Eagle', acts.sendToEagle, 'secondary'),
+          makeButton(doc, 'Copy', acts.copy, 'secondary'),
+          makeButton(doc, 'Keep in folder', acts.keep, 'secondary'),
+        )
+      } else if (busy && acts) {
+        actions.append(
+          makeButton(doc, 'Cancel', acts.cancel, 'secondary', 'Esc'),
+        )
+      } else {
+        actions.append(
+          makeButton(
+            doc,
+            'Close',
+            () => this.session.close(),
+            'secondary',
+            'Esc',
+          ),
+        )
+      }
+      panel.append(box, actions)
+      host.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          event.preventDefault()
+          if (busy) acts?.cancel()
+          else this.session.close()
+        } else if (
+          event.key === 'Enter' &&
+          task?.status === 'awaiting-destination'
+        ) {
+          event.preventDefault()
+          acts?.insert()
+        }
       })
     } else if (this.session.status === 'large-confirm') {
       const analysis = this.session.documentAnalysis
@@ -861,6 +978,10 @@ export class InlineEditController {
     { editorView: EditorView; sessionId: string }
   >()
   private readonly resolvingDocumentTasks = new Set<string>()
+  private readonly imageBindings = new Map<
+    string,
+    { editorView: EditorView; sessionId: string }
+  >()
   private readonly unsubscribeTasks: () => void
 
   constructor(private readonly plugin: SmartComposerPlugin) {
@@ -870,6 +991,8 @@ export class InlineEditController {
         for (const task of tasks) {
           if (task.kind === 'document-edit') {
             void this.handleDocumentTaskUpdate(task)
+          } else if (task.kind === 'image-generation') {
+            void this.handleImageTaskUpdate(task)
           }
         }
       }) ?? (() => {})
@@ -883,6 +1006,7 @@ export class InlineEditController {
     this.controllers.clear()
     this.drafts.clear()
     this.documentBindings.clear()
+    this.imageBindings.clear()
     this.resolvingDocumentTasks.clear()
   }
 
@@ -940,6 +1064,7 @@ export class InlineEditController {
       this.controllers.delete(id)
       this.drafts.delete(id)
       this.removeDocumentBinding(id)
+      this.removeImageBinding(id)
       editorView.dispatch({ effects: removeInlineSession.of(id) })
       editorView.focus()
     }
@@ -1100,22 +1225,25 @@ export class InlineEditController {
       defaultImageTemplateId:
         this.plugin.settings.imageGeneration.templateByPurpose.selection,
       submitImage: (brief, templateId) => {
-        close()
         void this.submitImageGeneration({
           brief,
           templateId,
           original,
           filePath,
           title: markdownView.file?.basename,
+          editorView,
+          sessionId: id,
         })
       },
     })
   }
 
   /**
-   * Inline panel → image queue (R-038). An empty brief means "draw the selected
-   * text": short selections are used verbatim, long ones are condensed by the
-   * chat model first. The guide template is prepended like everywhere else.
+   * Inline panel → image queue (R-038/R-040). An empty brief means "draw the
+   * selected text": short selections are used verbatim, long ones are
+   * condensed by the chat model first. The job runs in the background and the
+   * same panel shows progress, a preview, and the destination actions, so the
+   * chat sidebar is never needed.
    */
   private async submitImageGeneration({
     brief,
@@ -1123,13 +1251,19 @@ export class InlineEditController {
     original,
     filePath,
     title,
+    editorView,
+    sessionId,
   }: {
     brief: string
     templateId: string
     original: string
     filePath: string
     title?: string
+    editorView: EditorView
+    sessionId: string
   }): Promise<void> {
+    const current = () =>
+      editorView.state.field(inlineEditField, false)?.get(sessionId)
     let finalBrief = brief.trim()
     if (!finalBrief) {
       const source = stripFrontmatter(original)
@@ -1138,10 +1272,15 @@ export class InlineEditController {
         return
       }
       if (needsBriefSynthesis(source)) {
-        const notice = new Notice(
-          'Writing an image brief from the selection…',
-          0,
-        )
+        const base = current()
+        if (base) {
+          this.show(editorView, {
+            ...base,
+            status: 'image-task',
+            imageTask: undefined,
+            imageArtifact: undefined,
+          })
+        }
         try {
           finalBrief = await writeImageBriefFromText({
             settings: this.plugin.settings,
@@ -1150,26 +1289,174 @@ export class InlineEditController {
             title,
           })
         } catch (error) {
-          notice.hide()
           new Notice(
             `Could not write a brief: ${error instanceof Error ? error.message : String(error)}`,
           )
+          const base = current()
+          if (base) this.show(editorView, { ...base, status: 'prompt' })
           return
         }
-        notice.hide()
       } else {
         finalBrief = source
       }
     } else if (original.trim()) {
       finalBrief = `${finalBrief}\n\nSource text:\n${stripFrontmatter(original).slice(0, 1500)}`
     }
-    await this.plugin.generateImage({
-      brief: finalBrief,
-      templateId: templateId || undefined,
-      count: 1,
-      referenceImages: [],
-      targetFilePath: filePath,
-      origin: 'selection',
+
+    const manager = this.plugin.backgroundTaskManager
+    const result = await queueImageJob({
+      app: this.plugin.app,
+      settings: this.plugin.settings,
+      taskManager: manager,
+      request: {
+        prompt: finalBrief,
+        count: 1,
+        requestedCount: 1,
+        usedPreviousPrompt: false,
+      },
+      sourcePrompt: brief.trim() || stripFrontmatter(original).slice(0, 200),
+      conversationId: `inline:${filePath}`,
+      originMessageId: sessionId,
+      submission: {
+        templateId: templateId || undefined,
+        referenceImages: [],
+        targetFilePath: filePath,
+        origin: 'selection',
+      },
+    })
+    const taskId = result.taskIds[0]
+    const base = current()
+    if (!taskId || !manager || !base) {
+      if (base) this.show(editorView, { ...base, status: 'prompt' })
+      return
+    }
+    this.imageBindings.set(taskId, { editorView, sessionId })
+
+    const finish = async (
+      markdown: string | null,
+      phase: string,
+      message: string,
+    ) => {
+      const session = current()
+      if (!session) return
+      if (markdown) {
+        const insertion = buildInlineInsertion(
+          editorView.state.doc.toString(),
+          session.insertAt,
+          markdown,
+        )
+        editorView.dispatch({
+          changes: {
+            from: session.insertAt,
+            to: session.insertAt,
+            insert: insertion,
+          },
+          effects: [
+            removeInlineSession.of(sessionId),
+            recordInlineInsertion.of({ sessionId, at: session.insertAt }),
+          ],
+        })
+      } else {
+        editorView.dispatch({ effects: removeInlineSession.of(sessionId) })
+      }
+      this.imageBindings.delete(taskId)
+      this.drafts.delete(sessionId)
+      await manager.complete(taskId, { progress: { phase, message } })
+      editorView.focus()
+    }
+    const imageActions: NonNullable<InlineSession['imageActions']> = {
+      insert: () => {
+        const art = current()?.imageArtifact
+        if (!art?.localPath) return
+        void finish(`![[${art.localPath}]]`, 'inserted', 'Inserted into note')
+      },
+      sendToEagle: () => {
+        void (async () => {
+          const session = current()
+          const art = session?.imageArtifact
+          if (!art?.localPath) return
+          try {
+            const imported = await importArtifactToEagle({
+              app: this.plugin.app,
+              settings: this.plugin.settings,
+              artifact: art,
+              annotation: finalBrief,
+            })
+            await manager.saveArtifact(imported.artifact)
+            const where = describeEagleDelivery(
+              imported.result,
+              this.plugin.settings.imageGeneration.eagle.folderPath,
+            )
+            new Notice(`Imported into Eagle · ${where}`)
+            for (const warning of imported.result.warnings) new Notice(warning)
+            await finish(
+              imported.result.markdown,
+              'eagle-inserted',
+              `Imported into Eagle (${where}) and inserted`,
+            )
+          } catch (error) {
+            new Notice(
+              `Eagle import failed: ${error instanceof Error ? error.message : String(error)}`,
+            )
+          }
+        })()
+      },
+      copy: () => {
+        void (async () => {
+          const art = current()?.imageArtifact
+          if (!art?.localPath) return
+          const file = this.plugin.app.vault.getAbstractFileByPath(
+            art.localPath,
+          )
+          if (!(file instanceof TFile)) return
+          const ok = copyImageToClipboard(
+            await this.plugin.app.vault.readBinary(file),
+          )
+          new Notice(
+            ok
+              ? 'Image copied to the clipboard'
+              : 'Clipboard copy is available on desktop only.',
+          )
+        })()
+      },
+      keep: () => {
+        void finish(null, 'saved', 'Saved locally')
+      },
+      cancel: () => {
+        void manager.cancel(taskId)
+        this.imageBindings.delete(taskId)
+        editorView.dispatch({ effects: removeInlineSession.of(sessionId) })
+      },
+    }
+    this.show(editorView, {
+      ...base,
+      status: 'image-task',
+      imageTask: manager.getTask(taskId) ?? undefined,
+      imageArtifact: undefined,
+      imageActions,
+    })
+  }
+
+  private async handleImageTaskUpdate(
+    task: BackgroundTaskRecord,
+  ): Promise<void> {
+    const binding = this.imageBindings.get(task.id)
+    if (!binding || !this.hasSession(binding.editorView, binding.sessionId)) {
+      return
+    }
+    const current = binding.editorView.state
+      .field(inlineEditField, false)
+      ?.get(binding.sessionId)
+    if (!current || current.status !== 'image-task') return
+    const artifactId = task.artifactIds[0]
+    const artifact = artifactId
+      ? ((await this.plugin.backgroundTaskManager?.readArtifact(artifactId)) ??
+        current.imageArtifact)
+      : current.imageArtifact
+    this.show(binding.editorView, {
+      ...current,
+      imageTask: task,
+      imageArtifact: artifact,
     })
   }
 
@@ -1638,6 +1925,12 @@ export class InlineEditController {
   ): Promise<void> {
     await this.documentRepository.markComplete(jobId)
     await this.plugin.backgroundTaskManager?.complete(taskId, {})
+  }
+
+  private removeImageBinding(sessionId: string): void {
+    for (const [taskId, binding] of this.imageBindings) {
+      if (binding.sessionId === sessionId) this.imageBindings.delete(taskId)
+    }
   }
 
   private removeDocumentBinding(sessionId: string): void {
@@ -2296,6 +2589,17 @@ export function parseInlineResponse(value: string): {
     // Older and custom models may return the replacement directly.
   }
   return { type: 'replacement', content: stripped }
+}
+
+function getImageTaskSummary(session: InlineSession): string {
+  const task = session.imageTask
+  return [
+    task?.id ?? '',
+    task?.status ?? '',
+    task?.progress?.phase ?? '',
+    task?.progress?.message ?? '',
+    session.imageArtifact?.localPath ?? '',
+  ].join('|')
 }
 
 function makeOutputControl(
@@ -3184,6 +3488,9 @@ button.mode-option{
   font-size:11px;
 }
 button.mode-option:first-child{border-left:0}
+.image-progress{display:flex;flex-direction:column;gap:10px;margin:2px 0 10px}
+.image-progress progress{width:100%;height:4px;accent-color:var(--ach-action)}
+.image-preview img{display:block;max-width:100%;max-height:280px;border:1px solid var(--ach-border);border-radius:var(--ach-radius);background:var(--ach-surface-raised);object-fit:contain}
 select.template-select{max-width:16em;height:28px;padding:0 8px;border:1px solid var(--ach-border);border-radius:var(--ach-radius);background:var(--ach-surface-raised);color:var(--ach-text);font:inherit;font-size:12px}
 select.template-select:focus-visible{outline:none;border-color:var(--ach-action);box-shadow:0 0 0 2px color-mix(in srgb,var(--ach-action) 18%,transparent)}
 button.mode-option[data-active="true"]{

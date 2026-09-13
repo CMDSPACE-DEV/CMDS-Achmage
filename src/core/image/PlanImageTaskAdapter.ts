@@ -13,7 +13,7 @@ import { BackgroundTaskManager } from '../tasks/BackgroundTaskManager'
 
 import { copyImageToClipboard } from './clipboard-image'
 import { uploadWithCmdsEagle } from './CmdsEagleBridge'
-import { importArtifactToEagle } from './eagle-artifact'
+import { describeEagleDelivery, importArtifactToEagle } from './eagle-artifact'
 import {
   IMAGE_EXTENSION_BY_MIME,
   isImageGenerator,
@@ -161,7 +161,7 @@ export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
     if (!artifact.localPath || !artifact.mimeType) return null
     try {
       if (destination === 'eagle') {
-        const { artifact: updated } = await importArtifactToEagle({
+        const { artifact: updated, result } = await importArtifactToEagle({
           app: this.app,
           settings,
           artifact,
@@ -170,7 +170,11 @@ export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
             void context.updateProgress({ phase: 'delivering', message }),
         })
         await this.taskManager.saveArtifact(updated)
-        return 'Imported into Eagle · insert the link'
+        const where = describeEagleDelivery(
+          result,
+          settings.imageGeneration.eagle.folderPath,
+        )
+        return `In Eagle · ${where}${result.warnings.length ? ` · ${result.warnings[0]}` : ''} · insert the link`
       }
       if (destination === 'cloud') {
         await context.updateProgress({
