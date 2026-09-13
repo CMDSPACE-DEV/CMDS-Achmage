@@ -7,6 +7,7 @@ import {
 } from '../../utils/chat/parse-tag-content'
 
 import AssistantMessageReasoning from './AssistantMessageReasoning'
+import { EditBlockCard } from './EditBlockCard'
 import MarkdownCodeComponent from './MarkdownCodeComponent'
 import MarkdownReferenceBlock from './MarkdownReferenceBlock'
 import { StableObsidianMarkdown } from './ObsidianMarkdown'
@@ -50,6 +51,16 @@ const AssistantTextRenderer = React.memo(function AssistantTextRenderer({
           </div>
         ) : block.type === 'think' ? (
           <AssistantMessageReasoning key={index} reasoning={block.content} />
+        ) : block.type === 'achmage_edit' ? (
+          <EditBlockCard
+            key={index}
+            op={block.op}
+            anchor={block.anchor}
+            until={block.until}
+            heading={block.heading}
+            content={block.content}
+            complete={block.complete && !isStreaming}
+          />
         ) : block.startLine && block.endLine && block.filename ? (
           <MarkdownReferenceBlock
             key={index}

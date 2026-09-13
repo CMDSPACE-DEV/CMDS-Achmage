@@ -5306,3 +5306,86 @@ body:not(.theme-dark)
   color: var(--text-muted);
   font-size: var(--font-ui-small);
 }
+
+/* R-041: edit operation cards (Edit note mode) */
+.smtcmp-edit-card {
+  margin: 8px 0;
+  border: 1px solid var(--ach-border, var(--background-modifier-border));
+  border-left: 3px solid var(--ach-action, var(--interactive-accent));
+  border-radius: var(--radius-m);
+  background: var(--ach-surface, var(--background-primary));
+  overflow: hidden;
+}
+
+.smtcmp-edit-card[data-state='applied'] {
+  border-left-color: var(--color-green);
+  opacity: 0.85;
+}
+
+.smtcmp-edit-card__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--ach-border, var(--background-modifier-border));
+  font-size: var(--font-ui-smaller);
+  color: var(--ach-muted, var(--text-muted));
+}
+
+.smtcmp-edit-card__op {
+  font-weight: 600;
+  color: var(--ach-text, var(--text-normal));
+}
+
+.smtcmp-edit-card__anchor {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.smtcmp-edit-card__content {
+  padding: 4px 10px;
+}
+
+.smtcmp-edit-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 8px;
+}
+
+.smtcmp-edit-card__actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-ui-smaller);
+}
+
+.smtcmp-edit-card__apply {
+  background: var(--ach-action, var(--interactive-accent));
+  color: var(--ach-on-action, var(--text-on-accent));
+}
+
+.smtcmp-edit-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-ui-smaller);
+  color: var(--color-green);
+}
+
+.smtcmp-edit-card__status--error {
+  color: var(--text-error);
+}
+
+.smtcmp-spin {
+  animation: smtcmp-spin 0.9s linear infinite;
+}
+
+@keyframes smtcmp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

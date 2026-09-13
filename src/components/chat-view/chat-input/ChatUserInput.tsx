@@ -5,7 +5,13 @@ import {
   LexicalEditor,
   SerializedEditorState,
 } from 'lexical'
-import { ArrowUp, LibraryBig, ListPlus, WandSparkles } from 'lucide-react'
+import {
+  ArrowUp,
+  FilePenLine,
+  LibraryBig,
+  ListPlus,
+  WandSparkles,
+} from 'lucide-react'
 import {
   forwardRef,
   useCallback,
@@ -62,7 +68,7 @@ export type ChatUserInputProps = {
   onSubmit: (
     content: SerializedEditorState,
     useVaultSearch?: boolean,
-    mode?: 'chat' | 'image',
+    mode?: 'chat' | 'image' | 'edit',
     imageTemplateId?: string,
   ) => void
   onFocus: () => void
@@ -361,6 +367,17 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
                 setComposerMode((mode) => toggleComposerMode(mode, 'vault'))
               }
             />
+            {purpose === 'new-message' && (
+              <ChatIconButton
+                icon={FilePenLine}
+                label="Edit note"
+                tooltip="Ask for edits to the current note; replies come as Apply cards"
+                active={composerMode === 'edit'}
+                onClick={() =>
+                  setComposerMode((mode) => toggleComposerMode(mode, 'edit'))
+                }
+              />
+            )}
             {canGenerateImages && purpose === 'new-message' && (
               <ChatIconButton
                 icon={WandSparkles}

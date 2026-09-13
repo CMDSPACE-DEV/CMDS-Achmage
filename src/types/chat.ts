@@ -34,6 +34,8 @@ export type ChatUserMessage = {
     similarity: number
   })[]
   retrievalMetadata?: RetrievalMetadata
+  /** Composer "Edit note" mode: the model answers with achmage_edit operations (R-041). */
+  editNoteMode?: boolean
 }
 export type ChatAssistantMessage = {
   role: 'assistant'

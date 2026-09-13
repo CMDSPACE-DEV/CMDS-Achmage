@@ -992,7 +992,11 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
             setInputMessage(getNewInputMessage(app))
             return
           }
-          const userMessage = { ...inputMessage, content }
+          const userMessage: ChatUserMessage = {
+            ...inputMessage,
+            content,
+            ...(mode === 'edit' ? { editNoteMode: true } : {}),
+          }
           if (submitChatMutation.isPending) {
             void plugin.conversationRunManager?.enqueue(currentConversationId, {
               id: userMessage.id,

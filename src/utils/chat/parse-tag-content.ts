@@ -14,6 +14,16 @@ export type ParsedTagContent =
       type: 'think'
       content: string
     }
+  | {
+      type: 'achmage_edit'
+      op: string
+      anchor?: string
+      until?: string
+      heading?: string
+      content: string
+      /** False while the closing tag has not streamed in yet. */
+      complete: boolean
+    }
 
 /**
  * Parses text containing <smtcmp_block> and <think> tags into structured content
@@ -76,6 +86,38 @@ export function parseTagContents(input: string): ParsedTagContent[] {
           endLine: endLine ? parseInt(endLine) : undefined,
         })
       }
+      lastEndOffset = endOffset
+    } else if (node.nodeName === 'achmage_edit') {
+      if (!node.sourceCodeLocation) {
+        throw new Error('sourceCodeLocation is undefined')
+      }
+      const startOffset = node.sourceCodeLocation.startOffset
+      const endOffset = node.sourceCodeLocation.endOffset
+      if (startOffset > lastEndOffset) {
+        parsedResult.push({
+          type: 'string',
+          content: input.slice(lastEndOffset, startOffset),
+        })
+      }
+      const op = node.attrs.find((attr) => attr.name === 'op')?.value ?? ''
+      const readChild = (name: string): string | undefined => {
+        const child = node.childNodes.find((c) => c.nodeName === name)
+        if (!child || !('childNodes' in child)) return undefined
+        const kids = child.childNodes
+        if (kids.length === 0) return ''
+        const s = kids[0].sourceCodeLocation?.startOffset
+        const e = kids[kids.length - 1].sourceCodeLocation?.endOffset
+        return s !== undefined && e !== undefined ? input.slice(s, e) : ''
+      }
+      parsedResult.push({
+        type: 'achmage_edit',
+        op,
+        anchor: readChild('anchor')?.trim(),
+        until: readChild('until')?.trim(),
+        heading: readChild('heading')?.trim(),
+        content: (readChild('content') ?? '').replace(/^\n|\n$/g, ''),
+        complete: !!node.sourceCodeLocation.endTag,
+      })
       lastEndOffset = endOffset
     } else if (node.nodeName === 'think') {
       if (!node.sourceCodeLocation) {

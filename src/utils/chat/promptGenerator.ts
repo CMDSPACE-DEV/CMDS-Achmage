@@ -8,6 +8,7 @@ import {
   LLMAPIKeyNotSetException,
   LLMBaseUrlNotSetException,
 } from '../../core/llm/exception'
+import { EDIT_NOTE_MODE_INSTRUCTIONS } from '../../core/note-edit/edit-mode-prompt'
 import { processQueryWithExhaustiveFolderRead } from '../../core/rag/exhaustiveFolderRead'
 import { processQueryWithPlanRerank } from '../../core/rag/planRerank'
 import { RAGEngine } from '../../core/rag/ragEngine'
@@ -123,9 +124,17 @@ export class PromptGenerator {
         ? await this.getCurrentFileMessage(currentFile)
         : undefined
 
+    const editModeMessage: RequestMessage | null = lastUserMessage.editNoteMode
+      ? {
+          role: 'user',
+          content: `<edit_mode_instructions>\n${EDIT_NOTE_MODE_INSTRUCTIONS}\n</edit_mode_instructions>`,
+        }
+      : null
+
     const requestMessages: RequestMessage[] = [
       systemMessage,
       ...(customInstructionMessage ? [customInstructionMessage] : []),
+      ...(editModeMessage ? [editModeMessage] : []),
       ...(currentFileMessage ? [currentFileMessage] : []),
       ...this.getChatHistoryMessages({ messages: compiledMessages }),
       ...(shouldUseRAG && this.getModelPromptLevel() == PromptLevel.Default
