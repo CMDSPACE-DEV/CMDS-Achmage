@@ -3,7 +3,6 @@ import { Notice } from 'obsidian'
 import React, { useMemo, useState } from 'react'
 
 import { useApp } from '../../contexts/app-context'
-
 import { ChatAssistantMessage } from '../../types/chat'
 import {
   ParsedTagContent,
