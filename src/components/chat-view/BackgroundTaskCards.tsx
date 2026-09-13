@@ -352,7 +352,21 @@ export function BackgroundTaskCards({
                 onClick={() => setExpanded(resourcePath)}
                 aria-label="Open generated image full size"
               >
-                <img src={resourcePath} alt="Generated image preview" />
+                <img
+                  src={resourcePath}
+                  alt="Generated image preview"
+                  draggable
+                  title="Drag into a note to insert ![[embed]]"
+                  onDragStart={(event) => {
+                    // Without this the editor receives the app:// resource URL.
+                    if (!artifact?.localPath) return
+                    event.dataTransfer.effectAllowed = 'copy'
+                    event.dataTransfer.setData(
+                      'text/plain',
+                      `![[${artifact.localPath}]]`,
+                    )
+                  }}
+                />
                 <Expand size={16} />
                 {artifact?.width && artifact.height && (
                   <span>

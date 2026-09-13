@@ -14,6 +14,7 @@ import { BackgroundTaskManager } from '../tasks/BackgroundTaskManager'
 import { copyImageToClipboard } from './clipboard-image'
 import { uploadWithCmdsEagle } from './CmdsEagleBridge'
 import { importArtifactToEagle } from './eagle-artifact'
+import { resolveImageOutputFolder } from './output-folder'
 import {
   IMAGE_EXTENSION_BY_MIME,
   isImageGenerator,
@@ -98,10 +99,19 @@ export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
     const mimeType =
       sniffImageMimeType(bytes) ?? generated.mimeType ?? 'image/png'
     const dimensions = readPngDimensions(bytes)
-    const folder = normalizePath(settings.imageGeneration.outputFolder)
+    const folder = normalizePath(resolveImageOutputFolder(settings))
     await ensureFolder(this.app, folder)
+    // Name the file after the user's own brief, not the composed prompt
+    // (template + rules), so files stay recognisable in the folder.
+    const briefForName =
+      typeof task.input.batchBasePrompt === 'string'
+        ? task.input.batchBasePrompt
+        : typeof task.input.sourcePrompt === 'string'
+          ? task.input.sourcePrompt
+          : prompt
     const filename = `${Date.now()}-${
-      sanitizeFilename(prompt.slice(0, 48)) || 'generated-image'
+      sanitizeFilename(briefForName.split('\n')[0].slice(0, 48)) ||
+      'generated-image'
     }.${IMAGE_EXTENSION_BY_MIME[mimeType] ?? 'png'}`
     const path = await getAvailablePath(this.app, folder, filename)
     await this.app.vault.createBinary(path, bytes)

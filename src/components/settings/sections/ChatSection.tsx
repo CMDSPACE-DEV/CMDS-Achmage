@@ -225,7 +225,7 @@ export function ChatSection({
 
           <ObsidianSetting
             name="Image output folder"
-            desc="Vault-relative folder used for every generated image before R2 upload or note insertion. The task card shows the exact saved path."
+            desc="Vault-relative folder for every generated image and text card. Leave blank to use the default folder; images never go to the vault root."
           >
             <ObsidianTextInput
               folderSuggest={app}

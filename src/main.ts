@@ -13,6 +13,7 @@ import {
   writeImageBriefFromText,
 } from './core/image/image-brief'
 import type { ImageGenerationSubmission } from './core/image/image-request'
+import { resolveImageOutputFolder } from './core/image/output-folder'
 import { saveImageToVault } from './core/image/save-image'
 import { renderTextCard } from './core/image/text-card'
 import type { InlineEditController } from './core/inline/InlineEditController'
@@ -530,7 +531,8 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
       new Notice('Select the text you want on the card first.')
       return
     }
-    const { textCard, outputFolder } = this.settings.imageGeneration
+    const { textCard } = this.settings.imageGeneration
+    const outputFolder = resolveImageOutputFolder(this.settings)
     try {
       const bytes = await renderTextCard(view.containerEl.ownerDocument, text, {
         style: textCard.style,
