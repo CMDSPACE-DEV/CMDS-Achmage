@@ -54,3 +54,69 @@ export async function uploadWithCmdsEagle(
   }
   return result.publicUrl
 }
+
+export type CmdsEagleLibraryProfile = {
+  path: string
+  name: string
+  defaultFolderId: string
+  defaultFolderPath: string
+}
+
+type CmdsEagleSettingsRuntime = {
+  settings?: {
+    eagleApiBaseUrl?: string
+    libraries?: unknown
+    defaultLibraryPath?: string
+    libraryTargetMode?: string
+  }
+}
+
+/**
+ * CMDS Eagle remembers every library the user targeted, with a per-library
+ * default folder. Reading those profiles lets the image settings offer the
+ * same choices instead of asking the user to paste library paths twice.
+ * Returns an empty list when the plugin is absent.
+ */
+export function readCmdsEagleLibraryProfiles(
+  app: App,
+): CmdsEagleLibraryProfile[] {
+  const runtime = (app as AppWithPlugins).plugins?.plugins?.['cmds-eagle'] as
+    | CmdsEagleSettingsRuntime
+    | undefined
+  const raw = runtime?.settings?.libraries
+  if (!Array.isArray(raw)) return []
+  return raw
+    .filter(
+      (entry): entry is Record<string, unknown> =>
+        !!entry && typeof entry === 'object',
+    )
+    .map((entry) => ({
+      path: typeof entry.path === 'string' ? entry.path : '',
+      name: typeof entry.name === 'string' ? entry.name : '',
+      defaultFolderId:
+        typeof entry.defaultFolderId === 'string' ? entry.defaultFolderId : '',
+      defaultFolderPath:
+        typeof entry.defaultFolderPath === 'string'
+          ? entry.defaultFolderPath
+          : '',
+    }))
+    .filter((profile) => profile.path.length > 0)
+}
+
+/** CMDS Eagle's own API base URL and default library, when the plugin is installed. */
+export function readCmdsEagleDefaults(app: App): {
+  apiBaseUrl?: string
+  defaultLibraryPath?: string
+} {
+  const runtime = (app as AppWithPlugins).plugins?.plugins?.['cmds-eagle'] as
+    | CmdsEagleSettingsRuntime
+    | undefined
+  return {
+    apiBaseUrl: runtime?.settings?.eagleApiBaseUrl,
+    defaultLibraryPath: runtime?.settings?.defaultLibraryPath,
+  }
+}
+
+export function isCmdsEagleInstalled(app: App): boolean {
+  return !!(app as AppWithPlugins).plugins?.plugins?.['cmds-eagle']
+}
