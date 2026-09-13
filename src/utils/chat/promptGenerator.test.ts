@@ -126,6 +126,20 @@ function createSettings(
         tags: 'cmds-achmage',
       },
       promptTemplates: DEFAULT_IMAGE_PROMPT_TEMPLATES,
+      templateByPurpose: {
+        composer: '',
+        text: '',
+        selection: '',
+        note: 'cmds-illustration',
+        clipboard: '',
+      },
+      copyToClipboard: false,
+      textCard: {
+        style: 'cmds-dark',
+        width: 1200,
+        brand: 'CMDSPACE',
+        insertEmbed: true,
+      },
     },
     imageAnalysis: { modelId: null },
     documentEditing: {

@@ -4,12 +4,22 @@ import {
   ImagePromptTemplate,
   newImagePromptTemplateId,
 } from '../../../core/image/image-prompt-templates'
+import {
+  IMAGE_PURPOSES,
+  IMAGE_PURPOSE_LABELS,
+} from '../../../core/image/image-request'
+import {
+  TEXT_CARD_STYLES,
+  TEXT_CARD_STYLE_LABELS,
+  TextCardStyle,
+} from '../../../core/image/text-card'
 import { getProviderCapabilities } from '../../../core/llm/providerCapabilities'
 import { ObsidianButton } from '../../common/ObsidianButton'
 import { ObsidianDropdown } from '../../common/ObsidianDropdown'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
 import { ObsidianTextArea } from '../../common/ObsidianTextArea'
 import { ObsidianTextInput } from '../../common/ObsidianTextInput'
+import { ObsidianToggle } from '../../common/ObsidianToggle'
 
 /** Image prompt template slots and the clipboard-image analysis model (R-035). */
 export function ImagePromptTemplateSettings() {
@@ -80,6 +90,132 @@ export function ImagePromptTemplateSettings() {
           </ObsidianSetting>
         </div>
       ))}
+
+      <ObsidianSetting
+        name="Default template per purpose"
+        desc="Each entry point can start with its own template. The modal and the composer pre-select it; you can still change it per job."
+      />
+      {IMAGE_PURPOSES.map((purpose) => (
+        <ObsidianSetting key={purpose} name={IMAGE_PURPOSE_LABELS[purpose]}>
+          <ObsidianDropdown
+            value={settings.imageGeneration.templateByPurpose[purpose]}
+            options={{
+              '': 'No template',
+              ...Object.fromEntries(templates.map((t) => [t.id, t.name])),
+            }}
+            onChange={async (value) => {
+              await setSettings({
+                ...settings,
+                imageGeneration: {
+                  ...settings.imageGeneration,
+                  templateByPurpose: {
+                    ...settings.imageGeneration.templateByPurpose,
+                    [purpose]: value,
+                  },
+                },
+              })
+            }}
+          />
+        </ObsidianSetting>
+      ))}
+
+      <ObsidianSetting
+        name="Copy generated images to the clipboard"
+        desc="Right after an image is saved it is also placed on the system clipboard, ready to paste anywhere. The task card keeps a Copy image button either way."
+      >
+        <ObsidianToggle
+          value={settings.imageGeneration.copyToClipboard}
+          onChange={async (value) => {
+            await setSettings({
+              ...settings,
+              imageGeneration: {
+                ...settings.imageGeneration,
+                copyToClipboard: value,
+              },
+            })
+          }}
+        />
+      </ObsidianSetting>
+
+      <ObsidianSetting
+        name="Text card style"
+        desc="'Render selection as image card' draws the selected text itself as a PNG (no model call), saves it to the image output folder, copies it to the clipboard, and can insert the embed."
+      >
+        <ObsidianDropdown
+          value={settings.imageGeneration.textCard.style}
+          options={Object.fromEntries(
+            TEXT_CARD_STYLES.map((s) => [s, TEXT_CARD_STYLE_LABELS[s]]),
+          )}
+          onChange={async (value) => {
+            await setSettings({
+              ...settings,
+              imageGeneration: {
+                ...settings.imageGeneration,
+                textCard: {
+                  ...settings.imageGeneration.textCard,
+                  style: value as TextCardStyle,
+                },
+              },
+            })
+          }}
+        />
+      </ObsidianSetting>
+      <ObsidianSetting
+        name="Text card width and brand"
+        desc="Width in pixels (600–4000); the brand mark sits bottom-right, empty hides it."
+      >
+        <ObsidianTextInput
+          value={String(settings.imageGeneration.textCard.width)}
+          type="number"
+          onChange={async (value) => {
+            const width = Number.parseInt(value, 10)
+            if (!Number.isFinite(width) || width < 600 || width > 4000) return
+            await setSettings({
+              ...settings,
+              imageGeneration: {
+                ...settings.imageGeneration,
+                textCard: { ...settings.imageGeneration.textCard, width },
+              },
+            })
+          }}
+        />
+        <ObsidianTextInput
+          value={settings.imageGeneration.textCard.brand}
+          placeholder="CMDSPACE"
+          onChange={async (value) => {
+            await setSettings({
+              ...settings,
+              imageGeneration: {
+                ...settings.imageGeneration,
+                textCard: {
+                  ...settings.imageGeneration.textCard,
+                  brand: value,
+                },
+              },
+            })
+          }}
+        />
+      </ObsidianSetting>
+      <ObsidianSetting
+        name="Insert the text card embed into the note"
+        desc="Off keeps the file and clipboard copy only."
+      >
+        <ObsidianToggle
+          value={settings.imageGeneration.textCard.insertEmbed}
+          onChange={async (value) => {
+            await setSettings({
+              ...settings,
+              imageGeneration: {
+                ...settings.imageGeneration,
+                textCard: {
+                  ...settings.imageGeneration.textCard,
+                  insertEmbed: value,
+                },
+              },
+            })
+          }}
+        />
+      </ObsidianSetting>
 
       <ObsidianSetting
         name="Clipboard image analysis model"

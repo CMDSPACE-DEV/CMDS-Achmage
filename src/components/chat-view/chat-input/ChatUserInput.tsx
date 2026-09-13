@@ -99,8 +99,19 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
     const contentEditableRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const [composerMode, setComposerMode] = useState<ComposerMode>('chat')
-    const [imageTemplateId, setImageTemplateId] =
-      useState<string>(NO_IMAGE_TEMPLATE)
+    const [imageTemplateId, setImageTemplateId] = useState<string>(
+      settings.imageGeneration.templateByPurpose.composer || NO_IMAGE_TEMPLATE,
+    )
+    useEffect(() => {
+      if (composerMode === 'image') {
+        setImageTemplateId(
+          settings.imageGeneration.templateByPurpose.composer ||
+            NO_IMAGE_TEMPLATE,
+        )
+      }
+      // Re-arm the purpose default each time image mode is entered.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [composerMode])
 
     const [displayedMentionableKey, setDisplayedMentionableKey] = useState<
       string | null

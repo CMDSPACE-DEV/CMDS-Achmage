@@ -6,12 +6,15 @@ import { GenerateImageModal } from './components/modals/GenerateImageModal'
 import { InstallerUpdateRequiredModal } from './components/modals/InstallerUpdateRequiredModal'
 import { CHAT_VIEW_TYPE } from './constants'
 import { ConversationRunManager } from './core/conversation/ConversationRunManager'
+import { copyImageToClipboard } from './core/image/clipboard-image'
 import {
   needsBriefSynthesis,
   stripFrontmatter,
   writeImageBriefFromText,
 } from './core/image/image-brief'
 import type { ImageGenerationSubmission } from './core/image/image-request'
+import { saveImageToVault } from './core/image/save-image'
+import { renderTextCard } from './core/image/text-card'
 import type { InlineEditController } from './core/inline/InlineEditController'
 import type { McpManager } from './core/mcp/mcpManager'
 import {
@@ -192,6 +195,14 @@ export default class SmartComposerPlugin extends Plugin {
     })
 
     this.addCommand({
+      id: 'render-selection-as-image-card',
+      name: 'Render selection as image card (text as image)',
+      editorCallback: (editor: Editor, view: MarkdownView) => {
+        void this.renderSelectionAsImageCard(editor, view)
+      },
+    })
+
+    this.addCommand({
       id: 'generate-image-from-clipboard',
       name: 'Generate image from clipboard image (image to image)…',
       callback: async () => {
@@ -249,6 +260,17 @@ export default class SmartComposerPlugin extends Plugin {
             })
         })
         const selection = editor.getSelection()
+        if (selection) {
+          menu.addItem((item) => {
+            item
+              .setTitle('CMDS Achmage: Render selection as image card')
+              .setIcon('image-plus')
+              .setSection('action')
+              .onClick(() => {
+                void this.renderSelectionAsImageCard(editor, info)
+              })
+          })
+        }
         menu.addItem((item) => {
           item
             .setTitle(
@@ -496,6 +518,46 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
     }
     await this.app.workspace.revealLeaf(leaf)
     leaf.view.generateImage(submission)
+  }
+
+  /**
+   * Selected text → PNG card (R-037): drawn locally, saved to the image output
+   * folder, copied to the clipboard, optionally embedded after the selection.
+   */
+  async renderSelectionAsImageCard(editor: Editor, view: MarkdownView) {
+    const text = editor.getSelection().trim()
+    if (!text) {
+      new Notice('Select the text you want on the card first.')
+      return
+    }
+    const { textCard, outputFolder } = this.settings.imageGeneration
+    try {
+      const bytes = await renderTextCard(view.containerEl.ownerDocument, text, {
+        style: textCard.style,
+        width: textCard.width,
+        brand: textCard.brand,
+        caption: view.file?.basename,
+      })
+      const path = await saveImageToVault(
+        this.app,
+        outputFolder,
+        `card-${text.slice(0, 40)}`,
+        'png',
+        bytes,
+      )
+      const copied = copyImageToClipboard(bytes)
+      if (textCard.insertEmbed) {
+        const end = editor.getCursor('to')
+        editor.replaceRange(`\n![[${path}]]\n`, end)
+      }
+      new Notice(
+        `Text card saved to ${path}${copied ? ' and copied to the clipboard' : ''}`,
+      )
+    } catch (error) {
+      new Notice(
+        `Text card failed: ${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
   }
 
   /**

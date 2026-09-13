@@ -2,6 +2,7 @@ import {
   Check,
   CircleAlert,
   CircleEllipsis,
+  Clipboard,
   CloudUpload,
   Expand,
   Feather,
@@ -18,6 +19,7 @@ import { useMemo, useState } from 'react'
 import { useApp } from '../../contexts/app-context'
 import { useBackgroundTasks } from '../../contexts/background-tasks-context'
 import { useSettings } from '../../contexts/settings-context'
+import { copyImageToClipboard } from '../../core/image/clipboard-image'
 import { uploadWithCmdsEagle } from '../../core/image/CmdsEagleBridge'
 import {
   importArtifactToEagle,
@@ -127,6 +129,21 @@ export function BackgroundTaskCards({
       })
       new Notice(message)
     }
+  }
+
+  const copyImage = async (artifact: ArtifactRecord) => {
+    if (!artifact.localPath) return
+    const file = app.vault.getAbstractFileByPath(artifact.localPath)
+    if (!(file instanceof TFile)) {
+      new Notice('The local image file is gone.')
+      return
+    }
+    const ok = copyImageToClipboard(await app.vault.readBinary(file))
+    new Notice(
+      ok
+        ? 'Image copied to the clipboard'
+        : 'Clipboard copy is available on desktop only.',
+    )
   }
 
   const sendToEagle = async (
@@ -394,6 +411,11 @@ export function BackgroundTaskCards({
                     onClick={() => void finishLocal(task, artifact, true)}
                   >
                     <Check size={14} /> Insert embed
+                  </button>
+                )}
+                {artifact.localPath && (
+                  <button onClick={() => void copyImage(artifact)}>
+                    <Clipboard size={14} /> Copy image
                   </button>
                 )}
                 <button onClick={() => void sendToEagle(task, artifact)}>

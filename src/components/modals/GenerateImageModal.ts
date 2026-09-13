@@ -1,6 +1,9 @@
 import { Modal, Notice, Setting } from 'obsidian'
 
-import { ImageGenerationSubmission } from '../../core/image/image-request'
+import {
+  ImageGenerationSubmission,
+  ImagePurpose,
+} from '../../core/image/image-request'
 import { ReferenceImageInput } from '../../core/image/reference-image-store'
 import { resolveImageGenerationModel } from '../../core/image/resolve-image-model'
 import { getProviderCapabilities } from '../../core/llm/providerCapabilities'
@@ -38,7 +41,12 @@ export class GenerateImageModal extends Modal {
   ) {
     super(plugin.app)
     this.brief = options.brief ?? ''
-    this.templateId = options.templateId ?? ''
+    const purpose: ImagePurpose =
+      options.origin && options.origin !== 'modal' ? options.origin : 'text'
+    this.templateId =
+      options.templateId ??
+      plugin.settings.imageGeneration.templateByPurpose[purpose] ??
+      ''
     this.referenceImages = [...(options.referenceImages ?? [])]
     this.modelId = resolveImageGenerationModel(plugin.settings).model?.id ?? ''
   }

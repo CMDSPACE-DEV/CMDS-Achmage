@@ -11,6 +11,7 @@ import {
 } from '../../types/background-task'
 import { BackgroundTaskManager } from '../tasks/BackgroundTaskManager'
 
+import { copyImageToClipboard } from './clipboard-image'
 import { uploadWithCmdsEagle } from './CmdsEagleBridge'
 import { importArtifactToEagle } from './eagle-artifact'
 import {
@@ -119,10 +120,14 @@ export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
       checksum: await sha256(bytes),
     }
     await this.taskManager.saveArtifact(artifact)
+    const copied =
+      settings.imageGeneration.copyToClipboard && copyImageToClipboard(bytes)
     const delivered = await this.preDeliver(artifact, prompt, context)
     await context.updateProgress({
       phase: 'awaiting-destination',
-      message: delivered ?? 'Image ready · choose a destination',
+      message: `${delivered ?? 'Image ready · choose a destination'}${
+        copied ? ' · copied to clipboard' : ''
+      }`,
     })
     return {
       status: 'awaiting-destination',
