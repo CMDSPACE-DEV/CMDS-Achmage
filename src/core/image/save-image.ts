@@ -17,6 +17,7 @@ export function sanitizeImageFilename(value: string): string {
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '')
+    .replace(/[.\s-]+$/g, '')
 }
 
 /** Saves bytes under `folder/stem(-n).ext`, never overwriting. Returns the vault path. */
