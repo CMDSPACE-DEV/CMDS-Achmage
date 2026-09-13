@@ -782,6 +782,13 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
         onLocateOrigin={locateMessage}
       />
       <div className="smtcmp-chat-messages" ref={chatMessagesRef}>
+        {submitChatMutation.isPending && responseProgress && (
+          // Sticky at the top of the scroll area so streaming text never
+          // pushes the status out of view (R-043).
+          <div className="smtcmp-response-progress-dock">
+            <ResponseProgressIndicator progress={responseProgress} />
+          </div>
+        )}
         {groupedChatMessages.map((messageOrGroup, index) =>
           !Array.isArray(messageOrGroup) ? (
             <div
@@ -850,11 +857,8 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
         <QueryProgress state={queryProgress} />
         {submitChatMutation.isPending &&
           queryProgress.type === 'idle' &&
-          (responseProgress ? (
-            <ResponseProgressIndicator progress={responseProgress} />
-          ) : (
-            responsePhase === 'waiting' && <ResponsePendingIndicator />
-          ))}
+          !responseProgress &&
+          responsePhase === 'waiting' && <ResponsePendingIndicator />}
         {showContinueResponseButton && (
           <div className="smtcmp-continue-response-button-container">
             <button
