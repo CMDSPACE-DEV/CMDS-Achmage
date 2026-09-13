@@ -60,7 +60,7 @@ export function mergeImageModelCatalog(models: unknown): unknown {
   const missing = API_IMAGE_MODEL_CATALOG.filter(
     (catalogModel) => !existing.some((model) => model.id === catalogModel.id),
   )
-  if (missing.length === 0) return models
+  if (missing.length === 0) return existing
   const merged: Record<string, unknown>[] = [...existing, ...missing]
   return merged
 }

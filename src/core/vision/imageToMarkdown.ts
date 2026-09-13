@@ -68,8 +68,43 @@ export function unwrapMarkdownFence(text: string): string {
 
 export type ClipboardImage = { dataUrl: string; mimeType: string }
 
-/** Reads the first image on the system clipboard, or null when there is none. */
+type ElectronClipboard = {
+  readImage: () => {
+    isEmpty: () => boolean
+    toPNG: () => Uint8Array
+  }
+}
+
+/** Desktop Obsidian exposes Electron's clipboard, which needs no window focus. */
+function readElectronClipboardImage(): ClipboardImage | null {
+  const req = (globalThis as { require?: (id: string) => unknown }).require
+  if (typeof req !== 'function') return null
+  try {
+    const electron = req('electron') as { clipboard?: ElectronClipboard }
+    const image = electron.clipboard?.readImage()
+    if (!image || image.isEmpty()) return null
+    const bytes = image.toPNG()
+    let binary = ''
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
+    }
+    return {
+      dataUrl: `data:image/png;base64,${btoa(binary)}`,
+      mimeType: 'image/png',
+    }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Reads the first image on the system clipboard, or null when there is none.
+ * Electron first (desktop, focus-independent), then the web clipboard API,
+ * which throws unless the document is focused.
+ */
 export async function readClipboardImage(): Promise<ClipboardImage | null> {
+  const fromElectron = readElectronClipboardImage()
+  if (fromElectron) return fromElectron
   const clipboard = (globalThis as { navigator?: Navigator }).navigator
     ?.clipboard
   if (!clipboard || typeof clipboard.read !== 'function') return null
