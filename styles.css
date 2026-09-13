@@ -5247,3 +5247,21 @@ body:not(.theme-dark)
   border-color: var(--ach-action);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--ach-action) 18%, transparent);
 }
+
+/* Settings footer: version and CMDSPACE links, same shape as CMDS Eagle. */
+.smtcmp-settings-footer {
+  margin-top: 24px;
+  padding: 20px 0 8px;
+  border-top: 1px solid var(--background-modifier-border);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.smtcmp-settings-footer__version {
+  margin-bottom: 6px;
+}
+
+.smtcmp-settings-footer__links a {
+  color: var(--text-accent);
+}

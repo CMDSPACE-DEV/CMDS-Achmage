@@ -5,8 +5,6 @@ import SmartComposerPlugin from '../../main'
 import { ObsidianButton } from '../common/ObsidianButton'
 import { ObsidianSetting } from '../common/ObsidianSetting'
 
-import { SettingsErrorBoundary } from './SettingsErrorBoundary'
-
 import { AppearanceSection } from './sections/AppearanceSection'
 import { ChatSection } from './sections/ChatSection'
 import { EtcSection } from './sections/EtcSection'
@@ -17,6 +15,7 @@ import { ProvidersSection } from './sections/ProvidersSection'
 import { RAGSection } from './sections/RAGSection'
 import { ResearchSection } from './sections/ResearchSection'
 import { TemplateSection } from './sections/TemplateSection'
+import { SettingsErrorBoundary } from './SettingsErrorBoundary'
 
 type SettingsTabRootProps = {
   app: App
@@ -97,6 +96,29 @@ export function SettingsTabRoot({ app, plugin }: SettingsTabRootProps) {
           </>
         )}
       </div>
+
+      <footer className="smtcmp-settings-footer">
+        <div className="smtcmp-settings-footer__version">
+          {plugin.manifest.name} v{plugin.manifest.version}
+        </div>
+        <div className="smtcmp-settings-footer__links">
+          CMDSPACE{' '}
+          <a href="https://class.cmdspace.kr/" rel="noreferrer">
+            Education
+          </a>
+          {' · '}
+          <a href="https://www.youtube.com/@cmdspace" rel="noreferrer">
+            YouTube
+          </a>
+          {' · '}
+          <a
+            href="https://github.com/CMDSPACE-DEV/CMDS-Achmage"
+            rel="noreferrer"
+          >
+            GitHub
+          </a>
+        </div>
+      </footer>
     </div>
   )
 }
