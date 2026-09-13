@@ -77,7 +77,11 @@ function createSettings(
       concurrency: 1,
       retryLimit: 2,
     },
-    appearance: { skinMode: 'follow-obsidian' },
+    appearance: {
+      skinMode: 'follow-obsidian',
+      accentPreset: 'skin',
+      glow: 'skin',
+    },
     embeddingModelId: 'openai/text-embedding-3-small',
     systemPrompt: '',
     ragOptions: {

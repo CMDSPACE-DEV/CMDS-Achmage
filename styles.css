@@ -6,18 +6,51 @@ settings:
     -
         id: ach-where-heading
         title: Where these settings apply
-        description: Every option below changes only surfaces CMDS Achmage draws itself: the Chat side panel with its composer, and the Inline edit panel that appears inside a note. Nothing here touches the editor text, other panes, or other plugins. By default the pane follows your Obsidian theme; the plugin's own skins (Operator Console in dark mode, Conversation Studio in light mode) are an opt-in under the plugin's Settings -> Writing -> Appearance. The options below apply on top of whichever skin is active and are only written when you change them, so leaving them alone keeps your theme's colors.
+        description: Every option below changes only surfaces CMDS Achmage draws itself: the Chat side panel with its composer, and the Inline edit panel that appears inside a note. Nothing here touches the editor text, other panes, or other plugins. Pick a base skin, an accent preset, and a glow level (or a one-click preset) under the plugin's Settings -> Appearance first; the values below are fine tuning applied on top of that choice and are only written when you change them, so leaving them alone keeps the preset's colors.
         type: heading
         level: 2
         collapsed: false
     -
         id: ach-ss-accent
         title: Accent color
-        description: "Applies to: the send button, the composer focus ring, the user message bubble, the left accent bar on assistant replies, active/selected states in pickers and menus, and the pulse glow while a response is pending. Unset, the theme-following skin uses your theme's accent and the owned skins use CMDS Pink (#E985A2, dark) or Hallym Blue (#0066B3, light). Set it only if you want a different accent than the skin provides."
+        description: "Applies to: the send button, the composer focus ring, the user message bubble, the left accent bar on assistant replies, active/selected states in pickers and menus, and the pulse glow while a response is pending. Overrides the accent preset chosen in the plugin settings. Unset, the theme-following skin uses your theme's accent and the CMDS skins use CMDS Pink (#E985A2, dark) or Hallym Blue (#0066B3, light)."
         type: variable-color
         format: hex
         opacity: false
         default: '#e985a2'
+    -
+        id: ach-ss-on-action
+        title: Text on accent
+        description: "Applies to: text and icons drawn on top of the accent color (send button glyph, user message text, active picker labels). Set it when a custom accent is too light or too dark for the preset's default."
+        type: variable-color
+        format: hex
+        opacity: false
+        default: '#0a0a0a'
+    -
+        id: ach-ss-heading
+        title: Heading color inside the pane
+        description: "Applies to: the Chat header title and headings inside assistant replies. Unset, the theme-following skin uses your theme's text color and the CMDS dark skin uses the accent."
+        type: variable-color
+        format: hex
+        opacity: false
+        default: '#d4d4d4'
+    -
+        id: ach-ss-motion
+        title: Motion color
+        description: "Applies to: the streaming tail, the orbiting pending border, and the secondary halo behind the accent glow. The CMDS skins default to Signal Teal (#00B5AD)."
+        type: variable-color
+        format: hex
+        opacity: false
+        default: '#00b5ad'
+    -
+        id: ach-ss-glow
+        title: Glow strength
+        description: "Multiplies every soft halo the plugin draws (focus, send button, pending pulse, streaming tail). 0 removes them, 1 is the CMDS dark console, around 1.7 is the Neon preset. Overrides the Glow level chosen in the plugin settings."
+        type: variable-number-slider
+        default: 1
+        min: 0
+        max: 2.5
+        step: 0.05
     -
         id: ach-shape-heading
         title: Shape and density
@@ -3226,11 +3259,24 @@ button.smtcmp-research-source-main:focus-visible {
   --ach-border: var(--background-modifier-border);
   --ach-text: var(--text-normal);
   --ach-muted: var(--text-muted);
-  --ach-heading: var(--text-normal);
-  --ach-action: var(--ach-ss-accent, var(--interactive-accent));
-  --ach-motion: var(--interactive-accent-hover, var(--interactive-accent));
+  --ach-heading: var(--ach-ss-heading, var(--text-normal));
+  --ach-action: var(
+    --ach-ss-accent,
+    var(--ach-preset-accent, var(--interactive-accent))
+  );
+  --ach-motion: var(
+    --ach-ss-motion,
+    var(
+      --ach-preset-motion,
+      var(--interactive-accent-hover, var(--interactive-accent))
+    )
+  );
   --ach-danger: var(--text-error);
-  --ach-on-action: var(--text-on-accent);
+  --ach-on-action: var(
+    --ach-ss-on-action,
+    var(--ach-preset-on-action, var(--text-on-accent))
+  );
+  --ach-glow: var(--ach-ss-glow, var(--ach-glow-level, 0.35));
   --ach-shadow: var(--text-normal);
   color-scheme: normal;
   font-family: inherit;
@@ -3276,9 +3322,13 @@ body:not(.theme-dark)
   --ach-border: #d7e1ec;
   --ach-text: #00102e;
   --ach-muted: #526174;
-  --ach-heading: #002e6e;
-  --ach-action: var(--ach-ss-accent, #0066b3);
-  --ach-on-action: #ffffff;
+  --ach-heading: var(--ach-ss-heading, #002e6e);
+  --ach-action: var(--ach-ss-accent, var(--ach-preset-accent, #0066b3));
+  --ach-on-action: var(
+    --ach-ss-on-action,
+    var(--ach-preset-on-action, #ffffff)
+  );
+  --ach-glow: var(--ach-ss-glow, var(--ach-glow-level, 0.6));
   --ach-shadow: #002e6e;
   --link-color: var(--ach-action);
   --link-color-hover: var(--interactive-accent-hover);
@@ -3292,7 +3342,7 @@ body:not(.theme-dark)
   --h6-color: var(--ach-heading);
   --bold-color: var(--ach-text);
   --italic-color: var(--ach-text);
-  --ach-motion: #00b5ad;
+  --ach-motion: var(--ach-ss-motion, var(--ach-preset-motion, #00b5ad));
   --ach-danger: #a52834;
   --background-primary: #ffffff;
   --background-secondary: #f0f5fa;
@@ -3323,9 +3373,13 @@ body:not(.theme-dark)
   --ach-border: #333333;
   --ach-text: #d4d4d4;
   --ach-muted: #888888;
-  --ach-heading: var(--ach-action);
-  --ach-action: var(--ach-ss-accent, #e985a2);
-  --ach-on-action: #0a0a0a;
+  --ach-heading: var(--ach-ss-heading, var(--ach-action));
+  --ach-action: var(--ach-ss-accent, var(--ach-preset-accent, #e985a2));
+  --ach-on-action: var(
+    --ach-ss-on-action,
+    var(--ach-preset-on-action, #0a0a0a)
+  );
+  --ach-glow: var(--ach-ss-glow, var(--ach-glow-level, 1));
   --ach-shadow: #000000;
   --link-color: var(--ach-action);
   --link-color-hover: var(--interactive-accent-hover);
@@ -3339,7 +3393,7 @@ body:not(.theme-dark)
   --h6-color: var(--ach-heading);
   --bold-color: var(--ach-text);
   --italic-color: var(--ach-text);
-  --ach-motion: #00b5ad;
+  --ach-motion: var(--ach-ss-motion, var(--ach-preset-motion, #00b5ad));
   --ach-danger: #ff6675;
   --background-primary: #141414;
   --background-secondary: #1f1f1f;
@@ -3369,6 +3423,73 @@ body:not(.theme-dark)
   --blockquote-border-color: var(--ach-action);
   color-scheme: dark;
   font-family: 'IBM Plex Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+/*
+ * R-033: accent presets and glow levels layered on any base skin. Presets set
+ * --ach-preset-*; each skin reads them between the Style Settings override
+ * (--ach-ss-*) and its own default, so precedence is Style Settings > preset >
+ * skin. `data-accent='skin'` / `data-glow='skin'` define nothing on purpose.
+ */
+.smtcmp-shell[data-accent='cmds-pink'] {
+  --ach-preset-accent: #e985a2;
+  --ach-preset-on-action: #0a0a0a;
+  --ach-preset-motion: #00b5ad;
+}
+
+.smtcmp-shell[data-accent='neon-lime'] {
+  --ach-preset-accent: #b6ff00;
+  --ach-preset-on-action: #0a0a0a;
+  --ach-preset-motion: #00b5ad;
+}
+
+.smtcmp-shell[data-accent='hallym-blue'] {
+  --ach-preset-accent: #0066b3;
+  --ach-preset-on-action: #ffffff;
+  --ach-preset-motion: #00b5ad;
+}
+
+.smtcmp-shell[data-accent='signal-teal'] {
+  --ach-preset-accent: #00b5ad;
+  --ach-preset-on-action: #04201f;
+  --ach-preset-motion: #b6ff00;
+}
+
+.smtcmp-shell[data-accent='graphite'] {
+  --ach-preset-accent: #8a8f98;
+  --ach-preset-on-action: #ffffff;
+  --ach-preset-motion: #b0b6c0;
+}
+
+.smtcmp-shell[data-glow='off'] {
+  --ach-glow-level: 0;
+}
+
+.smtcmp-shell[data-glow='soft'] {
+  --ach-glow-level: 0.6;
+}
+
+.smtcmp-shell[data-glow='neon'] {
+  --ach-glow-level: 1.7;
+}
+
+/* Neon adds halos the theme-following and light skins do not draw by default. */
+.smtcmp-shell[data-glow='neon'] .smtcmp-chat-icon-button--primary {
+  box-shadow: 0 0 calc(14px * var(--ach-glow, 1))
+    color-mix(in srgb, var(--ach-action) 45%, transparent);
+}
+
+.smtcmp-shell[data-glow='neon'] .smtcmp-chat-user-input-container:focus-within {
+  border-color: var(--ach-action);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ach-action) 30%, transparent),
+    0 0 calc(18px * var(--ach-glow, 1))
+      color-mix(in srgb, var(--ach-action) 22%, transparent);
+}
+
+.smtcmp-shell[data-glow='neon'] .smtcmp-user-message-bubble {
+  box-shadow: 0 0 calc(16px * var(--ach-glow, 1))
+    color-mix(in srgb, var(--ach-action) 30%, transparent);
 }
 
 .smtcmp-shell *,
@@ -3476,7 +3597,8 @@ body:not(.theme-dark)
 
 .smtcmp-shell[data-skin='cmds-dark'] .smtcmp-chat-icon-button--primary {
   color: var(--ach-on-action);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--ach-action) 14%, transparent);
+  box-shadow: 0 0 calc(12px * var(--ach-glow, 1))
+    color-mix(in srgb, var(--ach-action) 14%, transparent);
 }
 
 .smtcmp-shell .smtcmp-chat-control-tooltip {
@@ -3699,7 +3821,8 @@ body:not(.theme-dark)
   border-color: var(--ach-action);
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--ach-action) 27%, transparent),
-    0 0 18px color-mix(in srgb, var(--ach-action) 9%, transparent);
+    0 0 calc(18px * var(--ach-glow, 1))
+      color-mix(in srgb, var(--ach-action) 9%, transparent);
 }
 
 .smtcmp-shell[data-skin='hallym-light']
@@ -3944,7 +4067,8 @@ body:not(.theme-dark)
     transparent 94% 100%
   );
   filter: drop-shadow(
-    0 0 5px color-mix(in srgb, var(--ach-motion) 42%, transparent)
+    0 0 calc(5px * var(--ach-glow, 1))
+      color-mix(in srgb, var(--ach-motion) 42%, transparent)
   );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
@@ -3961,9 +4085,13 @@ body:not(.theme-dark)
   .smtcmp-chat-container[data-response-phase='waiting']
   .smtcmp-chat-user-input-container::before {
   filter: drop-shadow(
-      0 0 4px color-mix(in srgb, var(--ach-action) 44%, transparent)
+      0 0 calc(4px * var(--ach-glow, 1))
+        color-mix(in srgb, var(--ach-action) 44%, transparent)
     )
-    drop-shadow(0 0 9px #00b5ad2e);
+    drop-shadow(
+      0 0 calc(9px * var(--ach-glow, 1))
+        color-mix(in srgb, var(--ach-motion) 18%, transparent)
+    );
 }
 
 @keyframes smtcmp-composer-border-orbit {
@@ -4003,7 +4131,8 @@ body:not(.theme-dark)
   );
   mask: radial-gradient(farthest-side, transparent 72%, #000 74%);
   filter: drop-shadow(
-    0 0 5px color-mix(in srgb, var(--ach-motion) 65%, transparent)
+    0 0 calc(5px * var(--ach-glow, 1))
+      color-mix(in srgb, var(--ach-motion) 65%, transparent)
   );
   animation: smtcmp-orbit 1.25s linear infinite;
 }
@@ -4021,7 +4150,8 @@ body:not(.theme-dark)
   height: 3px;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: 0 0 5px color-mix(in srgb, currentColor 55%, transparent);
+  box-shadow: 0 0 calc(5px * var(--ach-glow, 1))
+    color-mix(in srgb, currentColor 55%, transparent);
   animation: smtcmp-dot-pulse 1.05s ease-in-out infinite;
 }
 
@@ -4064,7 +4194,7 @@ body:not(.theme-dark)
   vertical-align: text-bottom;
   background: var(--ach-motion);
   opacity: 0;
-  box-shadow: 0 0 8px var(--ach-motion);
+  box-shadow: 0 0 calc(8px * var(--ach-glow, 1)) var(--ach-motion);
   animation: smtcmp-tail 1.1s ease-in-out infinite;
 }
 
@@ -4116,7 +4246,8 @@ body:not(.theme-dark)
     transparent 94% 100%
   );
   filter: drop-shadow(
-    0 0 4px color-mix(in srgb, var(--ach-motion) 36%, transparent)
+    0 0 calc(4px * var(--ach-glow, 1))
+      color-mix(in srgb, var(--ach-motion) 36%, transparent)
   );
   transform: translate(-50%, -50%) rotate(0deg);
   animation: smtcmp-pending-border-orbit 1.8s linear infinite;
@@ -4146,7 +4277,8 @@ body:not(.theme-dark)
   height: 4px;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: 0 0 5px color-mix(in srgb, currentColor 34%, transparent);
+  box-shadow: 0 0 calc(5px * var(--ach-glow, 1))
+    color-mix(in srgb, currentColor 34%, transparent);
   opacity: 0.58;
 }
 
@@ -4168,9 +4300,13 @@ body:not(.theme-dark)
 
 .smtcmp-shell[data-skin='cmds-dark'] .smtcmp-response-pending::before {
   filter: drop-shadow(
-      0 0 4px color-mix(in srgb, var(--ach-action) 38%, transparent)
+      0 0 calc(4px * var(--ach-glow, 1))
+        color-mix(in srgb, var(--ach-action) 38%, transparent)
     )
-    drop-shadow(0 0 8px #00b5ad29);
+    drop-shadow(
+      0 0 calc(8px * var(--ach-glow, 1))
+        color-mix(in srgb, var(--ach-motion) 16%, transparent)
+    );
 }
 
 @keyframes smtcmp-pending-arrive {
@@ -4249,7 +4385,8 @@ body:not(.theme-dark)
     transparent 94% 100%
   );
   filter: drop-shadow(
-    0 0 4px color-mix(in srgb, var(--ach-motion) 36%, transparent)
+    0 0 calc(4px * var(--ach-glow, 1))
+      color-mix(in srgb, var(--ach-motion) 36%, transparent)
   );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
@@ -4378,9 +4515,13 @@ body:not(.theme-dark)
     [data-task-status='queued']
   )::before {
   filter: drop-shadow(
-      0 0 4px color-mix(in srgb, var(--ach-action) 38%, transparent)
+      0 0 calc(4px * var(--ach-glow, 1))
+        color-mix(in srgb, var(--ach-action) 38%, transparent)
     )
-    drop-shadow(0 0 8px #00b5ad29);
+    drop-shadow(
+      0 0 calc(8px * var(--ach-glow, 1))
+        color-mix(in srgb, var(--ach-motion) 16%, transparent)
+    );
 }
 
 .smtcmp-shell[data-skin='cmds-dark'] .smtcmp-image-queue-panel__body {
