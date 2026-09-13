@@ -116,7 +116,7 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
         )
       }
       // Re-arm the purpose default each time image mode is entered.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- the purpose default is re-armed only when image mode is entered, not on every settings change
     }, [composerMode])
 
     const [displayedMentionableKey, setDisplayedMentionableKey] = useState<
