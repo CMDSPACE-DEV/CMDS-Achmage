@@ -27,7 +27,7 @@ While this solution works currently, we should be aware that setting `process` t
 
 Our project faces a challenge because we use the PGlite module, which is written in ECMAScript modules (ESM) and doesn't support CommonJS directly. However, our Obsidian plugin is built using CommonJS for broader compatibility. This mismatch creates issues, particularly with ESM-specific features like `import.meta.url` that PGlite relies on.
 
-To address this, we've implemented a shim in `import-meta-url-shim.js`. This shim provides a workaround for the `import.meta.url` feature, allowing it to function in our CommonJS environment. We inject this shim and define `import.meta.url` in our `esbuild.config.mjs`:
+To address this, we've implemented a shim in `scripts/import-meta-url-shim.js`. This shim provides a workaround for the `import.meta.url` feature, allowing it to function in our CommonJS environment. We inject this shim and define `import.meta.url` in our `esbuild.config.mjs`:
 
 ```javascript:esbuild.config.mjs
 define: {
@@ -35,7 +35,7 @@ define: {
   'import.meta.url': 'import_meta_url',
   // ... other definitions ...
 },
-inject: [path.resolve('import-meta-url-shim.js')],
+inject: [path.resolve('scripts/import-meta-url-shim.js')],
 ```
 
 By implementing this shim, we can use PGlite (an ESM module) within our CommonJS-based Obsidian plugin. It ensures that ESM-specific features like `import.meta.url` work correctly, bridging the gap between ESM and CommonJS environments.

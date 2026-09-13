@@ -107,12 +107,12 @@ Prerequisites: the fix is ready, and your git author is the org account
 1. **Bump the version.** Updates `manifest.json`, `versions.json`, `package.json`, and
    `package-lock.json` together:
    ```bash
-   node version-bump.mjs X.Y.Z
+   node scripts/version-bump.mjs X.Y.Z
    ```
 2. **Verify parity:**
    ```bash
-   node check-version-parity.mjs        # internal consistency
-   node check-version-parity.mjs X.Y.Z  # matches the target tag
+   node scripts/check-version-parity.mjs        # internal consistency
+   node scripts/check-version-parity.mjs X.Y.Z  # matches the target tag
    ```
 3. **Merge to `main` via a PR.** Never push `main` directly. Keep fix PRs source-only —
    `main.js` and `meta.json` are gitignored build artifacts; do not commit them (the

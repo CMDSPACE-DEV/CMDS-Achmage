@@ -80,7 +80,7 @@ const context = await esbuild.context({
     ...nodeBuiltins,
   ],
   format: 'cjs',
-  inject: [path.resolve('import-meta-url-shim.js')],
+  inject: [path.resolve('scripts/import-meta-url-shim.js')],
   define: {
     'import.meta.url': 'import_meta_url',
     'process.env.NODE_ENV': JSON.stringify(prod ? 'production' : 'development'),

@@ -71,7 +71,7 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         shell: bash
-        run: node check-version-parity.mjs "$TAG"
+        run: node scripts/check-version-parity.mjs "$TAG"
 
       - name: Resolve release notes
         env:
@@ -81,7 +81,7 @@ jobs:
         run: |
           # Hand-written notes are preferred, but a missing file must never kill
           # a release: fall back to GitHub's auto-generated notes for the tag.
-          notes_file="RELEASE_NOTES_${TAG}.md"
+          notes_file="docs/releases/RELEASE_NOTES_${TAG}.md"
           if [[ -f "${notes_file}" && -s "${notes_file}" ]]; then
             echo "Using hand-written ${notes_file}."
           else
@@ -98,7 +98,7 @@ jobs:
               printf '# %s\n\nNo release notes were provided for this tag.\n' \
                 "${TAG}" > "${notes_file}"
             fi
-            echo "No RELEASE_NOTES_${TAG}.md found; using auto-generated notes."
+            echo "No docs/releases/RELEASE_NOTES_${TAG}.md found; using auto-generated notes."
           fi
           printf 'RELEASE_NOTES=%s\n' "${notes_file}" >> "${GITHUB_ENV}"
 

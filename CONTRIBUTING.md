@@ -140,7 +140,7 @@ This project is licensed under the [MIT License](LICENSE). By contributing to th
 
 Version 1.4.0 is released from `release/1.4.0-plan-models`; `main` remains on the stable 1.3.1 line. To prepare the release:
 
-1. Confirm `package.json`, `package-lock.json`, `manifest.json`, and `versions.json` all contain `1.4.0`, run the complete local check suite, and complete [the v1.4.0 manual QA checklist](./MANUAL_QA_1.4.0.md).
+1. Confirm `package.json`, `package-lock.json`, `manifest.json`, and `versions.json` all contain `1.4.0`, run the complete local check suite, and complete [the v1.4.0 manual QA checklist](./docs/qa/MANUAL_QA_1.4.0.md).
 2. Push the fully tested release branch and wait for its CI run to pass.
 3. Create an annotated tag at the remote release-branch HEAD: `git tag -a 1.4.0 -m "Smart_composer_Achmage v1.4.0"`, then push that tag.
 4. The release workflow verifies the tag target and version files, repeats all checks, builds the plugin, and creates or updates a draft GitHub Release.

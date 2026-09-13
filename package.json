@@ -5,14 +5,14 @@
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
-    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && node check-bundle-budget.mjs",
-    "bundle:check": "node check-bundle-budget.mjs",
-    "version": "node version-bump.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && node scripts/check-bundle-budget.mjs",
+    "bundle:check": "node scripts/check-bundle-budget.mjs",
+    "version": "node scripts/version-bump.mjs",
     "lint:check": "(prettier --check --end-of-line auto --cache --cache-strategy content --cache-location node_modules/.cache/.prettiercache .) && (eslint .)",
     "lint:fix": "(prettier --write --end-of-line auto --cache --cache-strategy content --cache-location node_modules/.cache/.prettiercache .) && (eslint --fix .)",
     "type:check": "tsc --noEmit",
     "test": "jest",
-    "migrate:compile": "node compile-migration.js"
+    "migrate:compile": "node scripts/compile-migration.js"
   },
   "keywords": [],
   "author": "",
