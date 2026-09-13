@@ -41,12 +41,10 @@ lerna-debug.log*
 # misc
 esbuild.config.mjs
 jest.config.js
-version-bump.mjs
+scripts/
 versions.json
 package.json
 manifest.json
-compile-migration.js
-import-meta-url-shim.js
 
 # Obsidian
 .obsidian
