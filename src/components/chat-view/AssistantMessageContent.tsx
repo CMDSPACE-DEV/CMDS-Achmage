@@ -73,6 +73,7 @@ const AssistantTextRenderer = React.memo(function AssistantTextRenderer({
             key={index}
             language={block.language}
             filename={block.filename}
+            applyEnabled={!isStreaming}
           >
             {block.content}
           </MarkdownCodeComponent>

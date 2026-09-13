@@ -112,7 +112,10 @@ export class PromptGenerator {
     }
     const shouldUseRAG = lastUserMessage.similaritySearchResults !== undefined
 
-    const systemMessage = this.getSystemMessage(shouldUseRAG)
+    const systemMessage = this.getSystemMessage(
+      shouldUseRAG,
+      !!lastUserMessage.editNoteMode,
+    )
 
     const customInstructionMessage = this.getCustomInstructionMessage()
 
@@ -124,17 +127,9 @@ export class PromptGenerator {
         ? await this.getCurrentFileMessage(currentFile)
         : undefined
 
-    const editModeMessage: RequestMessage | null = lastUserMessage.editNoteMode
-      ? {
-          role: 'user',
-          content: `<edit_mode_instructions>\n${EDIT_NOTE_MODE_INSTRUCTIONS}\n</edit_mode_instructions>`,
-        }
-      : null
-
     const requestMessages: RequestMessage[] = [
       systemMessage,
       ...(customInstructionMessage ? [customInstructionMessage] : []),
-      ...(editModeMessage ? [editModeMessage] : []),
       ...(currentFileMessage ? [currentFileMessage] : []),
       ...this.getChatHistoryMessages({ messages: compiledMessages }),
       ...(shouldUseRAG && this.getModelPromptLevel() == PromptLevel.Default
@@ -626,8 +621,25 @@ ${similaritySearchResults
     )
   }
 
-  private getSystemMessage(shouldUseRAG: boolean): RequestMessage {
+  private getSystemMessage(
+    shouldUseRAG: boolean,
+    editNoteMode = false,
+  ): RequestMessage {
     const modelPromptLevel = this.getModelPromptLevel()
+    if (editNoteMode) {
+      // Edit note mode replaces the <smtcmp_block> rules entirely: the model
+      // must answer with anchored achmage_edit operations (R-041).
+      return {
+        role: 'system',
+        content: `You are an editing assistant for the user's current Obsidian note.
+
+1. Keep explanations to one or two sentences. Do not lie or make up facts.
+2. Respond in the same language as the user's message.
+3. Never wrap the whole note or large parts of it in a code block, and never use <smtcmp_block>.
+
+${EDIT_NOTE_MODE_INSTRUCTIONS}`,
+      }
+    }
     const systemPrompt = `You are an intelligent assistant to help answer any questions that the user has${modelPromptLevel == PromptLevel.Default ? `, particularly about editing and organizing markdown files in Obsidian` : ''}.
 
 1. Please keep your response as concise as possible. Avoid being verbose.
