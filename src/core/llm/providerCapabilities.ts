@@ -1,10 +1,13 @@
 import { ChatModel } from '../../types/chat-model.types'
+import { isApiImageModel } from '../image/image-model-catalog'
 
 export type ProviderCapabilities = {
   plan: boolean
   tools: boolean
   reasoningEffort: boolean
   imageGeneration: boolean
+  /** Image-only models: hidden from chat, inline, and apply pickers. */
+  imageOnly: boolean
   outputTokenLimit: boolean
 }
 
@@ -13,6 +16,7 @@ export function getProviderCapabilities(
 ): ProviderCapabilities {
   const plan = model.providerType.endsWith('-plan')
   const openAIPlan = model.providerType === 'openai-plan'
+  const apiImageModel = isApiImageModel(model)
 
   return {
     plan,
@@ -23,8 +27,12 @@ export function getProviderCapabilities(
       model.providerType === 'anthropic-plan' ||
       model.providerType === 'anthropic',
     imageGeneration:
-      openAIPlan &&
-      ['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna'].includes(model.model),
+      (openAIPlan &&
+        ['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna'].includes(
+          model.model,
+        )) ||
+      apiImageModel,
+    imageOnly: apiImageModel,
     // The private Codex endpoint currently rejects max_output_tokens.
     outputTokenLimit: !openAIPlan,
   }

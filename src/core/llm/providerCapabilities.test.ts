@@ -23,6 +23,7 @@ describe('getProviderCapabilities', () => {
       ).toMatchObject({
         plan: true,
         imageGeneration: true,
+        imageOnly: false,
         outputTokenLimit: false,
       })
       expect(
@@ -39,6 +40,7 @@ describe('getProviderCapabilities', () => {
       tools: true,
       reasoningEffort: true,
       imageGeneration: false,
+      imageOnly: false,
       outputTokenLimit: true,
     })
   })
@@ -50,6 +52,7 @@ describe('getProviderCapabilities', () => {
       plan: true,
       tools: true,
       imageGeneration: false,
+      imageOnly: false,
     })
   })
 })

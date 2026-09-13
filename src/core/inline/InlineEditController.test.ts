@@ -12,6 +12,7 @@ import {
   parseInlineResponse,
   rebaseInlineEditSessions,
   recordAcceptedInlineInsertion,
+  resolveInlineAppearance,
   resolveInlineEditPlacement,
   resolveInlineSkin,
   updateInlineEditSessionMap,
@@ -362,6 +363,21 @@ describe('inline edit response helpers', () => {
     expect(resolveInlineSkin(body(false, 'studio-console'))).toBe(
       'hallym-light',
     )
+    expect(resolveInlineSkin(body(false, 'operator-console'))).toBe('cmds-dark')
+  })
+
+  it('carries the accent preset and glow level from <body> to the host', () => {
+    const attrs: Record<string, string> = {
+      'data-ach-skin-mode': 'operator-console',
+      'data-ach-accent': 'neon-lime',
+      'data-ach-glow': 'neon',
+    }
+    expect(
+      resolveInlineAppearance({
+        classList: { contains: () => false },
+        getAttribute: (name: string) => attrs[name] ?? null,
+      }),
+    ).toEqual({ skin: 'cmds-dark', accent: 'neon-lime', glow: 'neon' })
   })
 
   it('warns about changed reference snapshots without changing target safety', () => {

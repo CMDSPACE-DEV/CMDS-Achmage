@@ -4,6 +4,8 @@ import {
   DEFAULT_EMBEDDING_MODELS,
   DEFAULT_PROVIDERS,
 } from '../../constants'
+import { API_IMAGE_MODEL_CATALOG } from '../../core/image/image-model-catalog'
+import { DEFAULT_IMAGE_PROMPT_TEMPLATES } from '../../core/image/image-prompt-templates'
 import { DEFAULT_RESEARCH_SOURCES } from '../../types/research.types'
 
 import { SETTINGS_SCHEMA_VERSION } from './migrations'
@@ -38,12 +40,41 @@ describe('parseSmartComposerSettings', () => {
         outputFolder: '',
         quality: 'high',
         concurrency: 1,
+        destination: 'ask',
+        eagle: {
+          apiBaseUrl: 'http://localhost:41595',
+          libraryPath: '',
+          folderId: '',
+          folderPath: '',
+          linkStyle: 'vault-embed',
+          removeVaultCopy: false,
+          tags: 'cmds-achmage',
+        },
+        promptTemplates: DEFAULT_IMAGE_PROMPT_TEMPLATES,
+        globalInstructions: '',
+        templateByPurpose: {
+          composer: '',
+          text: '',
+          selection: '',
+          note: 'cmds-illustration',
+          clipboard: '',
+        },
+        copyToClipboard: false,
+        textCard: {
+          style: 'cmds-dark',
+          width: 1200,
+          brand: 'CMDSPACE',
+          insertEmbed: true,
+        },
       },
+      imageAnalysis: { modelId: null },
       artifacts: {
         outputFolder: 'CMDS Achmage/Artifacts',
       },
       appearance: {
         skinMode: 'follow-obsidian',
+        accentPreset: 'skin',
+        glow: 'skin',
       },
 
       systemPrompt: '',
@@ -101,7 +132,10 @@ describe('parseSmartComposerSettings', () => {
 
     expect(result.version).toBe(31)
     expect(result.providers).toEqual(DEFAULT_PROVIDERS)
-    expect(result.chatModels).toEqual(DEFAULT_CHAT_MODELS)
+    expect(result.chatModels).toEqual([
+      ...DEFAULT_CHAT_MODELS,
+      ...API_IMAGE_MODEL_CATALOG,
+    ])
     expect(result.chatModelId).toBe(DEFAULT_CHAT_MODEL_ID)
     expect(result).not.toHaveProperty('nativeRuntimes')
   })

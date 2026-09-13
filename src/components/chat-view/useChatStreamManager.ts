@@ -15,6 +15,11 @@ import { ChatMessage, ChatUserMessage } from '../../types/chat'
 import type { ResearchSourceId } from '../../types/research.types'
 import { PromptGenerator } from '../../utils/chat/promptGenerator'
 import { ResponseGenerator } from '../../utils/chat/responseGenerator'
+import {
+  ResponseProgress,
+  deriveResponseProgress,
+  startResponseProgress,
+} from '../../utils/chat/responseProgress'
 import { hasVisibleResponseOutput } from '../../utils/chat/responseState'
 import { ErrorModal } from '../modals/ErrorModal'
 
@@ -27,6 +32,7 @@ type UseChatStreamManagerParams = {
 export type UseChatStreamManager = {
   abortActiveStreams: () => void
   responsePhase: 'idle' | 'waiting' | 'streaming'
+  responseProgress: ResponseProgress | null
   submitChatMutation: UseMutationResult<
     void,
     Error,
@@ -47,6 +53,13 @@ export function useChatStreamManager({
   const [responsePhase, setResponsePhase] = useState<
     'idle' | 'waiting' | 'streaming'
   >('idle')
+  const [responseProgress, setResponseProgress] =
+    useState<ResponseProgress | null>(null)
+  const progressRef = useRef<ResponseProgress | null>(null)
+  const publishProgress = (next: ResponseProgress | null) => {
+    progressRef.current = next
+    setResponseProgress(next)
+  }
 
   const abortActiveStreams = useCallback(() => {
     for (const abortController of activeStreamAbortControllersRef.current) {
@@ -171,6 +184,7 @@ export function useChatStreamManager({
         const researchMcpConnectionIds = loadedResearchManager
           ? loadedResearchManager.getMcpConnectionIds(selectedResearchSourceIds)
           : []
+        publishProgress(startResponseProgress(chatModelClient.model.id))
         const responseGenerator = new ResponseGenerator({
           providerClient: chatModelClient.providerClient,
           model: chatModelClient.model,
@@ -195,6 +209,11 @@ export function useChatStreamManager({
           (responseMessages) => {
             if (hasVisibleResponseOutput(responseMessages)) {
               setResponsePhase('streaming')
+            }
+            if (progressRef.current) {
+              publishProgress(
+                deriveResponseProgress(progressRef.current, responseMessages),
+              )
             }
             setChatMessages((prevChatMessages) => {
               const lastMessageIndex = prevChatMessages.findIndex(
@@ -249,12 +268,14 @@ export function useChatStreamManager({
     },
     onSettled: () => {
       setResponsePhase('idle')
+      publishProgress(null)
     },
   })
 
   return {
     abortActiveStreams,
     responsePhase,
+    responseProgress,
     submitChatMutation,
   }
 }

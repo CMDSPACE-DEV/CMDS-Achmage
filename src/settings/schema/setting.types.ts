@@ -6,6 +6,14 @@ import {
   DEFAULT_EMBEDDING_MODELS,
   DEFAULT_PROVIDERS,
 } from '../../constants'
+import {
+  DEFAULT_EAGLE_TARGET,
+  EAGLE_LINK_STYLES,
+  IMAGE_DESTINATIONS,
+} from '../../core/image/image-destination'
+import { DEFAULT_IMAGE_PROMPT_TEMPLATES } from '../../core/image/image-prompt-templates'
+import { DEFAULT_TEMPLATE_BY_PURPOSE } from '../../core/image/image-request'
+import { DEFAULT_TEXT_CARD, TEXT_CARD_STYLES } from '../../core/image/text-card'
 import { chatModelSchema } from '../../types/chat-model.types'
 import { embeddingModelSchema } from '../../types/embedding-model.types'
 import {
@@ -18,6 +26,12 @@ import {
   DEFAULT_RESEARCH_SOURCES,
   researchSettingsSchema,
 } from '../../types/research.types'
+import {
+  ACCENT_PRESETS,
+  DEFAULT_APPEARANCE,
+  GLOW_LEVELS,
+  SKIN_MODES,
+} from '../../utils/chat/chatSkin'
 
 import { SETTINGS_SCHEMA_VERSION } from './migrations'
 
@@ -96,6 +110,50 @@ export const smartComposerSettingsSchema = z.object({
       outputFolder: z.string(),
       quality: z.enum(['low', 'medium', 'high']),
       concurrency: z.literal(1),
+      // Field-level catch: older data keeps its folder and quality (R-034).
+      destination: z.enum(IMAGE_DESTINATIONS).catch('ask'),
+      eagle: z
+        .object({
+          apiBaseUrl: z.string().catch(DEFAULT_EAGLE_TARGET.apiBaseUrl),
+          libraryPath: z.string().catch(''),
+          folderId: z.string().catch(''),
+          folderPath: z.string().catch(''),
+          linkStyle: z.enum(EAGLE_LINK_STYLES).catch('vault-embed'),
+          removeVaultCopy: z.boolean().catch(false),
+          tags: z.string().catch(DEFAULT_EAGLE_TARGET.tags),
+        })
+        .catch({ ...DEFAULT_EAGLE_TARGET }),
+      promptTemplates: z
+        .array(
+          z.object({
+            id: z.string(),
+            name: z.string(),
+            prompt: z.string(),
+          }),
+        )
+        .catch(DEFAULT_IMAGE_PROMPT_TEMPLATES),
+      /** Always-on instructions appended to every image prompt (R-039). */
+      globalInstructions: z.string().catch(''),
+      /** Default template id per entry point; '' = no template (R-037). */
+      templateByPurpose: z
+        .object({
+          composer: z.string().catch(''),
+          text: z.string().catch(''),
+          selection: z.string().catch(''),
+          note: z.string().catch('cmds-illustration'),
+          clipboard: z.string().catch(''),
+        })
+        .catch({ ...DEFAULT_TEMPLATE_BY_PURPOSE }),
+      /** Copy every generated image to the system clipboard once saved. */
+      copyToClipboard: z.boolean().catch(false),
+      textCard: z
+        .object({
+          style: z.enum(TEXT_CARD_STYLES).catch('cmds-dark'),
+          width: z.number().int().min(600).max(4000).catch(1200),
+          brand: z.string().catch('CMDSPACE'),
+          insertEmbed: z.boolean().catch(true),
+        })
+        .catch({ ...DEFAULT_TEXT_CARD, insertEmbed: true }),
     })
     .catch({
       modelId: 'gpt-5.6-sol (plan)',
@@ -103,8 +161,21 @@ export const smartComposerSettingsSchema = z.object({
       outputFolder: '',
       quality: 'high',
       concurrency: 1,
+      destination: 'ask',
+      eagle: { ...DEFAULT_EAGLE_TARGET },
+      promptTemplates: DEFAULT_IMAGE_PROMPT_TEMPLATES,
+      globalInstructions: '',
+      templateByPurpose: { ...DEFAULT_TEMPLATE_BY_PURPOSE },
+      copyToClipboard: false,
+      textCard: { ...DEFAULT_TEXT_CARD, insertEmbed: true },
     }),
 
+  /** Clipboard image → Markdown commands (R-035). `null` = the chat model. */
+  imageAnalysis: z
+    .object({
+      modelId: z.string().nullable().catch(null),
+    })
+    .catch({ modelId: null }),
   artifacts: z
     .object({
       /**
@@ -120,18 +191,17 @@ export const smartComposerSettingsSchema = z.object({
   appearance: z
     .object({
       /**
-       * `follow-obsidian` (default) derives the chat shell colors from the
-       * user's active Obsidian theme. `studio-console` opts into the owned
-       * dual skin from R-005 (Hallym Conversation Studio in light mode,
-       * CMDS AI Operator Console in dark mode). See R-030.
+       * Base skin. `follow-obsidian` (default) derives the chat shell colors
+       * from the user's active Obsidian theme; the other values opt into the
+       * owned skins from R-005 (theme-switched or pinned). See R-030, R-033.
        */
-      skinMode: z
-        .enum(['follow-obsidian', 'studio-console'])
-        .catch('follow-obsidian'),
+      skinMode: z.enum(SKIN_MODES).catch('follow-obsidian'),
+      /** Accent preset layered on the base skin; `skin` keeps the skin's own. */
+      accentPreset: z.enum(ACCENT_PRESETS).catch('skin'),
+      /** Glow strength for blur shadows; `skin` keeps the skin's own level. */
+      glow: z.enum(GLOW_LEVELS).catch('skin'),
     })
-    .catch({
-      skinMode: 'follow-obsidian',
-    }),
+    .catch({ ...DEFAULT_APPEARANCE }),
 
   // System Prompt
   systemPrompt: z.string().catch(''),

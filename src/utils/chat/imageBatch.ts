@@ -17,6 +17,7 @@ type ImageTaskEnqueuer = {
 export type ImageBatchEnqueueResult = {
   queuedCount: number
   total: number
+  taskIds: string[]
   error?: unknown
 }
 
@@ -29,14 +30,17 @@ export async function enqueueImageGenerationBatch(
     sourcePrompt: string
     modelId: string
     targetFilePath?: string
+    referenceImagePaths?: string[]
+    origin?: string
   },
 ): Promise<ImageBatchEnqueueResult> {
   const prompts = buildImageGenerationPrompts(request)
   let queuedCount = 0
+  const taskIds: string[] = []
 
   for (const [index, prompt] of prompts.entries()) {
     try {
-      await manager.enqueue({
+      const record = await manager.enqueue({
         conversationId: context.conversationId,
         originMessageId: context.originMessageId,
         kind: 'image-generation',
@@ -52,13 +56,19 @@ export async function enqueueImageGenerationBatch(
           sourcePrompt: context.sourcePrompt,
           modelId: context.modelId,
           targetFilePath: context.targetFilePath,
+          ...(context.referenceImagePaths?.length
+            ? { referenceImagePaths: context.referenceImagePaths }
+            : {}),
+          ...(context.origin ? { origin: context.origin } : {}),
         },
       })
       queuedCount += 1
+      taskIds.push(record.id)
     } catch (error) {
       return {
         queuedCount,
         total: prompts.length,
+        taskIds,
         error,
       }
     }
@@ -67,5 +77,6 @@ export async function enqueueImageGenerationBatch(
   return {
     queuedCount,
     total: prompts.length,
+    taskIds,
   }
 }

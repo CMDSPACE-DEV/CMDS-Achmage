@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 import { useDialogContainer } from '../../../contexts/dialog-container-context'
 import { useSettings } from '../../../contexts/settings-context'
+import { getProviderCapabilities } from '../../../core/llm/providerCapabilities'
 
 export function ModelSelect() {
   const dialogContainer = useDialogContainer()
@@ -25,6 +26,7 @@ export function ModelSelect() {
           <ul>
             {settings.chatModels
               .filter(({ enable }) => enable ?? true)
+              .filter((model) => !getProviderCapabilities(model).imageOnly)
               .map((chatModelOption) => (
                 <DropdownMenu.Item
                   key={chatModelOption.id}

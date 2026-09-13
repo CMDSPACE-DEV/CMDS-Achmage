@@ -13,17 +13,20 @@ import { v4 as uuidv4 } from 'uuid'
 
 import type { QueryProgressState } from '../../components/chat-view/QueryProgress'
 import type SmartComposerPlugin from '../../main'
-import type { BackgroundTaskRecord } from '../../types/background-task'
+import type {
+  ArtifactRecord,
+  BackgroundTaskRecord,
+} from '../../types/background-task'
 import { RetrievalMetadata } from '../../types/chat'
 import type {
   ResearchEvidence,
   ResearchSourceId,
 } from '../../types/research.types'
 import {
+  APPEARANCE_BODY_ATTRS,
   type ChatSkin,
-  SKIN_MODE_BODY_ATTR,
-  readSkinModeFromBody,
-  resolveChatSkin,
+  readAppearanceFromBody,
+  resolveSurfaceAttributes,
 } from '../../utils/chat/chatSkin'
 import { getNestedFiles } from '../../utils/obsidian'
 import { analyzeDocumentEdit } from '../document-edit/analysis'
@@ -34,6 +37,17 @@ import type {
   DocumentEditJobManifest,
   DocumentEditStrategy,
 } from '../document-edit/types'
+import { copyImageToClipboard } from '../image/clipboard-image'
+import {
+  describeEagleDelivery,
+  importArtifactToEagle,
+} from '../image/eagle-artifact'
+import {
+  needsBriefSynthesis,
+  stripFrontmatter,
+  writeImageBriefFromText,
+} from '../image/image-brief'
+import { queueImageJob } from '../image/queue-image-job'
 import {
   CompiledVaultReferences,
   VaultReferenceScope,
@@ -52,6 +66,7 @@ import {
 
 type InlineStatus =
   | 'prompt'
+  | 'image-task'
   | 'loading'
   | 'clarification'
   | 'preview'
@@ -116,6 +131,20 @@ type InlineSession = {
   ) => void
   accept: () => void
   close: () => void
+  /** Image output (R-038): templates for the picker and the submit path. */
+  imageTemplates?: { id: string; name: string }[]
+  defaultImageTemplateId?: string
+  submitImage?: (brief: string, templateId: string) => void
+  /** Image job running from this panel (R-040); rendered in place of the prompt. */
+  imageTask?: BackgroundTaskRecord
+  imageArtifact?: ArtifactRecord
+  imageActions?: {
+    insert: () => void
+    sendToEagle: () => void
+    copy: () => void
+    keep: () => void
+    cancel: () => void
+  }
   startDocumentJob?: () => void
   runSingleResponse?: () => void
   setDocumentStrategy?: (strategy: DocumentEditStrategy) => void
@@ -188,7 +217,9 @@ class InlineEditWidget extends WidgetType {
         getDocumentTaskSummary(this.session.documentTask) &&
       other.session.documentDraftPath === this.session.documentDraftPath &&
       other.session.documentResultPath === this.session.documentResultPath &&
-      getRetrievalSummary(other.session) === getRetrievalSummary(this.session)
+      getRetrievalSummary(other.session) ===
+        getRetrievalSummary(this.session) &&
+      getImageTaskSummary(other.session) === getImageTaskSummary(this.session)
     )
   }
 
@@ -197,7 +228,10 @@ class InlineEditWidget extends WidgetType {
     const host = doc.createElement('div')
     host.className = 'smtcmp-inline-host'
     const applySkin = () => {
-      host.dataset.skin = resolveInlineSkin(doc.body)
+      const { skin, accent, glow } = resolveInlineAppearance(doc.body)
+      host.dataset.skin = skin
+      host.dataset.accent = accent
+      host.dataset.glow = glow
     }
     applySkin()
     const MutationObserverConstructor = doc.defaultView?.MutationObserver
@@ -205,7 +239,7 @@ class InlineEditWidget extends WidgetType {
       this.themeObserver = new MutationObserverConstructor(applySkin)
       this.themeObserver.observe(doc.body, {
         attributes: true,
-        attributeFilter: ['class', SKIN_MODE_BODY_ATTR],
+        attributeFilter: ['class', ...APPEARANCE_BODY_ATTRS],
       })
     }
     const shadow = host.attachShadow({ mode: 'open' })
@@ -286,6 +320,49 @@ class InlineEditWidget extends WidgetType {
         persistDraft()
       })
       modeControl.hidden = this.session.status === 'clarification'
+      // Output: text edit (default) or an image job (R-038).
+      let outputMode: 'text' | 'image' = 'text'
+      let selectedImageTemplate = this.session.defaultImageTemplateId ?? ''
+      const templateRow = doc.createElement('div')
+      templateRow.className = 'mode-row template-row'
+      const templateLabel = doc.createElement('span')
+      templateLabel.className = 'mode-label'
+      templateLabel.textContent = 'Guide template'
+      const templateSelect = doc.createElement('select')
+      templateSelect.className = 'template-select'
+      templateSelect.setAttribute('aria-label', 'Image prompt template')
+      const noneOption = doc.createElement('option')
+      noneOption.value = ''
+      noneOption.textContent = 'No template'
+      templateSelect.append(noneOption)
+      for (const template of this.session.imageTemplates ?? []) {
+        const option = doc.createElement('option')
+        option.value = template.id
+        option.textContent = template.name
+        templateSelect.append(option)
+      }
+      templateSelect.value = selectedImageTemplate
+      templateSelect.addEventListener('change', () => {
+        selectedImageTemplate = templateSelect.value
+      })
+      templateRow.append(templateLabel, templateSelect)
+      const applyOutputMode = () => {
+        const image = outputMode === 'image'
+        templateRow.hidden = !image
+        modeControl.hidden = image || this.session.status === 'clarification'
+        input.placeholder = image
+          ? 'Describe the image (empty = draw from the selected text)…'
+          : this.session.status === 'clarification'
+            ? 'Clarify the change...'
+            : 'Describe the edit...'
+      }
+      const outputControl = makeOutputControl(doc, outputMode, (next) => {
+        outputMode = next
+        applyOutputMode()
+      })
+      outputControl.hidden =
+        this.session.status === 'clarification' || !this.session.submitImage
+      applyOutputMode()
       const scopeControl = makeReferenceScopeControl(
         doc,
         selectedReferenceScope,
@@ -346,6 +423,10 @@ class InlineEditWidget extends WidgetType {
         'Generate',
         () => {
           const value = input.value.trim()
+          if (outputMode === 'image' && this.session.submitImage) {
+            this.session.submitImage(value, selectedImageTemplate)
+            return
+          }
           if (value) {
             this.session.submit(
               value,
@@ -362,6 +443,8 @@ class InlineEditWidget extends WidgetType {
       panel.append(
         referenceRegion,
         promptSurface,
+        outputControl,
+        templateRow,
         modeControl,
         scopeControl.element,
         actions,
@@ -398,6 +481,98 @@ class InlineEditWidget extends WidgetType {
       queueMicrotask(() => {
         input.focus({ preventScroll: true })
         input.setSelectionRange(input.value.length, input.value.length)
+      })
+    } else if (this.session.status === 'image-task') {
+      const task = this.session.imageTask
+      const artifact = this.session.imageArtifact
+      const box = doc.createElement('div')
+      box.className = 'image-progress'
+      const status = doc.createElement('div')
+      status.className = 'document-progress__status'
+      const title = doc.createElement('strong')
+      title.textContent = !task
+        ? 'Preparing image brief'
+        : task.status === 'awaiting-destination'
+          ? 'Image ready'
+          : task.status === 'failed'
+            ? 'Image generation failed'
+            : task.status === 'canceled'
+              ? 'Canceled'
+              : 'Generating image'
+      const detail = doc.createElement('small')
+      detail.textContent =
+        task?.progress?.message ??
+        task?.error ??
+        (task ? task.status.replace(/-/g, ' ') : 'Reading the selection…')
+      status.append(title, detail)
+      box.append(status)
+      const busy =
+        !task || task.status === 'queued' || task.status === 'running'
+      if (busy) {
+        const meter = doc.createElement('progress')
+        meter.removeAttribute('value')
+        meter.setAttribute('aria-label', 'Generating image')
+        box.append(meter)
+      }
+      const artifactPath = artifact?.localPath
+      if (artifactPath) {
+        const file = this.session.app.vault.getAbstractFileByPath(artifactPath)
+        if (file instanceof TFile) {
+          const preview = doc.createElement('div')
+          preview.className = 'image-preview'
+          const img = doc.createElement('img')
+          img.src = this.session.app.vault.getResourcePath(file)
+          img.alt = 'Generated image preview'
+          img.draggable = true
+          img.addEventListener('dragstart', (event) => {
+            event.dataTransfer?.setData('text/plain', `![[${artifactPath}]]`)
+          })
+          preview.append(img)
+          box.append(preview)
+        }
+      }
+      const actions = doc.createElement('div')
+      actions.className = 'actions'
+      const acts = this.session.imageActions
+      if (
+        task?.status === 'awaiting-destination' &&
+        artifact?.localPath &&
+        acts
+      ) {
+        actions.append(
+          makeButton(doc, 'Insert', acts.insert, 'primary', 'Enter'),
+          makeButton(doc, 'Send to Eagle', acts.sendToEagle, 'secondary'),
+          makeButton(doc, 'Copy', acts.copy, 'secondary'),
+          makeButton(doc, 'Keep in folder', acts.keep, 'secondary'),
+        )
+      } else if (busy && acts) {
+        actions.append(
+          makeButton(doc, 'Cancel', acts.cancel, 'secondary', 'Esc'),
+        )
+      } else {
+        actions.append(
+          makeButton(
+            doc,
+            'Close',
+            () => this.session.close(),
+            'secondary',
+            'Esc',
+          ),
+        )
+      }
+      panel.append(box, actions)
+      host.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          event.preventDefault()
+          if (busy) acts?.cancel()
+          else this.session.close()
+        } else if (
+          event.key === 'Enter' &&
+          task?.status === 'awaiting-destination'
+        ) {
+          event.preventDefault()
+          acts?.insert()
+        }
       })
     } else if (this.session.status === 'large-confirm') {
       const analysis = this.session.documentAnalysis
@@ -800,6 +975,10 @@ export class InlineEditController {
     { editorView: EditorView; sessionId: string }
   >()
   private readonly resolvingDocumentTasks = new Set<string>()
+  private readonly imageBindings = new Map<
+    string,
+    { editorView: EditorView; sessionId: string }
+  >()
   private readonly unsubscribeTasks: () => void
 
   constructor(private readonly plugin: SmartComposerPlugin) {
@@ -809,6 +988,8 @@ export class InlineEditController {
         for (const task of tasks) {
           if (task.kind === 'document-edit') {
             void this.handleDocumentTaskUpdate(task)
+          } else if (task.kind === 'image-generation') {
+            void this.handleImageTaskUpdate(task)
           }
         }
       }) ?? (() => {})
@@ -822,6 +1003,7 @@ export class InlineEditController {
     this.controllers.clear()
     this.drafts.clear()
     this.documentBindings.clear()
+    this.imageBindings.clear()
     this.resolvingDocumentTasks.clear()
   }
 
@@ -879,6 +1061,7 @@ export class InlineEditController {
       this.controllers.delete(id)
       this.drafts.delete(id)
       this.removeDocumentBinding(id)
+      this.removeImageBinding(id)
       editorView.dispatch({ effects: removeInlineSession.of(id) })
       editorView.focus()
     }
@@ -1033,6 +1216,244 @@ export class InlineEditController {
       accept,
       close,
       renderMarkdown,
+      imageTemplates: this.plugin.settings.imageGeneration.promptTemplates.map(
+        (template) => ({ id: template.id, name: template.name }),
+      ),
+      defaultImageTemplateId:
+        this.plugin.settings.imageGeneration.templateByPurpose.selection,
+      submitImage: (brief, templateId) => {
+        void this.submitImageGeneration({
+          brief,
+          templateId,
+          original,
+          filePath,
+          title: markdownView.file?.basename,
+          editorView,
+          sessionId: id,
+        })
+      },
+    })
+  }
+
+  /**
+   * Inline panel → image queue (R-038/R-040). An empty brief means "draw the
+   * selected text": short selections are used verbatim, long ones are
+   * condensed by the chat model first. The job runs in the background and the
+   * same panel shows progress, a preview, and the destination actions, so the
+   * chat sidebar is never needed.
+   */
+  private async submitImageGeneration({
+    brief,
+    templateId,
+    original,
+    filePath,
+    title,
+    editorView,
+    sessionId,
+  }: {
+    brief: string
+    templateId: string
+    original: string
+    filePath: string
+    title?: string
+    editorView: EditorView
+    sessionId: string
+  }): Promise<void> {
+    const current = () =>
+      editorView.state.field(inlineEditField, false)?.get(sessionId)
+    let finalBrief = brief.trim()
+    if (!finalBrief) {
+      const source = stripFrontmatter(original)
+      if (!source) {
+        new Notice('Describe the image or select some text first.')
+        return
+      }
+      if (needsBriefSynthesis(source)) {
+        const base = current()
+        if (base) {
+          this.show(editorView, {
+            ...base,
+            status: 'image-task',
+            imageTask: undefined,
+            imageArtifact: undefined,
+          })
+        }
+        try {
+          finalBrief = await writeImageBriefFromText({
+            settings: this.plugin.settings,
+            setSettings: (next) => this.plugin.setSettings(next),
+            text: source,
+            title,
+          })
+        } catch (error) {
+          new Notice(
+            `Could not write a brief: ${error instanceof Error ? error.message : String(error)}`,
+          )
+          const base = current()
+          if (base) this.show(editorView, { ...base, status: 'prompt' })
+          return
+        }
+      } else {
+        finalBrief = source
+      }
+    } else if (original.trim()) {
+      finalBrief = `${finalBrief}\n\nSource text:\n${stripFrontmatter(original).slice(0, 1500)}`
+    }
+
+    const manager = this.plugin.backgroundTaskManager
+    const result = await queueImageJob({
+      app: this.plugin.app,
+      settings: this.plugin.settings,
+      taskManager: manager,
+      request: {
+        prompt: finalBrief,
+        count: 1,
+        requestedCount: 1,
+        usedPreviousPrompt: false,
+      },
+      sourcePrompt: brief.trim() || stripFrontmatter(original).slice(0, 200),
+      conversationId: `inline:${filePath}`,
+      originMessageId: sessionId,
+      submission: {
+        templateId: templateId || undefined,
+        referenceImages: [],
+        targetFilePath: filePath,
+        origin: 'selection',
+      },
+    })
+    const taskId = result.taskIds[0]
+    const base = current()
+    if (!taskId || !manager || !base) {
+      if (base) this.show(editorView, { ...base, status: 'prompt' })
+      return
+    }
+    this.imageBindings.set(taskId, { editorView, sessionId })
+
+    const finish = async (
+      markdown: string | null,
+      phase: string,
+      message: string,
+    ) => {
+      const session = current()
+      if (!session) return
+      if (markdown) {
+        const insertion = buildInlineInsertion(
+          editorView.state.doc.toString(),
+          session.insertAt,
+          markdown,
+        )
+        editorView.dispatch({
+          changes: {
+            from: session.insertAt,
+            to: session.insertAt,
+            insert: insertion,
+          },
+          effects: [
+            removeInlineSession.of(sessionId),
+            recordInlineInsertion.of({ sessionId, at: session.insertAt }),
+          ],
+        })
+      } else {
+        editorView.dispatch({ effects: removeInlineSession.of(sessionId) })
+      }
+      this.imageBindings.delete(taskId)
+      this.drafts.delete(sessionId)
+      await manager.complete(taskId, { progress: { phase, message } })
+      editorView.focus()
+    }
+    const imageActions: NonNullable<InlineSession['imageActions']> = {
+      insert: () => {
+        const art = current()?.imageArtifact
+        if (!art?.localPath) return
+        void finish(`![[${art.localPath}]]`, 'inserted', 'Inserted into note')
+      },
+      sendToEagle: () => {
+        void (async () => {
+          const session = current()
+          const art = session?.imageArtifact
+          if (!art?.localPath) return
+          try {
+            const imported = await importArtifactToEagle({
+              app: this.plugin.app,
+              settings: this.plugin.settings,
+              artifact: art,
+              annotation: finalBrief,
+            })
+            await manager.saveArtifact(imported.artifact)
+            const where = describeEagleDelivery(
+              imported.result,
+              this.plugin.settings.imageGeneration.eagle.folderPath,
+            )
+            new Notice(`Imported into Eagle · ${where}`)
+            for (const warning of imported.result.warnings) new Notice(warning)
+            await finish(
+              imported.result.markdown,
+              'eagle-inserted',
+              `Imported into Eagle (${where}) and inserted`,
+            )
+          } catch (error) {
+            new Notice(
+              `Eagle import failed: ${error instanceof Error ? error.message : String(error)}`,
+            )
+          }
+        })()
+      },
+      copy: () => {
+        void (async () => {
+          const art = current()?.imageArtifact
+          if (!art?.localPath) return
+          const file = this.plugin.app.vault.getAbstractFileByPath(
+            art.localPath,
+          )
+          if (!(file instanceof TFile)) return
+          const ok = copyImageToClipboard(
+            await this.plugin.app.vault.readBinary(file),
+          )
+          new Notice(
+            ok
+              ? 'Image copied to the clipboard'
+              : 'Clipboard copy is available on desktop only.',
+          )
+        })()
+      },
+      keep: () => {
+        void finish(null, 'saved', 'Saved locally')
+      },
+      cancel: () => {
+        void manager.cancel(taskId)
+        this.imageBindings.delete(taskId)
+        editorView.dispatch({ effects: removeInlineSession.of(sessionId) })
+      },
+    }
+    this.show(editorView, {
+      ...base,
+      status: 'image-task',
+      imageTask: manager.getTask(taskId) ?? undefined,
+      imageArtifact: undefined,
+      imageActions,
+    })
+  }
+
+  private async handleImageTaskUpdate(
+    task: BackgroundTaskRecord,
+  ): Promise<void> {
+    const binding = this.imageBindings.get(task.id)
+    if (!binding || !this.hasSession(binding.editorView, binding.sessionId)) {
+      return
+    }
+    const current = binding.editorView.state
+      .field(inlineEditField, false)
+      ?.get(binding.sessionId)
+    if (!current || current.status !== 'image-task') return
+    const artifactId = task.artifactIds[0]
+    const artifact = artifactId
+      ? ((await this.plugin.backgroundTaskManager?.readArtifact(artifactId)) ??
+        current.imageArtifact)
+      : current.imageArtifact
+    this.show(binding.editorView, {
+      ...current,
+      imageTask: task,
+      imageArtifact: artifact,
     })
   }
 
@@ -1501,6 +1922,12 @@ export class InlineEditController {
   ): Promise<void> {
     await this.documentRepository.markComplete(jobId)
     await this.plugin.backgroundTaskManager?.complete(taskId, {})
+  }
+
+  private removeImageBinding(sessionId: string): void {
+    for (const [taskId, binding] of this.imageBindings) {
+      if (binding.sessionId === sessionId) this.imageBindings.delete(taskId)
+    }
   }
 
   private removeDocumentBinding(sessionId: string): void {
@@ -2161,6 +2588,65 @@ export function parseInlineResponse(value: string): {
   return { type: 'replacement', content: stripped }
 }
 
+function getImageTaskSummary(session: InlineSession): string {
+  const task = session.imageTask
+  return [
+    task?.id ?? '',
+    task?.status ?? '',
+    task?.progress?.phase ?? '',
+    task?.progress?.message ?? '',
+    session.imageArtifact?.localPath ?? '',
+  ].join('|')
+}
+
+function makeOutputControl(
+  doc: Document,
+  initial: 'text' | 'image',
+  onChange: (mode: 'text' | 'image') => void,
+): HTMLElement {
+  const row = doc.createElement('div')
+  row.className = 'mode-row output-row'
+  const label = doc.createElement('span')
+  label.className = 'mode-label'
+  label.textContent = 'Output'
+  const group = doc.createElement('div')
+  group.className = 'mode-control'
+  group.setAttribute('role', 'radiogroup')
+  group.setAttribute('aria-label', 'Inline edit output')
+  const options: { mode: 'text' | 'image'; label: string; title: string }[] = [
+    { mode: 'text', label: 'Text edit', title: 'Rewrite the selection' },
+    {
+      mode: 'image',
+      label: 'Image',
+      title: 'Generate an image from the prompt or the selected text',
+    },
+  ]
+  const buttons: HTMLButtonElement[] = []
+  const select = (mode: 'text' | 'image') => {
+    for (const button of buttons) {
+      const active = button.dataset.output === mode
+      button.dataset.active = active ? 'true' : 'false'
+      button.setAttribute('aria-checked', active ? 'true' : 'false')
+    }
+    onChange(mode)
+  }
+  for (const option of options) {
+    const button = doc.createElement('button')
+    button.type = 'button'
+    button.className = 'mode-option'
+    button.dataset.output = option.mode
+    button.title = option.title
+    button.setAttribute('role', 'radio')
+    button.textContent = option.label
+    button.addEventListener('click', () => select(option.mode))
+    buttons.push(button)
+    group.append(button)
+  }
+  row.append(label, group)
+  select(initial)
+  return row
+}
+
 function makeModeControl(
   doc: Document,
   initialMode: InlineEditMode,
@@ -2626,8 +3112,15 @@ export function resolveInlineSkin(body: {
   classList: { contains: (className: string) => boolean }
   getAttribute: (name: string) => string | null
 }): InlineSkin {
-  return resolveChatSkin(
-    readSkinModeFromBody(body),
+  return resolveInlineAppearance(body).skin
+}
+
+export function resolveInlineAppearance(body: {
+  classList: { contains: (className: string) => boolean }
+  getAttribute: (name: string) => string | null
+}): ReturnType<typeof resolveSurfaceAttributes> {
+  return resolveSurfaceAttributes(
+    readAppearanceFromBody(body),
     body.classList.contains('theme-dark'),
   )
 }
@@ -2646,12 +3139,13 @@ const INLINE_STYLE = `
   --ach-border:var(--background-modifier-border);
   --ach-text:var(--text-normal);
   --ach-muted:var(--text-muted);
-  --ach-heading:var(--text-normal);
-  --ach-action:var(--ach-ss-accent,var(--interactive-accent));
+  --ach-heading:var(--ach-ss-heading,var(--text-normal));
+  --ach-action:var(--ach-ss-accent,var(--ach-preset-accent,var(--interactive-accent)));
   --ach-action-hover:var(--interactive-accent-hover,var(--ach-action));
-  --ach-on-action:var(--text-on-accent);
+  --ach-on-action:var(--ach-ss-on-action,var(--ach-preset-on-action,var(--text-on-accent)));
+  --ach-glow:var(--ach-ss-glow,var(--ach-glow-level,0.35));
   --ach-shadow:var(--text-normal);
-  --ach-motion:var(--interactive-accent-hover,var(--ach-action));
+  --ach-motion:var(--ach-ss-motion,var(--ach-preset-motion,var(--interactive-accent-hover,var(--ach-action))));
   --ach-danger:var(--text-error);
   --ach-before:color-mix(in srgb,var(--color-red) 12%,var(--background-primary));
   --ach-before-border:color-mix(in srgb,var(--color-red) 35%,var(--background-modifier-border));
@@ -2675,12 +3169,13 @@ const INLINE_STYLE = `
   --ach-border:#d7e1ec;
   --ach-text:#00102e;
   --ach-muted:#526174;
-  --ach-heading:#002e6e;
-  --ach-action:var(--ach-ss-accent,#0066b3);
+  --ach-heading:var(--ach-ss-heading,#002e6e);
+  --ach-action:var(--ach-ss-accent,var(--ach-preset-accent,#0066b3));
   --ach-action-hover:color-mix(in srgb,var(--ach-action) 82%,#000000);
-  --ach-on-action:#ffffff;
+  --ach-on-action:var(--ach-ss-on-action,var(--ach-preset-on-action,#ffffff));
+  --ach-glow:var(--ach-ss-glow,var(--ach-glow-level,0.6));
   --ach-shadow:#002e6e;
-  --ach-motion:#00b5ad;
+  --ach-motion:var(--ach-ss-motion,var(--ach-preset-motion,#00b5ad));
   --ach-danger:#a52834;
   --ach-before:#fff5f6;
   --ach-before-border:#efd3d7;
@@ -2699,12 +3194,13 @@ const INLINE_STYLE = `
   --ach-border:#333333;
   --ach-text:#d4d4d4;
   --ach-muted:#888888;
-  --ach-action:var(--ach-ss-accent,#e985a2);
-  --ach-heading:var(--ach-action);
+  --ach-action:var(--ach-ss-accent,var(--ach-preset-accent,#e985a2));
+  --ach-heading:var(--ach-ss-heading,var(--ach-action));
   --ach-action-hover:color-mix(in srgb,var(--ach-action) 80%,#ffffff);
-  --ach-on-action:#0a0a0a;
+  --ach-on-action:var(--ach-ss-on-action,var(--ach-preset-on-action,#0a0a0a));
+  --ach-glow:var(--ach-ss-glow,var(--ach-glow-level,1));
   --ach-shadow:#000000;
-  --ach-motion:#00b5ad;
+  --ach-motion:var(--ach-ss-motion,var(--ach-preset-motion,#00b5ad));
   --ach-danger:#ff6675;
   --ach-before:#261516;
   --ach-before-border:#573238;
@@ -2715,6 +3211,18 @@ const INLINE_STYLE = `
   color-scheme:dark;
   font-family:"IBM Plex Sans",Inter,ui-sans-serif,system-ui,sans-serif;
 }
+/* R-033: accent presets and glow levels; precedence Style Settings > preset > skin. */
+:host([data-accent="cmds-pink"]){--ach-preset-accent:#e985a2;--ach-preset-on-action:#0a0a0a;--ach-preset-motion:#00b5ad}
+:host([data-accent="neon-lime"]){--ach-preset-accent:#b6ff00;--ach-preset-on-action:#0a0a0a;--ach-preset-motion:#00b5ad}
+:host([data-accent="hallym-blue"]){--ach-preset-accent:#0066b3;--ach-preset-on-action:#ffffff;--ach-preset-motion:#00b5ad}
+:host([data-accent="signal-teal"]){--ach-preset-accent:#00b5ad;--ach-preset-on-action:#04201f;--ach-preset-motion:#b6ff00}
+:host([data-accent="graphite"]){--ach-preset-accent:#8a8f98;--ach-preset-on-action:#ffffff;--ach-preset-motion:#b0b6c0}
+:host([data-glow="off"]){--ach-glow-level:0}
+:host([data-glow="soft"]){--ach-glow-level:0.6}
+:host([data-glow="neon"]){--ach-glow-level:1.7}
+:host([data-glow="neon"]) .panel{box-shadow:inset 2px 0 0 var(--ach-action),0 0 calc(18px * var(--ach-glow,1)) color-mix(in srgb,var(--ach-action) 22%,transparent),0 10px 28px color-mix(in srgb,var(--ach-shadow) 30%,transparent)}
+:host([data-glow="neon"]) .prompt-surface:focus-within{box-shadow:0 0 0 1px color-mix(in srgb,var(--ach-action) 30%,transparent),0 0 calc(18px * var(--ach-glow,1)) color-mix(in srgb,var(--ach-action) 22%,transparent)}
+:host([data-glow="neon"]) button.primary{box-shadow:0 0 calc(14px * var(--ach-glow,1)) color-mix(in srgb,var(--ach-action) 45%,transparent)}
 *,*::before,*::after{box-sizing:border-box}
 .panel{
   position:relative;
@@ -2752,7 +3260,7 @@ const INLINE_STYLE = `
     var(--ach-motion) 85%,
     transparent 94% 100%
   );
-  filter:drop-shadow(0 0 4px color-mix(in srgb,var(--ach-motion) 36%,transparent));
+  filter:drop-shadow(0 0 calc(4px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-motion) 36%,transparent));
   transform:translate(-50%,-50%) rotate(0deg);
   animation:inline-panel-border-orbit 1.8s linear infinite;
 }
@@ -2774,7 +3282,7 @@ const INLINE_STYLE = `
   box-shadow:0 10px 28px rgba(0,0,0,.6);
 }
 :host([data-skin="cmds-dark"]) .panel[data-status="loading"]::before{
-  filter:drop-shadow(0 0 4px color-mix(in srgb,var(--ach-action) 38%,transparent)) drop-shadow(0 0 8px rgba(0,181,173,.16));
+  filter:drop-shadow(0 0 calc(4px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-action) 38%,transparent)) drop-shadow(0 0 calc(8px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-motion) 16%,transparent));
 }
 header{
   display:flex;
@@ -2794,7 +3302,7 @@ header{
   flex:0 0 auto;
   border-radius:2px;
   background:var(--ach-action);
-  box-shadow:0 0 9px color-mix(in srgb,var(--ach-action) 42%,transparent);
+  box-shadow:0 0 calc(9px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-action) 42%,transparent);
   transform:rotate(45deg);
 }
 .context{
@@ -2946,7 +3454,7 @@ button.reference-option[data-active="true"]{
   box-shadow:0 0 0 2px color-mix(in srgb,var(--ach-action) 18%,transparent);
 }
 :host([data-skin="cmds-dark"]) .prompt-surface:focus-within{
-  box-shadow:0 0 0 1px color-mix(in srgb,var(--ach-action) 27%,transparent),0 0 18px color-mix(in srgb,var(--ach-action) 10%,transparent);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--ach-action) 27%,transparent),0 0 calc(18px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-action) 10%,transparent);
 }
 .mode-row{
   display:flex;
@@ -2977,6 +3485,11 @@ button.mode-option{
   font-size:11px;
 }
 button.mode-option:first-child{border-left:0}
+.image-progress{display:flex;flex-direction:column;gap:10px;margin:2px 0 10px}
+.image-progress progress{width:100%;height:4px;accent-color:var(--ach-action)}
+.image-preview img{display:block;max-width:100%;max-height:280px;border:1px solid var(--ach-border);border-radius:var(--ach-radius);background:var(--ach-surface-raised);object-fit:contain}
+select.template-select{max-width:16em;height:28px;padding:0 8px;border:1px solid var(--ach-border);border-radius:var(--ach-radius);background:var(--ach-surface-raised);color:var(--ach-text);font:inherit;font-size:12px}
+select.template-select:focus-visible{outline:none;border-color:var(--ach-action);box-shadow:0 0 0 2px color-mix(in srgb,var(--ach-action) 18%,transparent)}
 button.mode-option[data-active="true"]{
   background:var(--ach-action);
   color:var(--ach-on-action);
@@ -3029,7 +3542,7 @@ kbd{
 .loading-copy strong{color:var(--ach-heading);font-size:13px;font-weight:650}
 .loading-copy small{overflow:hidden;color:var(--ach-muted);font-size:11px;text-overflow:ellipsis;white-space:nowrap}
 .thinking-dots{display:flex;align-items:center;justify-content:center;gap:3px;width:28px;height:28px;flex:0 0 auto}
-.thinking-dots i{width:4px;height:4px;border-radius:50%;background:var(--ach-heading);box-shadow:0 0 5px color-mix(in srgb,var(--ach-action) 34%,transparent);opacity:.58}
+.thinking-dots i{width:4px;height:4px;border-radius:50%;background:var(--ach-heading);box-shadow:0 0 calc(5px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-action) 34%,transparent);opacity:.58}
 .thinking-dots i:nth-child(2){opacity:1}
 .document-preflight,.document-progress,.document-ready{display:flex;min-width:0;flex-direction:column;gap:9px}
 .document-preflight__message,.document-ready p{margin:0;color:var(--ach-text)}

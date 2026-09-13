@@ -50,7 +50,11 @@ describe('enqueueImageGenerationBatch', () => {
       modelId: 'gpt-5.6-sol (plan)',
     })
 
-    expect(result).toEqual({ queuedCount: 3, total: 3 })
+    expect(result).toEqual({
+      queuedCount: 3,
+      total: 3,
+      taskIds: ['task-1', 'task-2', 'task-3'],
+    })
     expect(enqueue).toHaveBeenCalledTimes(3)
     expect(inputs.map((input) => input.payload.batchIndex)).toEqual([1, 2, 3])
     expect(inputs.map((input) => input.payload.displayPrompt)).toEqual([

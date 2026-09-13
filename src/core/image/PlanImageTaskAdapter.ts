@@ -12,6 +12,20 @@ import {
 import { resolveAttachmentFolder } from '../../utils/vault/attachmentFolder'
 import { BackgroundTaskManager } from '../tasks/BackgroundTaskManager'
 
+import { copyImageToClipboard } from './clipboard-image'
+import { uploadWithCmdsEagle } from './CmdsEagleBridge'
+import { describeEagleDelivery, importArtifactToEagle } from './eagle-artifact'
+import {
+  IMAGE_EXTENSION_BY_MIME,
+  isImageGenerator,
+  sniffImageMimeType,
+} from './image-generator'
+import {
+  loadReferenceImageDataUrls,
+  readReferenceImagePaths,
+} from './reference-image-store'
+import { resolveImageGenerationModel } from './resolve-image-model'
+
 export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
   readonly kind = 'image-generation' as const
 
@@ -41,28 +55,29 @@ export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
     const requestedModelId =
       typeof task.input.modelId === 'string'
         ? task.input.modelId
-        : settings.imageGeneration.modelId
-    const [{ getChatModelClient }, { OpenAICodexProvider }] = await Promise.all(
-      [import('../llm/manager'), import('../llm/openaiCodexProvider')],
-    )
+        : (resolveImageGenerationModel(settings).model?.id ??
+          settings.imageGeneration.modelId)
+    const { getChatModelClient } = await import('../llm/manager')
     const { providerClient, model } = getChatModelClient({
       modelId: requestedModelId,
       settings,
       setSettings: this.setSettings,
     })
-    if (
-      !(providerClient instanceof OpenAICodexProvider) ||
-      model.providerType !== 'openai-plan'
-    ) {
-      throw new Error('Native image generation requires a GPT Plan model.')
+    if (!isImageGenerator(providerClient)) {
+      throw new Error(`Model "${model.id}" cannot generate images.`)
     }
 
     await context.updateProgress({
       phase: 'preparing',
-      message: 'Preparing Plan image request',
+      message: `Preparing image request (${model.id})`,
+    })
+    const referenceImages = await loadReferenceImageDataUrls({
+      app: this.app,
+      paths: readReferenceImagePaths(task.input),
     })
     const generated = await providerClient.generateImage(model, prompt, {
       quality: settings.imageGeneration.quality,
+      referenceImages,
       signal: context.signal,
       onProgress: (phase, partialImageIndex) => {
         void context.updateProgress({
@@ -81,15 +96,26 @@ export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
       message: 'Saving recoverable local image',
     })
     const bytes = base64ToArrayBuffer(generated.base64)
+    const mimeType =
+      sniffImageMimeType(bytes) ?? generated.mimeType ?? 'image/png'
     const dimensions = readPngDimensions(bytes)
     const folder = normalizePath(
       settings.imageGeneration.outputFolder.trim() ||
         resolveAttachmentFolder(this.app),
     )
     await ensureFolder(this.app, folder)
+    // Name the file after the user's own brief, not the composed prompt
+    // (template + rules), so files stay recognisable in the folder.
+    const briefForName =
+      typeof task.input.batchBasePrompt === 'string'
+        ? task.input.batchBasePrompt
+        : typeof task.input.sourcePrompt === 'string'
+          ? task.input.sourcePrompt
+          : prompt
     const filename = `${Date.now()}-${
-      sanitizeFilename(prompt.slice(0, 48)) || 'generated-image'
-    }.png`
+      sanitizeFilename(briefForName.split('\n')[0].slice(0, 48)) ||
+      'generated-image'
+    }.${IMAGE_EXTENSION_BY_MIME[mimeType] ?? 'png'}`
     const path = await getAvailablePath(this.app, folder, filename)
     await this.app.vault.createBinary(path, bytes)
 
@@ -100,20 +126,76 @@ export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
       kind: 'image',
       createdAt: Date.now(),
       localPath: path,
-      mimeType: generated.mimeType,
+      mimeType,
       byteSize: bytes.byteLength,
       width: dimensions?.width,
       height: dimensions?.height,
       checksum: await sha256(bytes),
     }
     await this.taskManager.saveArtifact(artifact)
+    const copied =
+      settings.imageGeneration.copyToClipboard && copyImageToClipboard(bytes)
+    const delivered = await this.preDeliver(artifact, prompt, context)
     await context.updateProgress({
       phase: 'awaiting-destination',
-      message: 'Image ready · choose a destination',
+      message: `${delivered ?? 'Image ready · choose a destination'}${
+        copied ? ' · copied to clipboard' : ''
+      }`,
     })
     return {
       status: 'awaiting-destination',
       artifactIds: [artifact.id],
+    }
+  }
+
+  /**
+   * Runs the configured destination (R-034) right after the vault copy exists.
+   * Eagle and cloud hand-offs are recorded on the artifact so the task card can
+   * insert the resulting link; the card still decides what goes into the note.
+   * Any failure keeps the vault copy and is reported in the progress message.
+   */
+  private async preDeliver(
+    artifact: ArtifactRecord,
+    prompt: string,
+    context: BackgroundTaskRunContext,
+  ): Promise<string | null> {
+    const settings = this.getSettings()
+    const destination = settings.imageGeneration.destination
+    if (!artifact.localPath || !artifact.mimeType) return null
+    try {
+      if (destination === 'eagle') {
+        const { artifact: updated, result } = await importArtifactToEagle({
+          app: this.app,
+          settings,
+          artifact,
+          annotation: prompt,
+          onStatus: (message) =>
+            void context.updateProgress({ phase: 'delivering', message }),
+        })
+        await this.taskManager.saveArtifact(updated)
+        const where = describeEagleDelivery(
+          result,
+          settings.imageGeneration.eagle.folderPath,
+        )
+        return `In Eagle · ${where}${result.warnings.length ? ` · ${result.warnings[0]}` : ''} · insert the link`
+      }
+      if (destination === 'cloud') {
+        await context.updateProgress({
+          phase: 'delivering',
+          message: 'Uploading through CMDS Eagle',
+        })
+        const url = await uploadWithCmdsEagle(
+          this.app,
+          artifact.localPath,
+          artifact.mimeType,
+        )
+        await this.taskManager.saveArtifact({ ...artifact, remoteUrl: url })
+        return 'Uploaded to cloud · insert the link'
+      }
+      return null
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      return `${destination === 'eagle' ? 'Eagle import' : 'Cloud upload'} failed · local image preserved (${message})`
     }
   }
 }

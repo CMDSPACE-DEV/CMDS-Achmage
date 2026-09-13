@@ -10,6 +10,7 @@ import {
   compileVaultReferences,
   isExhaustiveReadIntent,
 } from './VaultReferenceCompiler'
+import { DEFAULT_IMAGE_PROMPT_TEMPLATES } from '../../core/image/image-prompt-templates'
 
 jest.mock('../rag/planRerank', () => ({
   processQueryWithPlanRerank: jest.fn(),
@@ -69,7 +70,34 @@ function createSettings(
       outputFolder: 'CMDS Achmage/Generated Images',
       quality: 'high',
       concurrency: 1,
+      destination: 'ask',
+      eagle: {
+        apiBaseUrl: 'http://localhost:41595',
+        libraryPath: '',
+        folderId: '',
+        folderPath: '',
+        linkStyle: 'vault-embed',
+        removeVaultCopy: false,
+        tags: 'cmds-achmage',
+      },
+      promptTemplates: DEFAULT_IMAGE_PROMPT_TEMPLATES,
+      globalInstructions: '',
+      templateByPurpose: {
+        composer: '',
+        text: '',
+        selection: '',
+        note: 'cmds-illustration',
+        clipboard: '',
+      },
+      copyToClipboard: false,
+      textCard: {
+        style: 'cmds-dark',
+        width: 1200,
+        brand: 'CMDSPACE',
+        insertEmbed: true,
+      },
     },
+    imageAnalysis: { modelId: null },
     artifacts: { outputFolder: 'CMDS Achmage/Artifacts' },
     documentEditing: {
       largeEditRouting: 'auto-confirm',
@@ -78,7 +106,11 @@ function createSettings(
       concurrency: 1,
       retryLimit: 2,
     },
-    appearance: { skinMode: 'follow-obsidian' },
+    appearance: {
+      skinMode: 'follow-obsidian',
+      accentPreset: 'skin',
+      glow: 'skin',
+    },
     embeddingModelId: 'openai/text-embedding-3-small',
     systemPrompt: '',
     ragOptions: {
