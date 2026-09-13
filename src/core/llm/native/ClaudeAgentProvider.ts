@@ -213,7 +213,7 @@ export class ClaudeAgentProvider extends BaseLLMProvider<
         )
         if (!definition || !options?.nativeToolExecutor) {
           throw new Error(
-            `Claude requested an unavailable Smart Composer tool: ${decision.tool}`,
+            `Claude requested an unavailable CMDS Achmage tool: ${decision.tool}`,
           )
         }
         const response = await options.nativeToolExecutor({
@@ -235,9 +235,7 @@ export class ClaudeAgentProvider extends BaseLLMProvider<
       removeEphemeralRuntimeDirectory(cwd)
     }
 
-    throw new Error(
-      "Claude reached Smart Composer's 24-step tool safety limit.",
-    )
+    throw new Error("Claude reached CMDS Achmage's 24-step tool safety limit.")
   }
 }
 
@@ -414,7 +412,7 @@ function buildClaudeToolIterationPrompt(params: {
     parameters: tool.function.parameters,
   }))
   return [
-    'Use only the Smart Composer tool catalog below. Return a JSON object matching the required schema. Use type "tool_call" for exactly one required tool call, or type "final" when ready to answer. Never claim a tool result that is not present in the transcript.',
+    'Use only the CMDS Achmage tool catalog below. Return a JSON object matching the required schema. Use type "tool_call" for exactly one required tool call, or type "final" when ready to answer. Never claim a tool result that is not present in the transcript.',
     `[SMART COMPOSER TOOL CATALOG]\n${JSON.stringify(catalog)}`,
     params.prompt,
     ...params.toolTranscript,

@@ -1,4 +1,4 @@
-export type ComposerMode = 'chat' | 'vault' | 'image'
+export type ComposerMode = 'chat' | 'vault' | 'image' | 'edit'
 
 export function toggleComposerMode(
   currentMode: ComposerMode,
@@ -9,11 +9,11 @@ export function toggleComposerMode(
 
 export function getComposerSubmission(mode: ComposerMode): {
   useVaultSearch: boolean
-  mode: 'chat' | 'image'
+  mode: 'chat' | 'image' | 'edit'
 } {
   return {
     useVaultSearch: mode === 'vault',
-    mode: mode === 'image' ? 'image' : 'chat',
+    mode: mode === 'image' ? 'image' : mode === 'edit' ? 'edit' : 'chat',
   }
 }
 
@@ -23,6 +23,9 @@ export function getComposerSendLabel(
 ): string {
   if (mode === 'image') {
     return 'Add image generation to queue'
+  }
+  if (mode === 'edit') {
+    return 'Ask for note edits'
   }
   if (foregroundPending) {
     return 'Add prompt to queue'

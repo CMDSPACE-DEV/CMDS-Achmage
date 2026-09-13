@@ -17,7 +17,13 @@ import { usePlugin } from '../../contexts/plugin-context'
 import { useRAG } from '../../contexts/rag-context'
 import { useSettings } from '../../contexts/settings-context'
 import { QueuedPrompt } from '../../core/conversation/ConversationRunManager'
-import { getProviderCapabilities } from '../../core/llm/providerCapabilities'
+import {
+  applyImagePromptTemplate,
+  findImagePromptTemplate,
+} from '../../core/image/image-prompt-templates'
+import { ImageGenerationSubmission } from '../../core/image/image-request'
+import { queueImageJob } from '../../core/image/queue-image-job'
+import { resolveImageGenerationModel } from '../../core/image/resolve-image-model'
 import { useChatHistory } from '../../hooks/useChatHistory'
 import type { BackgroundTaskRecord } from '../../types/background-task'
 import {
@@ -30,10 +36,11 @@ import {
   MentionableBlock,
   MentionableBlockData,
   MentionableCurrentFile,
+  MentionableImage,
 } from '../../types/mentionable'
 import { ToolCallResponseStatus } from '../../types/tool-call.types'
-import { enqueueImageGenerationBatch } from '../../utils/chat/imageBatch'
 import {
+  ImageGenerationRequest,
   MAX_IMAGE_BATCH_COUNT,
   getImageGenerationPrompt,
   isImageGenerationContinuation,
@@ -82,6 +89,8 @@ export type ChatRef = {
   openNewChat: (selectedBlock?: MentionableBlockData) => void
   addSelectionToChat: (selectedBlock: MentionableBlockData) => void
   focusMessage: () => void
+  /** Queue an image job from outside the composer (modal, commands, menus). */
+  generateImage: (submission: ImageGenerationSubmission) => Promise<void>
 }
 
 export type ChatProps = {
@@ -581,6 +590,36 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     }
   }, [app.workspace, handleActiveLeafChange])
 
+  /**
+   * Shared image queue entry (R-036): composer image mode, the Generate image
+   * modal, editor menu, and commands all end here so one code path handles
+   * template, references, model resolution, and batching.
+   */
+  /** Composer / modal / command jobs share the plugin-wide queue (R-036). */
+  const enqueueImageJob = async ({
+    request,
+    sourcePrompt,
+    originMessageId,
+    submission,
+  }: {
+    request: ImageGenerationRequest
+    sourcePrompt: string
+    originMessageId: string
+    submission: Omit<ImageGenerationSubmission, 'brief' | 'count'>
+  }): Promise<boolean> => {
+    const result = await queueImageJob({
+      app,
+      settings,
+      taskManager: plugin.backgroundTaskManager,
+      request,
+      sourcePrompt,
+      conversationId: currentConversationId,
+      originMessageId,
+      submission,
+    })
+    return result.queued > 0
+  }
+
   useImperativeHandle(ref, () => ({
     openNewChat: (selectedBlock?: MentionableBlockData) =>
       handleNewChat(selectedBlock),
@@ -641,6 +680,33 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     focusMessage: () => {
       if (!focusedMessageId) return
       chatUserInputRefs.current.get(focusedMessageId)?.focus()
+    },
+    generateImage: async (submission: ImageGenerationSubmission) => {
+      const brief = submission.brief.trim()
+      if (!brief) {
+        new Notice('Write a brief for the image first.')
+        return
+      }
+      const count = Math.max(
+        1,
+        Math.min(submission.count, MAX_IMAGE_BATCH_COUNT),
+      )
+      const queued = await enqueueImageJob({
+        request: {
+          prompt: brief,
+          count,
+          requestedCount: submission.count,
+          usedPreviousPrompt: false,
+        },
+        sourcePrompt: brief,
+        originMessageId: uuidv4(),
+        submission,
+      })
+      if (queued) {
+        new Notice(
+          `${count === 1 ? 'Image' : `${count} images`} queued · watch the image queue in the chat pane`,
+        )
+      }
     },
   }))
 
@@ -837,15 +903,11 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
             content,
           }))
         }}
-        onSubmit={(content, useVaultSearch, mode = 'chat') => {
+        onSubmit={(content, useVaultSearch, mode = 'chat', imageTemplateId) => {
           const plainText = editorStateToPlainText(content).trim()
           if (plainText === '') return
-          const selectedModel = settings.chatModels.find(
-            (model) => model.id === settings.chatModelId,
-          )
-          const canGenerateImages =
-            !!selectedModel &&
-            getProviderCapabilities(selectedModel).imageGeneration
+          const imageModel = resolveImageGenerationModel(settings).model
+          const canGenerateImages = !!imageModel
           const taskManager = plugin.backgroundTaskManager
           const conversationImageTasks =
             taskManager
@@ -870,10 +932,23 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
               break
             }
           }
-          const imageRequest = parseImageGenerationRequest(plainText, {
+          const parsedImageRequest = parseImageGenerationRequest(plainText, {
             force: mode === 'image',
             previousPrompt: previousImagePrompt,
           })
+          const imageTemplate = findImagePromptTemplate(
+            settings.imageGeneration.promptTemplates,
+            imageTemplateId,
+          )
+          const imageRequest = parsedImageRequest
+            ? {
+                ...parsedImageRequest,
+                prompt: applyImagePromptTemplate(
+                  parsedImageRequest.prompt,
+                  imageTemplate,
+                ),
+              }
+            : parsedImageRequest
           const artifactMatch = matchArtifactRequest(plainText)
           if (artifactMatch && taskManager) {
             const artifactKind = artifactMatch.kind
@@ -894,39 +969,34 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
           if (canGenerateImages && imageRequest && taskManager) {
             const userMessage = { ...inputMessage, content }
             setChatMessages((messages) => [...messages, userMessage])
-            if (imageRequest.requestedCount > MAX_IMAGE_BATCH_COUNT) {
-              new Notice(
-                `A maximum of ${MAX_IMAGE_BATCH_COUNT} images can be queued at once. Queuing ${MAX_IMAGE_BATCH_COUNT}.`,
+            const referenceImages = inputMessage.mentionables
+              .filter(
+                (mentionable): mentionable is MentionableImage =>
+                  mentionable.type === 'image',
               )
-            }
-            const targetFilePath = app.workspace.getActiveFile()?.path
-            void (async () => {
-              const result = await enqueueImageGenerationBatch(
-                taskManager,
-                imageRequest,
-                {
-                  conversationId: currentConversationId,
-                  originMessageId: inputMessage.id,
-                  sourcePrompt:
-                    getImageGenerationPrompt(plainText) || plainText,
-                  modelId: settings.chatModelId,
-                  targetFilePath,
-                },
-              )
-              if (result.error) {
-                new Notice(
-                  `Queued ${result.queuedCount} of ${result.total} images. ${
-                    result.error instanceof Error
-                      ? result.error.message
-                      : String(result.error)
-                  }`,
-                )
-              }
-            })()
+              .map((image) => ({
+                name: image.name,
+                mimeType: image.mimeType,
+                data: image.data,
+              }))
+            void enqueueImageJob({
+              request: imageRequest,
+              sourcePrompt: getImageGenerationPrompt(plainText) || plainText,
+              originMessageId: inputMessage.id,
+              submission: {
+                referenceImages,
+                targetFilePath: app.workspace.getActiveFile()?.path,
+                origin: 'composer',
+              },
+            })
             setInputMessage(getNewInputMessage(app))
             return
           }
-          const userMessage = { ...inputMessage, content }
+          const userMessage: ChatUserMessage = {
+            ...inputMessage,
+            content,
+            ...(mode === 'edit' ? { editNoteMode: true } : {}),
+          }
           if (submitChatMutation.isPending) {
             void plugin.conversationRunManager?.enqueue(currentConversationId, {
               id: userMessage.id,

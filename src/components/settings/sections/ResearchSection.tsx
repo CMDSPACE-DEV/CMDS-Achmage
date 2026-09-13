@@ -476,7 +476,7 @@ function NaverUsageMeter({
           <Activity size={15} aria-hidden="true" />
           <strong>API HUB usage</strong>
         </span>
-        <small>Smart Composer tracker</small>
+        <small>CMDS Achmage tracker</small>
       </header>
       <UsageRow
         label="Today"

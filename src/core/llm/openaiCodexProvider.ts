@@ -58,6 +58,27 @@ export type PlanImageResult = {
   mimeType: 'image/png'
 }
 
+type CodexImageContentPart =
+  | { type: 'input_text'; text: string }
+  | { type: 'input_image'; image_url: string; detail: 'auto' }
+
+/** Reference images first, then the brief — the order the Responses API expects. */
+export function buildCodexImageContent(
+  prompt: string,
+  referenceImages: string[],
+): CodexImageContentPart[] {
+  return [
+    ...referenceImages.map(
+      (url): CodexImageContentPart => ({
+        type: 'input_image',
+        image_url: url,
+        detail: 'auto',
+      }),
+    ),
+    { type: 'input_text', text: prompt },
+  ]
+}
+
 function isGpt56Model(model: string): boolean {
   return /^gpt-5\.6-(?:sol|terra|luna)$/.test(model)
 }
@@ -153,14 +174,18 @@ export class OpenAICodexProvider extends BaseLLMProvider<
   }
 
   async generateImage(
-    model: Extract<ChatModel, { providerType: 'openai-plan' }>,
+    model: ChatModel,
     prompt: string,
     options: {
       quality: 'low' | 'medium' | 'high'
+      referenceImages?: string[]
       signal?: AbortSignal
       onProgress?: (phase: string, partialImageIndex?: number) => void
     },
   ): Promise<PlanImageResult> {
+    if (model.providerType !== 'openai-plan') {
+      throw new Error('Native image generation requires a GPT Plan model.')
+    }
     return this.withAuthRetry(async (authHeaders) => {
       const stream = await postStream(
         this.imageEndpoint,
@@ -169,7 +194,10 @@ export class OpenAICodexProvider extends BaseLLMProvider<
           input: [
             {
               role: 'user',
-              content: [{ type: 'input_text', text: prompt }],
+              content: buildCodexImageContent(
+                prompt,
+                options.referenceImages ?? [],
+              ),
             },
           ],
           instructions: 'Use the image generation tool exactly once.',

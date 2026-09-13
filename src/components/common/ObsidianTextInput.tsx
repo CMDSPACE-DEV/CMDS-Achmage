@@ -1,6 +1,7 @@
-import { TextComponent } from 'obsidian'
+import { App, TextComponent } from 'obsidian'
 import { useEffect, useRef, useState } from 'react'
 
+import { FolderSuggest } from './FolderSuggest'
 import { useObsidianSetting } from './ObsidianSetting'
 
 type ObsidianTextInputProps = {
@@ -8,6 +9,8 @@ type ObsidianTextInputProps = {
   placeholder?: string
   onChange: (value: string) => void
   type?: 'text' | 'number' | 'password'
+  /** Attach vault folder autocompletion; needs the app for the folder list. */
+  folderSuggest?: App
 }
 
 export function ObsidianTextInput({
@@ -15,6 +18,7 @@ export function ObsidianTextInput({
   placeholder,
   onChange,
   type,
+  folderSuggest,
 }: ObsidianTextInputProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const { setting } = useObsidianSetting()
@@ -50,6 +54,12 @@ export function ObsidianTextInput({
     if (!textComponent) return
     textComponent.onChange((v) => onChangeRef.current(v))
   }, [textComponent])
+
+  useEffect(() => {
+    if (!textComponent || !folderSuggest) return
+    const suggest = new FolderSuggest(folderSuggest, textComponent.inputEl)
+    return () => suggest.close()
+  }, [textComponent, folderSuggest])
 
   useEffect(() => {
     if (!textComponent) return

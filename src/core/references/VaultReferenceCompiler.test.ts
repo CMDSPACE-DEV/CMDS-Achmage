@@ -10,6 +10,7 @@ import {
   compileVaultReferences,
   isExhaustiveReadIntent,
 } from './VaultReferenceCompiler'
+import { DEFAULT_IMAGE_PROMPT_TEMPLATES } from '../../core/image/image-prompt-templates'
 
 jest.mock('../rag/planRerank', () => ({
   processQueryWithPlanRerank: jest.fn(),
@@ -79,7 +80,24 @@ function createSettings(
         removeVaultCopy: false,
         tags: 'cmds-achmage',
       },
+      promptTemplates: DEFAULT_IMAGE_PROMPT_TEMPLATES,
+      globalInstructions: '',
+      templateByPurpose: {
+        composer: '',
+        text: '',
+        selection: '',
+        note: 'cmds-illustration',
+        clipboard: '',
+      },
+      copyToClipboard: false,
+      textCard: {
+        style: 'cmds-dark',
+        width: 1200,
+        brand: 'CMDSPACE',
+        insertEmbed: true,
+      },
     },
+    imageAnalysis: { modelId: null },
     documentEditing: {
       largeEditRouting: 'auto-confirm',
       destinationFolder: 'Smart Composer/Document Drafts',

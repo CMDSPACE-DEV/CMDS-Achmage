@@ -2,6 +2,7 @@ import {
   Check,
   CircleAlert,
   CircleEllipsis,
+  Clipboard,
   CloudUpload,
   Expand,
   Feather,
@@ -18,8 +19,10 @@ import { useMemo, useState } from 'react'
 import { useApp } from '../../contexts/app-context'
 import { useBackgroundTasks } from '../../contexts/background-tasks-context'
 import { useSettings } from '../../contexts/settings-context'
+import { copyImageToClipboard } from '../../core/image/clipboard-image'
 import { uploadWithCmdsEagle } from '../../core/image/CmdsEagleBridge'
 import {
+  describeEagleDelivery,
   importArtifactToEagle,
   readEagleArtifactMetadata,
 } from '../../core/image/eagle-artifact'
@@ -129,6 +132,21 @@ export function BackgroundTaskCards({
     }
   }
 
+  const copyImage = async (artifact: ArtifactRecord) => {
+    if (!artifact.localPath) return
+    const file = app.vault.getAbstractFileByPath(artifact.localPath)
+    if (!(file instanceof TFile)) {
+      new Notice('The local image file is gone.')
+      return
+    }
+    const ok = copyImageToClipboard(await app.vault.readBinary(file))
+    new Notice(
+      ok
+        ? 'Image copied to the clipboard'
+        : 'Clipboard copy is available on desktop only.',
+    )
+  }
+
   const sendToEagle = async (
     task: BackgroundTaskRecord,
     artifact: ArtifactRecord,
@@ -160,6 +178,10 @@ export function BackgroundTaskCards({
         current = imported.artifact
         markdown = imported.result.markdown
         await manager.saveArtifact(current)
+        new Notice(
+          `Imported into Eagle · ${describeEagleDelivery(imported.result, eagleTarget.folderPath)}`,
+        )
+        for (const warning of imported.result.warnings) new Notice(warning)
       }
       if (!insertMarkdown(task, markdown)) {
         await manager.updateProgress(task.id, {
@@ -335,7 +357,21 @@ export function BackgroundTaskCards({
                 onClick={() => setExpanded(resourcePath)}
                 aria-label="Open generated image full size"
               >
-                <img src={resourcePath} alt="Generated image preview" />
+                <img
+                  src={resourcePath}
+                  alt="Generated image preview"
+                  draggable
+                  title="Drag into a note to insert ![[embed]]"
+                  onDragStart={(event) => {
+                    // Without this the editor receives the app:// resource URL.
+                    if (!artifact?.localPath) return
+                    event.dataTransfer.effectAllowed = 'copy'
+                    event.dataTransfer.setData(
+                      'text/plain',
+                      `![[${artifact.localPath}]]`,
+                    )
+                  }}
+                />
                 <Expand size={16} />
                 {artifact?.width && artifact.height && (
                   <span>
@@ -394,6 +430,11 @@ export function BackgroundTaskCards({
                     onClick={() => void finishLocal(task, artifact, true)}
                   >
                     <Check size={14} /> Insert embed
+                  </button>
+                )}
+                {artifact.localPath && (
+                  <button onClick={() => void copyImage(artifact)}>
+                    <Clipboard size={14} /> Copy image
                   </button>
                 )}
                 <button onClick={() => void sendToEagle(task, artifact)}>

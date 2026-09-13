@@ -20,7 +20,7 @@ export class McpSecretStore {
   clear(id?: string): void {
     if (!id) return
     // Obsidian 1.11.4 does not expose deleteSecret. An empty value is treated
-    // as absent by Smart Composer and avoids retaining the previous credential.
+    // as absent by CMDS Achmage and avoids retaining the previous credential.
     this.app.secretStorage.setSecret(normalizeSecretId(id), '')
   }
 

@@ -11,7 +11,7 @@ export class InstallerUpdateRequiredModal extends ReactModal<
       Component: InstallerUpdateRequiredModalComponent,
       props: {},
       options: {
-        title: 'Smart Composer Requires Obsidian Update',
+        title: 'CMDS Achmage Requires Obsidian Update',
       },
     })
   }
@@ -21,10 +21,10 @@ function InstallerUpdateRequiredModalComponent() {
   return (
     <div>
       <div>
-        Smart Composer requires a newer version of the Obsidian installer.
-        Please note that this is different from Obsidian&apos;s in-app updates.
-        You must manually download the latest version of Obsidian to continue
-        using Smart Composer.
+        CMDS Achmage requires a newer version of the Obsidian installer. Please
+        note that this is different from Obsidian&apos;s in-app updates. You
+        must manually download the latest version of Obsidian to continue using
+        CMDS Achmage.
       </div>
       <div>
         <div className="modal-button-container">

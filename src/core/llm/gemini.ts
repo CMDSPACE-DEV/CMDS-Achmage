@@ -26,6 +26,10 @@ import {
 } from '../../types/llm/response'
 import { LLMProvider } from '../../types/provider.types'
 import { parseImageDataUrl } from '../../utils/llm/image'
+import {
+  GeneratedImage,
+  ImageGenerationOptions,
+} from '../image/image-generator'
 
 import { BaseLLMProvider } from './base'
 import {
@@ -33,6 +37,11 @@ import {
   LLMAPIKeyNotSetException,
   LLMRateLimitExceededException,
 } from './exception'
+import {
+  buildGeminiImageConfig,
+  buildGeminiImageContents,
+  extractGeminiImage,
+} from './geminiImage'
 
 /**
  * Note on OpenAI Compatibility API:
@@ -181,6 +190,31 @@ export class GeminiProvider extends BaseLLMProvider<
 
       throw error
     }
+  }
+
+  async generateImage(
+    model: ChatModel,
+    prompt: string,
+    options: ImageGenerationOptions,
+  ): Promise<GeneratedImage> {
+    if (model.providerType !== 'gemini') {
+      throw new Error('Model is not a Gemini model')
+    }
+    if (!this.apiKey) {
+      throw new LLMAPIKeyNotSetException(
+        `Provider ${this.provider.id} API key is missing. Please set it in settings menu.`,
+      )
+    }
+    options.onProgress?.('generating')
+    const response = await this.client.models.generateContent({
+      model: model.model,
+      contents: buildGeminiImageContents(prompt, options.referenceImages),
+      config: {
+        ...buildGeminiImageConfig(options.quality),
+        abortSignal: options.signal,
+      },
+    })
+    return extractGeminiImage(response)
   }
 
   private async *streamResponseGenerator(

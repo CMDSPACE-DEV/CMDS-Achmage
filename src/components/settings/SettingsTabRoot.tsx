@@ -2,8 +2,6 @@ import { App } from 'obsidian'
 import { useState } from 'react'
 
 import SmartComposerPlugin from '../../main'
-import { ObsidianButton } from '../common/ObsidianButton'
-import { ObsidianSetting } from '../common/ObsidianSetting'
 
 import { AppearanceSection } from './sections/AppearanceSection'
 import { ChatSection } from './sections/ChatSection'
@@ -15,6 +13,7 @@ import { ProvidersSection } from './sections/ProvidersSection'
 import { RAGSection } from './sections/RAGSection'
 import { ResearchSection } from './sections/ResearchSection'
 import { TemplateSection } from './sections/TemplateSection'
+import { SettingsErrorBoundary } from './SettingsErrorBoundary'
 
 type SettingsTabRootProps = {
   app: App
@@ -26,14 +25,12 @@ export function SettingsTabRoot({ app, plugin }: SettingsTabRootProps) {
 
   return (
     <div className="smtcmp-settings-root">
-      <nav
-        className="smtcmp-settings-tabs"
-        role="tablist"
-        aria-label="Smart Composer settings"
-      >
+      {/* No aria-label here: Obsidian renders aria-label as a hover tooltip. */}
+      <nav className="smtcmp-settings-tabs" role="tablist">
         {SETTINGS_PAGES.map((page) => (
           <button
             key={page.id}
+            id={`smtcmp-settings-tab-${page.id}`}
             type="button"
             role="tab"
             aria-selected={activeTab === page.id}
@@ -49,7 +46,7 @@ export function SettingsTabRoot({ app, plugin }: SettingsTabRootProps) {
       <div
         className="smtcmp-settings-page"
         role="tabpanel"
-        aria-label={SETTINGS_PAGES.find((page) => page.id === activeTab)?.label}
+        aria-labelledby={`smtcmp-settings-tab-${activeTab}`}
       >
         {activeTab === 'plan' && (
           <>
@@ -60,10 +57,18 @@ export function SettingsTabRoot({ app, plugin }: SettingsTabRootProps) {
         {activeTab === 'research' && <ResearchSection plugin={plugin} />}
         {activeTab === 'writing' && (
           <>
-            <ChatSection mode="writing" />
-            <AppearanceSection />
-            <RAGSection app={app} plugin={plugin} />
-            <TemplateSection app={app} />
+            <SettingsErrorBoundary label="Writing and generation">
+              <ChatSection mode="writing" app={app} />
+            </SettingsErrorBoundary>
+            <SettingsErrorBoundary label="Appearance">
+              <AppearanceSection />
+            </SettingsErrorBoundary>
+            <SettingsErrorBoundary label="Vault search">
+              <RAGSection app={app} plugin={plugin} />
+            </SettingsErrorBoundary>
+            <SettingsErrorBoundary label="Templates">
+              <TemplateSection app={app} />
+            </SettingsErrorBoundary>
           </>
         )}
         {activeTab === 'mcp' && <McpSection app={app} plugin={plugin} />}
@@ -72,23 +77,32 @@ export function SettingsTabRoot({ app, plugin }: SettingsTabRootProps) {
             <ProvidersSection app={app} plugin={plugin} />
             <ModelsSection app={app} plugin={plugin} />
             <EtcSection app={app} plugin={plugin} />
-            <ObsidianSetting
-              name="Support Smart Composer"
-              desc="If you find Smart Composer valuable, consider supporting its development!"
-              heading
-              className="smtcmp-settings-support-smart-composer"
-            >
-              <ObsidianButton
-                text="Buy Me a Coffee"
-                onClick={() =>
-                  window.open('https://www.buymeacoffee.com/kevin.on', '_blank')
-                }
-                cta
-              />
-            </ObsidianSetting>
           </>
         )}
       </div>
+
+      <footer className="smtcmp-settings-footer">
+        <div className="smtcmp-settings-footer__version">
+          {plugin.manifest.name} v{plugin.manifest.version}
+        </div>
+        <div className="smtcmp-settings-footer__links">
+          CMDSPACE{' '}
+          <a href="https://class.cmdspace.kr/" rel="noreferrer">
+            Education
+          </a>
+          {' · '}
+          <a href="https://www.youtube.com/@cmdspace" rel="noreferrer">
+            YouTube
+          </a>
+          {' · '}
+          <a
+            href="https://github.com/CMDSPACE-DEV/CMDS-Achmage"
+            rel="noreferrer"
+          >
+            GitHub
+          </a>
+        </div>
+      </footer>
     </div>
   )
 }

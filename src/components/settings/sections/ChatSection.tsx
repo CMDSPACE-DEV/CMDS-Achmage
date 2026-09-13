@@ -1,5 +1,8 @@
+import { App } from 'obsidian'
+
 import { RECOMMENDED_MODELS_FOR_CHAT } from '../../../constants'
 import { useSettings } from '../../../contexts/settings-context'
+import { getProviderCapabilities } from '../../../core/llm/providerCapabilities'
 import { ObsidianDropdown } from '../../common/ObsidianDropdown'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
 import { ObsidianTextArea } from '../../common/ObsidianTextArea'
@@ -7,11 +10,15 @@ import { ObsidianTextInput } from '../../common/ObsidianTextInput'
 import { ObsidianToggle } from '../../common/ObsidianToggle'
 
 import { ImageDestinationSettings } from './ImageDestinationSettings'
+import { ImagePromptTemplateSettings } from './ImagePromptTemplateSettings'
 
 export function ChatSection({
   mode = 'all',
+  app,
 }: {
   mode?: 'all' | 'models' | 'writing'
+  /** Needed for the image destination controls (Eagle lookups). */
+  app?: App
 }) {
   const { settings, setSettings } = useSettings()
   const showModels = mode !== 'writing'
@@ -33,6 +40,7 @@ export function ChatSection({
             options={Object.fromEntries(
               settings.chatModels
                 .filter(({ enable }) => enable ?? true)
+                .filter((model) => !getProviderCapabilities(model).imageOnly)
                 .map((chatModel) => [
                   chatModel.id,
                   `${chatModel.id}${RECOMMENDED_MODELS_FOR_CHAT.includes(chatModel.id) ? ' (Recommended)' : ''}`,
@@ -101,6 +109,7 @@ export function ChatSection({
             desc="Vault-relative folder for completed large replacement drafts."
           >
             <ObsidianTextInput
+              folderSuggest={app}
               value={settings.documentEditing.destinationFolder}
               onChange={async (value) => {
                 await setSettings({
@@ -175,10 +184,51 @@ export function ChatSection({
           </ObsidianSetting>
 
           <ObsidianSetting
+            name="Image model"
+            desc="(plan) models draw on your subscription. Gemini and Grok image models use that provider's API key from the Providers section. Leave on 'Inherit' to use the chat model when it can generate images."
+          >
+            <ObsidianDropdown
+              value={
+                settings.chatModels.some(
+                  (model) =>
+                    model.id === settings.imageGeneration.modelId &&
+                    getProviderCapabilities(model).imageGeneration,
+                )
+                  ? settings.imageGeneration.modelId
+                  : ''
+              }
+              options={{
+                '': 'Inherit the chat model (when it can generate images)',
+                ...Object.fromEntries(
+                  settings.chatModels
+                    .filter(({ enable }) => enable ?? true)
+                    .filter(
+                      (model) => getProviderCapabilities(model).imageGeneration,
+                    )
+                    .map((model) => [
+                      model.id,
+                      `${model.id} · ${getProviderCapabilities(model).plan ? 'Plan (subscription)' : 'API key'}`,
+                    ]),
+                ),
+              }}
+              onChange={async (value) => {
+                await setSettings({
+                  ...settings,
+                  imageGeneration: {
+                    ...settings.imageGeneration,
+                    modelId: value,
+                  },
+                })
+              }}
+            />
+          </ObsidianSetting>
+
+          <ObsidianSetting
             name="Image output folder"
-            desc="Vault-relative folder used for every generated image before R2 upload or note insertion. The task card shows the exact saved path."
+            desc="Vault-relative folder for every generated image and text card. Leave blank to use the default folder; images never go to the vault root."
           >
             <ObsidianTextInput
+              folderSuggest={app}
               value={settings.imageGeneration.outputFolder}
               onChange={async (value) => {
                 await setSettings({
@@ -215,7 +265,9 @@ export function ChatSection({
             />
           </ObsidianSetting>
 
-          <ImageDestinationSettings />
+          {app && <ImageDestinationSettings app={app} />}
+
+          <ImagePromptTemplateSettings />
         </>
       )}
 
@@ -231,6 +283,7 @@ export function ChatSection({
               ...Object.fromEntries(
                 settings.chatModels
                   .filter(({ enable }) => enable ?? true)
+                  .filter((model) => !getProviderCapabilities(model).imageOnly)
                   .map((chatModel) => [chatModel.id, chatModel.id]),
               ),
             }}

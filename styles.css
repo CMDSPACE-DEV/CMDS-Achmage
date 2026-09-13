@@ -5229,3 +5229,189 @@ body:not(.theme-dark)
 .smtcmp-shell button.smtcmp-chat-input-model-select {
   max-width: 240px !important;
 }
+
+/* R-035: image prompt template picker, shown only in image mode. */
+.smtcmp-shell .smtcmp-chat-input-template-select {
+  max-width: 11em;
+  height: 26px;
+  padding: 0 6px;
+  border: 1px solid var(--ach-border);
+  border-radius: var(--radius-m);
+  background: var(--ach-surface);
+  color: var(--ach-text);
+  font-size: var(--font-ui-smaller);
+}
+
+.smtcmp-shell .smtcmp-chat-input-template-select:focus-visible {
+  outline: none;
+  border-color: var(--ach-action);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ach-action) 18%, transparent);
+}
+
+/* Settings footer: version and CMDSPACE links, same shape as CMDS Eagle. */
+.smtcmp-settings-footer {
+  margin-top: 24px;
+  padding: 20px 0 8px;
+  border-top: 1px solid var(--background-modifier-border);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.smtcmp-settings-footer__version {
+  margin-bottom: 6px;
+}
+
+.smtcmp-settings-footer__links a {
+  color: var(--text-accent);
+}
+
+/* R-036: Generate image modal */
+.smtcmp-generate-image-modal .smtcmp-generate-image-modal__brief {
+  width: 100%;
+  min-width: 320px;
+}
+
+.smtcmp-generate-image-modal__references {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 4px 0 12px;
+}
+
+.smtcmp-generate-image-modal__ref {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 120px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+.smtcmp-generate-image-modal__ref img {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+}
+
+.smtcmp-generate-image-modal__ref span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.smtcmp-generate-image-modal__empty {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+/* R-041: edit operation cards (Edit note mode) */
+.smtcmp-edit-card {
+  margin: 8px 0;
+  border: 1px solid var(--ach-border, var(--background-modifier-border));
+  border-left: 3px solid var(--ach-action, var(--interactive-accent));
+  border-radius: var(--radius-m);
+  background: var(--ach-surface, var(--background-primary));
+  overflow: hidden;
+}
+
+.smtcmp-edit-card[data-state='applied'] {
+  border-left-color: var(--color-green);
+  opacity: 0.85;
+}
+
+.smtcmp-edit-card__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--ach-border, var(--background-modifier-border));
+  font-size: var(--font-ui-smaller);
+  color: var(--ach-muted, var(--text-muted));
+}
+
+.smtcmp-edit-card__op {
+  font-weight: 600;
+  color: var(--ach-text, var(--text-normal));
+}
+
+.smtcmp-edit-card__anchor {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.smtcmp-edit-card__content {
+  padding: 4px 10px;
+}
+
+.smtcmp-edit-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 8px;
+}
+
+.smtcmp-edit-card__actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-ui-smaller);
+}
+
+.smtcmp-edit-card__apply {
+  background: var(--ach-action, var(--interactive-accent));
+  color: var(--ach-on-action, var(--text-on-accent));
+}
+
+.smtcmp-edit-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-ui-smaller);
+  color: var(--color-green);
+}
+
+.smtcmp-edit-card__status--error {
+  color: var(--text-error);
+}
+
+.smtcmp-spin {
+  animation: smtcmp-spin 0.9s linear infinite;
+}
+
+@keyframes smtcmp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.smtcmp-edit-apply-all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 8px 0 4px;
+  padding: 6px 10px;
+  border: 1px dashed var(--ach-border, var(--background-modifier-border));
+  border-radius: var(--radius-m);
+  font-size: var(--font-ui-smaller);
+  color: var(--ach-muted, var(--text-muted));
+}
+
+.smtcmp-edit-apply-all button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-ui-smaller);
+  background: var(--ach-action, var(--interactive-accent));
+  color: var(--ach-on-action, var(--text-on-accent));
+}
+
+.smtcmp-edit-apply-all button:disabled {
+  opacity: 0.6;
+}

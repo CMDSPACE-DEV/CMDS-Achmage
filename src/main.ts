@@ -2,9 +2,20 @@ import { Editor, MarkdownView, Notice, Plugin } from 'obsidian'
 
 import { ChatView } from './ChatView'
 import type { ChatProps } from './components/chat-view/Chat'
+import { GenerateImageModal } from './components/modals/GenerateImageModal'
 import { InstallerUpdateRequiredModal } from './components/modals/InstallerUpdateRequiredModal'
 import { CHAT_VIEW_TYPE } from './constants'
 import { ConversationRunManager } from './core/conversation/ConversationRunManager'
+import { copyImageToClipboard } from './core/image/clipboard-image'
+import {
+  needsBriefSynthesis,
+  stripFrontmatter,
+  writeImageBriefFromText,
+} from './core/image/image-brief'
+import type { ImageGenerationSubmission } from './core/image/image-request'
+import { resolveImageOutputFolder } from './core/image/output-folder'
+import { saveImageToVault } from './core/image/save-image'
+import { renderTextCard } from './core/image/text-card'
 import type { InlineEditController } from './core/inline/InlineEditController'
 import type { McpManager } from './core/mcp/mcpManager'
 import {
@@ -19,6 +30,13 @@ import {
 } from './core/research/ResearchSecretStore'
 import { BackgroundTaskManager } from './core/tasks/BackgroundTaskManager'
 import { LazyBackgroundTaskAdapter } from './core/tasks/LazyBackgroundTaskAdapter'
+import {
+  IMAGE_STRUCTURE_LABELS,
+  IMAGE_STRUCTURE_MODES,
+  ImageStructureMode,
+  convertImageToMarkdown,
+  readClipboardImage,
+} from './core/vision/imageToMarkdown'
 import type { DatabaseManager } from './database/DatabaseManager'
 import { PGLiteAbortedException } from './database/exception'
 import {
@@ -156,6 +174,69 @@ export default class SmartComposerPlugin extends Plugin {
     })
 
     this.addCommand({
+      id: 'generate-image',
+      name: 'Generate image (text to image)…',
+      callback: () => new GenerateImageModal(this).open(),
+    })
+
+    this.addCommand({
+      id: 'generate-image-from-selection',
+      name: 'Generate image from selection',
+      editorCallback: (editor: Editor, view: MarkdownView) => {
+        void this.openImageFromText(editor.getSelection(), view, 'selection')
+      },
+    })
+
+    this.addCommand({
+      id: 'generate-image-from-note',
+      name: 'Generate image from current note',
+      editorCallback: (editor: Editor, view: MarkdownView) => {
+        void this.openImageFromText(editor.getValue(), view, 'note')
+      },
+    })
+
+    this.addCommand({
+      id: 'render-selection-as-image-card',
+      name: 'Render selection as image card (text as image)',
+      editorCallback: (editor: Editor, view: MarkdownView) => {
+        void this.renderSelectionAsImageCard(editor, view)
+      },
+    })
+
+    this.addCommand({
+      id: 'generate-image-from-clipboard',
+      name: 'Generate image from clipboard image (image to image)…',
+      callback: async () => {
+        const image = await readClipboardImage()
+        if (!image) {
+          new Notice('No image on the clipboard. Copy an image first.')
+          return
+        }
+        new GenerateImageModal(this, {
+          title: 'Generate image from clipboard image',
+          referenceImages: [
+            {
+              name: 'clipboard.png',
+              mimeType: image.mimeType,
+              data: image.dataUrl,
+            },
+          ],
+          origin: 'clipboard',
+        }).open()
+      },
+    })
+
+    for (const structureMode of IMAGE_STRUCTURE_MODES) {
+      this.addCommand({
+        id: `clipboard-image-to-${structureMode}`,
+        name: `Convert clipboard image to ${IMAGE_STRUCTURE_LABELS[structureMode]}`,
+        editorCallback: (editor: Editor) => {
+          void this.convertClipboardImage(editor, structureMode)
+        },
+      })
+    }
+
+    this.addCommand({
       id: 'review-document-edit-jobs',
       name: 'Review document edit jobs',
       callback: () => {
@@ -172,11 +253,40 @@ export default class SmartComposerPlugin extends Plugin {
         if (!(info instanceof MarkdownView)) return
         menu.addItem((item) => {
           item
-            .setTitle('Smart Composer: Inline edit')
+            .setTitle('CMDS Achmage: Inline edit')
             .setIcon('wand-sparkles')
             .setSection('action')
             .onClick(() => {
               void this.openInlineEdit(editor, info)
+            })
+        })
+        const selection = editor.getSelection()
+        if (selection) {
+          menu.addItem((item) => {
+            item
+              .setTitle('CMDS Achmage: Render selection as image card')
+              .setIcon('image-plus')
+              .setSection('action')
+              .onClick(() => {
+                void this.renderSelectionAsImageCard(editor, info)
+              })
+          })
+        }
+        menu.addItem((item) => {
+          item
+            .setTitle(
+              selection
+                ? 'CMDS Achmage: Generate image from selection'
+                : 'CMDS Achmage: Generate image from note',
+            )
+            .setIcon('image')
+            .setSection('action')
+            .onClick(() => {
+              void this.openImageFromText(
+                selection || editor.getValue(),
+                info,
+                selection ? 'selection' : 'note',
+              )
             })
         })
       }),
@@ -396,6 +506,145 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
     )
   }
 
+  /** Route every image job through the chat view's queue (R-036). */
+  async generateImage(submission: ImageGenerationSubmission): Promise<void> {
+    const leaves = this.app.workspace.getLeavesOfType(CHAT_VIEW_TYPE)
+    if (leaves.length === 0 || !(leaves[0].view instanceof ChatView)) {
+      await this.activateChatView()
+    }
+    const leaf = this.app.workspace.getLeavesOfType(CHAT_VIEW_TYPE)[0]
+    if (!leaf || !(leaf.view instanceof ChatView)) {
+      new Notice('Could not open the chat pane for the image queue.')
+      return
+    }
+    await this.app.workspace.revealLeaf(leaf)
+    leaf.view.generateImage(submission)
+  }
+
+  /**
+   * Selected text → PNG card (R-037): drawn locally, saved to the image output
+   * folder, copied to the clipboard, optionally embedded after the selection.
+   */
+  async renderSelectionAsImageCard(editor: Editor, view: MarkdownView) {
+    const text = editor.getSelection().trim()
+    if (!text) {
+      new Notice('Select the text you want on the card first.')
+      return
+    }
+    const { textCard } = this.settings.imageGeneration
+    const outputFolder = resolveImageOutputFolder(this.settings)
+    try {
+      const bytes = await renderTextCard(view.containerEl.ownerDocument, text, {
+        style: textCard.style,
+        width: textCard.width,
+        brand: textCard.brand,
+        caption: view.file?.basename,
+      })
+      const path = await saveImageToVault(
+        this.app,
+        outputFolder,
+        `card-${text.slice(0, 40)}`,
+        'png',
+        bytes,
+      )
+      const copied = copyImageToClipboard(bytes)
+      if (textCard.insertEmbed) {
+        const end = editor.getCursor('to')
+        editor.replaceRange(`\n![[${path}]]\n`, end)
+      }
+      new Notice(
+        `Text card saved to ${path}${copied ? ' and copied to the clipboard' : ''}`,
+      )
+    } catch (error) {
+      new Notice(
+        `Text card failed: ${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
+  }
+
+  /**
+   * Note / selection → image: short text is the brief itself, long text is
+   * condensed into a brief by the chat model, then the modal opens for review.
+   */
+  async openImageFromText(
+    text: string,
+    view: MarkdownView,
+    origin: 'selection' | 'note',
+  ): Promise<void> {
+    const source = stripFrontmatter(text)
+    if (!source) {
+      new Notice('Nothing to work from: the selection or note is empty.')
+      return
+    }
+    let brief = source
+    if (needsBriefSynthesis(source)) {
+      const notice = new Notice('Writing an image brief from the note…', 0)
+      try {
+        brief = await writeImageBriefFromText({
+          settings: this.settings,
+          setSettings: (next) => this.setSettings(next),
+          text: source,
+          title: view.file?.basename,
+        })
+      } catch (error) {
+        notice.hide()
+        new Notice(
+          `Could not write a brief: ${error instanceof Error ? error.message : String(error)}`,
+        )
+        return
+      }
+      notice.hide()
+    }
+    new GenerateImageModal(this, {
+      title:
+        origin === 'note'
+          ? `Generate image from “${view.file?.basename ?? 'note'}”`
+          : 'Generate image from selection',
+      brief,
+      targetFilePath: view.file?.path,
+      origin,
+    }).open()
+  }
+
+  /**
+   * Clipboard image → Markdown at the cursor (R-035). The image never touches
+   * the vault; only the resulting Markdown is inserted.
+   */
+  async convertClipboardImage(editor: Editor, mode: ImageStructureMode) {
+    const image = await readClipboardImage()
+    if (!image) {
+      new Notice(
+        'No image on the clipboard. Copy a screenshot or an image first.',
+      )
+      return
+    }
+    const notice = new Notice(
+      `Reading the image as ${IMAGE_STRUCTURE_LABELS[mode]}…`,
+      0,
+    )
+    try {
+      const cursorLine = editor.getLine(editor.getCursor().line).trim()
+      const markdown = await convertImageToMarkdown({
+        settings: this.settings,
+        setSettings: (next) => this.setSettings(next),
+        image,
+        mode,
+        hint: cursorLine || undefined,
+      })
+      const selection = editor.getSelection()
+      const block = `${markdown}\n`
+      if (selection) editor.replaceSelection(block)
+      else editor.replaceRange(block, editor.getCursor())
+      notice.hide()
+      new Notice('Inserted Markdown from the clipboard image.')
+    } catch (error) {
+      notice.hide()
+      new Notice(
+        `Image conversion failed: ${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
+  }
+
   async addSelectionToChat(editor: Editor, view: MarkdownView) {
     const data = await getMentionableBlockData(editor, view)
     if (!data) return
@@ -486,7 +735,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
         await manager.initialize()
         if (this.unloading) {
           manager.cleanup()
-          throw new Error('Smart Composer unloaded during MCP initialization.')
+          throw new Error('CMDS Achmage unloaded during MCP initialization.')
         }
         this.mcpManager = manager
         return manager
@@ -518,7 +767,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
           if (this.unloading) {
             manager.cleanup()
             throw new Error(
-              'Smart Composer unloaded during research initialization.',
+              'CMDS Achmage unloaded during research initialization.',
             )
           }
           this.researchManager = manager
@@ -581,7 +830,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
     } catch (error) {
       if (this.unloading) return
       console.error('Failed to initialize inline edit:', error)
-      new Notice('Smart Composer inline edit could not be initialized.')
+      new Notice('CMDS Achmage inline edit could not be initialized.')
     }
   }
 
@@ -598,7 +847,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
           if (this.unloading) {
             controller.cleanup()
             throw new Error(
-              'Smart Composer unloaded during inline edit initialization.',
+              'CMDS Achmage unloaded during inline edit initialization.',
             )
           }
           this.inlineEditController = controller

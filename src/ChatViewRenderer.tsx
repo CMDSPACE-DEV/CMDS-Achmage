@@ -16,6 +16,7 @@ import { McpProvider } from './contexts/mcp-context'
 import { PluginProvider } from './contexts/plugin-context'
 import { RAGProvider } from './contexts/rag-context'
 import { SettingsProvider } from './contexts/settings-context'
+import type { ImageGenerationSubmission } from './core/image/image-request'
 import type SmartComposerPlugin from './main'
 import type { MentionableBlockData } from './types/mentionable'
 
@@ -25,6 +26,7 @@ export type ChatViewRenderer = {
   openNewChat(selectedBlock?: MentionableBlockData): void
   addSelectionToChat(selectedBlock: MentionableBlockData): void
   focusMessage(): void
+  generateImage(submission: ImageGenerationSubmission): Promise<void>
 }
 
 export function createChatViewRenderer({
@@ -140,6 +142,9 @@ export function createChatViewRenderer({
     },
     focusMessage() {
       chatRef.current?.focusMessage()
+    },
+    async generateImage(submission: ImageGenerationSubmission) {
+      await chatRef.current?.generateImage(submission)
     },
   }
 }

@@ -1,3 +1,5 @@
+import { mergeImageModelCatalog } from '../../core/image/image-model-catalog'
+
 import { SETTINGS_SCHEMA_VERSION, SETTING_MIGRATIONS } from './migrations'
 import {
   SmartComposerSettings,
@@ -32,7 +34,10 @@ export function parseSmartComposerSettings(
 ): SmartComposerSettings {
   try {
     const migratedData = migrateSettings(data as Record<string, unknown>)
-    return smartComposerSettingsSchema.parse(migratedData)
+    return smartComposerSettingsSchema.parse({
+      ...migratedData,
+      chatModels: mergeImageModelCatalog(migratedData.chatModels),
+    })
   } catch (error) {
     console.warn('Invalid settings provided, using defaults:', error)
     return smartComposerSettingsSchema.parse({})

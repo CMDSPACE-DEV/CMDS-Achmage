@@ -5,6 +5,7 @@ import { ArtifactRecord } from '../../types/background-task'
 
 import { readCmdsEagleLibraryProfiles } from './CmdsEagleBridge'
 import { EagleClient, normalizeLibraryPath } from './eagle-client'
+import { libraryNameFromPath } from './eagle-paths'
 import { EagleDeliveryResult, deliverToEagle } from './image-delivery'
 
 export type EagleArtifactMetadata = {
@@ -12,6 +13,14 @@ export type EagleArtifactMetadata = {
   eagleLibraryPath: string
   eagleDeeplink: string
   eagleMarkdown: string
+}
+
+/** Human summary of where an import landed, for notices and card messages. */
+export function describeEagleDelivery(
+  result: Pick<EagleDeliveryResult, 'libraryPath'>,
+  folderPath: string,
+): string {
+  return `${libraryNameFromPath(result.libraryPath)}${folderPath ? ` / ${folderPath}` : ''}`
 }
 
 export function readEagleArtifactMetadata(
