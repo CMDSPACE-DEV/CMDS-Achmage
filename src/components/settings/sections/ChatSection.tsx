@@ -1,3 +1,5 @@
+import { App } from 'obsidian'
+
 import { RECOMMENDED_MODELS_FOR_CHAT } from '../../../constants'
 import { useSettings } from '../../../contexts/settings-context'
 import { getProviderCapabilities } from '../../../core/llm/providerCapabilities'
@@ -12,8 +14,11 @@ import { ImagePromptTemplateSettings } from './ImagePromptTemplateSettings'
 
 export function ChatSection({
   mode = 'all',
+  app,
 }: {
   mode?: 'all' | 'models' | 'writing'
+  /** Needed for the image destination controls (Eagle lookups). */
+  app?: App
 }) {
   const { settings, setSettings } = useSettings()
   const showModels = mode !== 'writing'
@@ -258,7 +263,7 @@ export function ChatSection({
             />
           </ObsidianSetting>
 
-          <ImageDestinationSettings />
+          {app && <ImageDestinationSettings app={app} />}
 
           <ImagePromptTemplateSettings />
         </>

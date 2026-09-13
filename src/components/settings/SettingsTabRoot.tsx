@@ -5,6 +5,8 @@ import SmartComposerPlugin from '../../main'
 import { ObsidianButton } from '../common/ObsidianButton'
 import { ObsidianSetting } from '../common/ObsidianSetting'
 
+import { SettingsErrorBoundary } from './SettingsErrorBoundary'
+
 import { AppearanceSection } from './sections/AppearanceSection'
 import { ChatSection } from './sections/ChatSection'
 import { EtcSection } from './sections/EtcSection'
@@ -26,14 +28,12 @@ export function SettingsTabRoot({ app, plugin }: SettingsTabRootProps) {
 
   return (
     <div className="smtcmp-settings-root">
-      <nav
-        className="smtcmp-settings-tabs"
-        role="tablist"
-        aria-label="Smart Composer settings"
-      >
+      {/* No aria-label here: Obsidian renders aria-label as a hover tooltip. */}
+      <nav className="smtcmp-settings-tabs" role="tablist">
         {SETTINGS_PAGES.map((page) => (
           <button
             key={page.id}
+            id={`smtcmp-settings-tab-${page.id}`}
             type="button"
             role="tab"
             aria-selected={activeTab === page.id}
@@ -49,7 +49,7 @@ export function SettingsTabRoot({ app, plugin }: SettingsTabRootProps) {
       <div
         className="smtcmp-settings-page"
         role="tabpanel"
-        aria-label={SETTINGS_PAGES.find((page) => page.id === activeTab)?.label}
+        aria-labelledby={`smtcmp-settings-tab-${activeTab}`}
       >
         {activeTab === 'plan' && (
           <>
@@ -60,10 +60,18 @@ export function SettingsTabRoot({ app, plugin }: SettingsTabRootProps) {
         {activeTab === 'research' && <ResearchSection plugin={plugin} />}
         {activeTab === 'writing' && (
           <>
-            <ChatSection mode="writing" />
-            <AppearanceSection />
-            <RAGSection app={app} plugin={plugin} />
-            <TemplateSection app={app} />
+            <SettingsErrorBoundary label="Writing and generation">
+              <ChatSection mode="writing" app={app} />
+            </SettingsErrorBoundary>
+            <SettingsErrorBoundary label="Appearance">
+              <AppearanceSection />
+            </SettingsErrorBoundary>
+            <SettingsErrorBoundary label="Vault search">
+              <RAGSection app={app} plugin={plugin} />
+            </SettingsErrorBoundary>
+            <SettingsErrorBoundary label="Templates">
+              <TemplateSection app={app} />
+            </SettingsErrorBoundary>
           </>
         )}
         {activeTab === 'mcp' && <McpSection app={app} plugin={plugin} />}

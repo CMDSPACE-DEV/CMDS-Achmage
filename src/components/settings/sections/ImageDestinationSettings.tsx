@@ -1,7 +1,6 @@
-import { Notice } from 'obsidian'
+import { App, Notice } from 'obsidian'
 import { useMemo, useState } from 'react'
 
-import { useApp } from '../../../contexts/app-context'
 import { useSettings } from '../../../contexts/settings-context'
 import {
   isCmdsEagleInstalled,
@@ -35,8 +34,7 @@ const ACTIVE_LIBRARY = ''
  * and folder lists come from Eagle's local API; CMDS Eagle's remembered
  * libraries are merged in when that plugin is installed.
  */
-export function ImageDestinationSettings() {
-  const app = useApp()
+export function ImageDestinationSettings({ app }: { app: App }) {
   const { settings, setSettings } = useSettings()
   const target = settings.imageGeneration.eagle
   const destination = settings.imageGeneration.destination
