@@ -117,6 +117,11 @@ edit), and **Generate image from clipboard image (image to image)…**. The
 editor context menu offers the selection / note variants. The modal takes a
 template, model, count, and reference images (clipboard or any vault image);
 GPT Plan and Gemini image models use references, grok-imagine is text-only.
+**Edit note** (pen icon in the composer) asks for changes to the current
+note; the reply comes back as edit cards anchored to existing sentences and
+**Apply** patches the note in place, deterministically, with no second model
+call.
+
 The inline edit panel (⇧⌘K) has an **Output** switch: *Image* sends the
 prompt, or the selected text when the prompt is empty, to the image queue with
 a guide template of your choice.
@@ -240,6 +245,8 @@ CMDS Achmage도 남의 배에서 출발했습니다. 잘 만들어진 옵시디�
 이미지 생성은 GPT Plan 모델(구독) 또는 API 키를 넣은 Gemini·Grok 이미지 모델로 동작합니다. **설정 → CMDS Achmage → Image model**에서 모델을 고르고, 컴포저의 이미지 모드에서 **프롬프트 템플릿 슬롯**(CMDS 일러스트, 인포그래픽, 개념도, 아이콘 세트, 실사, 직접 추가)을 선택할 수 있습니다. 복사한 스크린샷을 노트 내용으로 바꾸는 명령 4개: **Convert clipboard image to Markdown (auto structure)**, **… to Markdown list**, **… to Markdown table**, **… to Mermaid diagram**.
 
 이미지 생성 진입점은 컴포저 지팡이 아이콘 외에 네 가지입니다: **Generate image (text to image)…**, **Generate image from selection**, **Generate image from current note**(채팅 모델이 노트를 브리프로 요약해 주고 수정 후 생성), **Generate image from clipboard image (image to image)…**. 에디터 우클릭 메뉴에서도 선택/노트 버전을 실행할 수 있습니다. 모달에서 템플릿·모델·장수·참조 이미지(클립보드 또는 볼트 이미지)를 정하며, GPT Plan과 Gemini 이미지 모델은 참조 이미지를 쓰고 grok-imagine은 텍스트 전용입니다.
+컴포저의 **Edit note**(펜 아이콘)로 현재 노트의 수정을 요청하면, 답변이 기존 문장에 앵커된 편집 카드로 오고 **Apply**를 누르면 두 번째 모델 호출 없이 결정론적으로 노트에 반영됩니다.
+
 인라인 편집 패널(⇧⌘K)에는 **Output** 스위치가 있어, *Image*를 고르면 프롬프트(비어 있으면 선택한 텍스트)를 가이드 템플릿과 함께 이미지 큐로 보냅니다.
 
 ## Plan 모드를 쓰기 전에

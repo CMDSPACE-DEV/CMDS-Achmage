@@ -282,8 +282,23 @@ function paragraphStart(text: string, offset: number): number {
   return blank === -1 ? 0 : blank + 2
 }
 
-function blockify(content: string): string {
-  return `\n\n${content.trim()}\n\n`
+/**
+ * Block content padded so exactly one blank line separates it from what is
+ * already there on each side (or nothing at the file edges).
+ */
+function padBlock(text: string, at: number, content: string): string {
+  const body = content.trim()
+  const before = text.slice(Math.max(0, at - 2), at)
+  const after = text.slice(at, at + 2)
+  const lead =
+    at === 0 || before === '\n\n' ? '' : before.endsWith('\n') ? '\n' : '\n\n'
+  const trail =
+    at >= text.length || after === '\n\n'
+      ? ''
+      : after.startsWith('\n')
+        ? '\n'
+        : '\n\n'
+  return `${lead}${body}${trail}`
 }
 
 function splice(
@@ -302,14 +317,6 @@ function splice(
   }
 }
 
-function collapseBlankRuns(text: string, around: number): string {
-  // Keep at most one blank line where we inserted block content.
-  const start = Math.max(0, around - 4)
-  const head = text.slice(0, start)
-  const tail = text.slice(start).replace(/\n{3,}/g, '\n\n')
-  return head + tail
-}
-
 export function applyEditOp(text: string, op: EditOp): ApplyResult {
   const content = op.content.replace(/\r\n/g, '\n')
   if (op.op === 'append-section') {
@@ -318,18 +325,10 @@ export function applyEditOp(text: string, op: EditOp): ApplyResult {
     const section = findSection(text, op.heading)
     if (!section)
       return { status: 'failed', reason: `Heading "${op.heading}" not found.` }
-    const bodyTrimmedEnd = text
-      .slice(0, section.bodyTo)
-      .replace(/\s+$/, '').length
-    const result = splice(
-      text,
-      bodyTrimmedEnd,
-      section.bodyTo,
-      blockify(content) + (section.bodyTo === text.length ? '' : ''),
-    )
-    if (result.status === 'applied')
-      result.text = collapseBlankRuns(result.text, bodyTrimmedEnd)
-    return result
+    const at = text.slice(0, section.bodyTo).replace(/\s+$/, '').length
+    // Keep the whitespace that separated this section from the next one.
+    const insert = padBlock(text, at, content)
+    return splice(text, at, at, insert)
   }
   if (!op.anchor)
     return { status: 'failed', reason: `${op.op} needs an anchor.` }
@@ -364,12 +363,8 @@ export function applyEditOp(text: string, op: EditOp): ApplyResult {
   }
   if (op.op === 'insert-after') {
     const at = paragraphEnd(text, to)
-    const result = splice(text, at, at, blockify(content))
-    if (result.status === 'applied')
-      result.text = collapseBlankRuns(result.text, at)
-    return result
+    return splice(text, at, at, padBlock(text, at, content))
   }
   const at = paragraphStart(text, from)
-  const result = splice(text, at, at, `${content.trim()}\n\n`)
-  return result
+  return splice(text, at, at, padBlock(text, at, content))
 }
