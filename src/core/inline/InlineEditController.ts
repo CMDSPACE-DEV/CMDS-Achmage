@@ -525,10 +525,7 @@ class InlineEditWidget extends WidgetType {
           img.alt = 'Generated image preview'
           img.draggable = true
           img.addEventListener('dragstart', (event) => {
-            event.dataTransfer?.setData(
-              'text/plain',
-              `![[${artifact.localPath}]]`,
-            )
+            event.dataTransfer?.setData('text/plain', `![[${artifactPath}]]`)
           })
           preview.append(img)
           box.append(preview)
