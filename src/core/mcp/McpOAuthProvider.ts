@@ -38,7 +38,7 @@ export class McpOAuthProvider implements OAuthClientProvider {
   get clientMetadata(): OAuthClientMetadata {
     return {
       redirect_uris: [this.redirect.toString()],
-      client_name: 'Smart Composer Achmage',
+      client_name: 'CMDS Achmage',
       grant_types: ['authorization_code', 'refresh_token'],
       response_types: ['code'],
       token_endpoint_auth_method: this.connection.auth.clientSecretId

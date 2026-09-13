@@ -43,7 +43,7 @@ describe('getProviderCapabilities', () => {
     })
   })
 
-  it('enables reviewed Smart Composer tools for the Antigravity runtime', () => {
+  it('enables reviewed CMDS Achmage tools for the Antigravity runtime', () => {
     expect(
       getProviderCapabilities(model('gemini-plan', 'gemini-3-pro-preview')),
     ).toMatchObject({

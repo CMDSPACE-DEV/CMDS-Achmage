@@ -28,16 +28,19 @@ describe('parseSmartComposerSettings', () => {
       },
       documentEditing: {
         largeEditRouting: 'auto-confirm',
-        destinationFolder: 'Smart Composer/Document Drafts',
+        destinationFolder: 'CMDS Achmage/Document Drafts',
         preserveFrontmatter: true,
         concurrency: 1,
         retryLimit: 2,
       },
       imageGeneration: {
         modelId: 'gpt-5.6-sol (plan)',
-        outputFolder: 'Smart Composer/Generated Images',
+        outputFolder: '',
         quality: 'high',
         concurrency: 1,
+      },
+      artifacts: {
+        outputFolder: 'CMDS Achmage/Artifacts',
       },
       appearance: {
         skinMode: 'follow-obsidian',
@@ -56,6 +59,7 @@ describe('parseSmartComposerSettings', () => {
         planRerankCandidateLimit: 40,
         excludePatterns: [],
         includePatterns: [],
+        respectObsidianExcludedFiles: true,
       },
 
       mcp: {
@@ -95,7 +99,7 @@ describe('parseSmartComposerSettings', () => {
       },
     })
 
-    expect(result.version).toBe(30)
+    expect(result.version).toBe(31)
     expect(result.providers).toEqual(DEFAULT_PROVIDERS)
     expect(result.chatModels).toEqual(DEFAULT_CHAT_MODELS)
     expect(result.chatModelId).toBe(DEFAULT_CHAT_MODEL_ID)

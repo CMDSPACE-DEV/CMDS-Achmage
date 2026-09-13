@@ -567,7 +567,7 @@ export function classifyAntigravityQuotaProvenance(
     status: 'subscription',
     allowed: true,
     reason:
-      'Antigravity is signed in and returned a usable model catalog. Gemini requests are enabled in compatibility mode; the CLI does not expose the account quota source to Smart Composer.',
+      'Antigravity is signed in and returned a usable model catalog. Gemini requests are enabled in compatibility mode; the CLI does not expose the account quota source to CMDS Achmage.',
     evidence: [
       'agy models --json returned a non-empty catalog',
       'no explicit API or Google Cloud override detected',
@@ -600,7 +600,7 @@ export function classifyAntigravityTextCatalog(
     status: 'subscription',
     allowed: true,
     reason:
-      'Antigravity is signed in and returned a usable legacy text model catalog. Gemini requests are enabled in compatibility mode; the CLI does not expose the account quota source to Smart Composer.',
+      'Antigravity is signed in and returned a usable legacy text model catalog. Gemini requests are enabled in compatibility mode; the CLI does not expose the account quota source to CMDS Achmage.',
     evidence: [
       'agy models returned a non-empty text catalog',
       'no explicit API or Google Cloud override detected',

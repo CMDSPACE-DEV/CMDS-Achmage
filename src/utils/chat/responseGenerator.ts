@@ -423,7 +423,7 @@ export class ResponseGenerator {
       : {
           status: ToolCallResponseStatus.Error,
           error:
-            'This native Plan runtime cannot pause for a Smart Composer approval card. Approve the connection schema first or use Full auto tool execution.',
+            'This native Plan runtime cannot pause for a CMDS Achmage approval card. Approve the connection schema first or use Full auto tool execution.',
         }
     const toolMessage: ChatToolMessage = {
       role: 'tool',

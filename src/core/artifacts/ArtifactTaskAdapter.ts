@@ -87,6 +87,7 @@ export class ArtifactTaskAdapter implements BackgroundTaskAdapter {
       })
       const artifact = await writeDraft(
         this.plugin.app,
+        this.plugin.settings.artifacts.outputFolder,
         task.id,
         draft,
         typeof task.input.targetFingerprint === 'string'
@@ -143,7 +144,7 @@ export class ArtifactTaskAdapter implements BackgroundTaskAdapter {
     validateDraft(draft)
     const targetFingerprint = await fingerprintVaultPath(
       this.plugin.app,
-      draft.path,
+      resolveArtifactPath(this.plugin.settings.artifacts.outputFolder, draft),
     )
     return {
       status: 'awaiting-approval',
@@ -154,13 +155,14 @@ export class ArtifactTaskAdapter implements BackgroundTaskAdapter {
 
 async function writeDraft(
   app: App,
+  outputFolder: string,
   taskId: string,
   draft: ArtifactDraft,
   expectedFingerprint?: string,
 ): Promise<ArtifactRecord> {
   validatePath(draft)
   validateDraft(draft)
-  const path = normalizePath(draft.path)
+  const path = resolveArtifactPath(outputFolder, draft)
   await ensureParent(app, path)
   const existing = app.vault.getFileByPath(path)
   const snapshot = existing ? await app.vault.read(existing) : null
@@ -331,6 +333,20 @@ function buildExcalidraw(
     '```',
     '%%',
   ].join('\n')
+}
+
+/**
+ * The model names the file; the user's setting names the folder. Any folder
+ * segments the model included are dropped so a draft can never create
+ * directories the user did not choose.
+ */
+function resolveArtifactPath(
+  outputFolder: string,
+  draft: ArtifactDraft,
+): string {
+  const filename = draft.path.split('/').pop() ?? draft.path
+  const folder = outputFolder.trim().replace(/^\/+|\/+$/g, '')
+  return normalizePath(folder ? `${folder}/${filename}` : filename)
 }
 
 function validatePath(draft: ArtifactDraft): void {
@@ -587,4 +603,4 @@ const ARTIFACT_SYSTEM_PROMPT = `Return JSON only. Create one typed Obsidian arti
 Canvas: {"kind":"canvas","path":"...canvas","nodes":[{"type":"text|file|group","text":"...","file":"...","label":"...","x":0,"y":0,"width":300,"height":180}],"edges":[{"from":0,"to":1,"label":"..."}]}.
 Base: {"kind":"base","path":"...base","config":{valid Obsidian BasesConfigFile fields}}. Filters may use folder, tag, property existence/equality/comparison and and/or/not only.
 Excalidraw: {"kind":"excalidraw","path":"...excalidraw.md","elements":[{"type":"rectangle|ellipse|diamond|text|arrow","x":0,"y":0,"width":220,"height":100,"text":"...","from":0,"to":1}]}.
-Use at most 200 elements. Keep every path inside the vault.`
+Use at most 200 elements. For "path" give only a file name with the right extension; the folder is chosen by the user's settings and any folder you include is ignored.`

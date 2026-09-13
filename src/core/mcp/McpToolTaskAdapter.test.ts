@@ -96,7 +96,7 @@ describe('McpToolTaskAdapter', () => {
     expect(result.status).toBe('succeeded')
     expect(result.input?.resultTruncated).toBe(true)
     expect(String(result.input?.resultText)).toHaveLength(
-      120_000 + '\n\n[Result truncated by Smart Composer]'.length,
+      120_000 + '\n\n[Result truncated by CMDS Achmage]'.length,
     )
   })
 })

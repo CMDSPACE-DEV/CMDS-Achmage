@@ -73,8 +73,8 @@ export function SettingsTabRoot({ app, plugin }: SettingsTabRootProps) {
             <ModelsSection app={app} plugin={plugin} />
             <EtcSection app={app} plugin={plugin} />
             <ObsidianSetting
-              name="Support Smart Composer"
-              desc="If you find Smart Composer valuable, consider supporting its development!"
+              name="Support the upstream project"
+              desc="CMDS Achmage is built on Smart Composer by kevin.on. If you find it valuable, consider supporting the upstream author."
               heading
               className="smtcmp-settings-support-smart-composer"
             >

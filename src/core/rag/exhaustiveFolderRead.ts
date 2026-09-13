@@ -7,6 +7,10 @@ import { SelectEmbedding, VectorMetaData } from '../../database/schema'
 import { SmartComposerSettings } from '../../settings/schema/setting.types'
 import { RetrievalMetadata } from '../../types/chat'
 import { tokenCount } from '../../utils/llm/token'
+import {
+  getUserIgnoreFilters,
+  isUserIgnored,
+} from '../../utils/vault/userIgnore'
 
 import {
   describePlanRequestError,
@@ -153,8 +157,14 @@ function getTargetFiles(
     new Map(files.map((file) => [file.path, file])).values(),
   )
 
+  const ignoreFilters = settings.ragOptions.respectObsidianExcludedFiles
+    ? getUserIgnoreFilters(app)
+    : []
   return uniqueFiles.filter((file) => {
     if (file.extension !== 'md') {
+      return false
+    }
+    if (isUserIgnored(file.path, ignoreFilters)) {
       return false
     }
     if (
