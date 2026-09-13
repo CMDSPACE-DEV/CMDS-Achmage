@@ -4,7 +4,7 @@ import { encodeTokenIds, tokenCount } from './token'
 
 const corpus = [
   '',
-  'Smart Composer keeps exact token semantics.',
+  'CMDS Achmage keeps exact token semantics.',
   '옵시디언 폴더 전체를 정독하고 핵심 연결점을 정리해줘.',
   '# Heading\n\n- one\n- two\n\n```ts\nconst value = 42\n```',
   'Emoji and mixed Unicode: 🚀 🧠 café 한글 日本語',

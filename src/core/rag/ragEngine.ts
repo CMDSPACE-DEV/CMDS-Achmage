@@ -60,6 +60,8 @@ export class RAGEngine {
         chunkSize: this.settings.ragOptions.chunkSize,
         excludePatterns: this.settings.ragOptions.excludePatterns,
         includePatterns: this.settings.ragOptions.includePatterns,
+        respectObsidianExcludedFiles:
+          this.settings.ragOptions.respectObsidianExcludedFiles,
         reindexAll: options.reindexAll,
       },
       (indexProgress) => {

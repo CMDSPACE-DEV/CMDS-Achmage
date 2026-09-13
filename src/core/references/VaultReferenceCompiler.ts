@@ -1,4 +1,5 @@
 import { minimatch } from 'minimatch'
+import { getUserIgnoreFilters, isUserIgnored } from '../../utils/vault/userIgnore'
 import { App, TFile, TFolder } from 'obsidian'
 
 import type { QueryProgressState } from '../../components/chat-view/QueryProgress'
@@ -100,7 +101,13 @@ export async function compileVaultReferences({
   const vaultFiles = resolved.useVault ? app.vault.getMarkdownFiles() : []
   const allFiles = [
     ...resolved.files.filter((file) => file.extension === 'md'),
-    ...filterReferenceFiles([...folderFiles, ...vaultFiles], settings),
+    ...filterReferenceFiles(
+      [...folderFiles, ...vaultFiles],
+      settings,
+      settings.ragOptions.respectObsidianExcludedFiles
+        ? getUserIgnoreFilters(app)
+        : [],
+    ),
   ]
   const files = Array.from(
     new Map(allFiles.map((file) => [file.path, file])).values(),
@@ -333,9 +340,11 @@ function resolveReferences(
 function filterReferenceFiles(
   files: TFile[],
   settings: SmartComposerSettings,
+  ignoreFilters: string[] = [],
 ): TFile[] {
   return files.filter((file) => {
     if (file.extension !== 'md') return false
+    if (isUserIgnored(file.path, ignoreFilters)) return false
     if (
       settings.ragOptions.excludePatterns.some((pattern) =>
         minimatch(file.path, pattern),

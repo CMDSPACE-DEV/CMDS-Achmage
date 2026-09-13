@@ -34,7 +34,7 @@ export class ChatView extends ItemView {
   }
 
   getDisplayText() {
-    return 'Smart composer chat'
+    return 'CMDS Achmage chat'
   }
 
   async onOpen() {

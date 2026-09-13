@@ -22,6 +22,10 @@ import {
   EmbeddingModelClient,
 } from '../../../types/embedding'
 import { chunkArray } from '../../../utils/common/chunk-array'
+import {
+  getUserIgnoreFilters,
+  isUserIgnored,
+} from '../../../utils/vault/userIgnore'
 
 import { VectorRepository } from './VectorRepository'
 
@@ -99,6 +103,7 @@ export class VectorManager {
       chunkSize: number
       excludePatterns: string[]
       includePatterns: string[]
+      respectObsidianExcludedFiles?: boolean
       reindexAll?: boolean
     },
     updateProgress?: (indexProgress: IndexProgress) => void,
@@ -109,6 +114,7 @@ export class VectorManager {
         embeddingModel: embeddingModel,
         excludePatterns: options.excludePatterns,
         includePatterns: options.includePatterns,
+        respectObsidianExcludedFiles: options.respectObsidianExcludedFiles,
         reindexAll: true,
       })
       await this.repository.clearAllVectors(embeddingModel)
@@ -118,6 +124,7 @@ export class VectorManager {
         embeddingModel: embeddingModel,
         excludePatterns: options.excludePatterns,
         includePatterns: options.includePatterns,
+        respectObsidianExcludedFiles: options.respectObsidianExcludedFiles,
       })
       await this.repository.deleteVectorsForMultipleFiles(
         filesToIndex.map((file) => file.path),
@@ -356,14 +363,22 @@ Please report this issue to the developer if it persists.`,
     embeddingModel,
     excludePatterns,
     includePatterns,
+    respectObsidianExcludedFiles = true,
     reindexAll,
   }: {
     embeddingModel: EmbeddingModelClient
     excludePatterns: string[]
     includePatterns: string[]
+    respectObsidianExcludedFiles?: boolean
     reindexAll?: boolean
   }): Promise<TFile[]> {
     let filesToIndex = this.app.vault.getMarkdownFiles()
+    if (respectObsidianExcludedFiles) {
+      const ignoreFilters = getUserIgnoreFilters(this.app)
+      filesToIndex = filesToIndex.filter(
+        (file) => !isUserIgnored(file.path, ignoreFilters),
+      )
+    }
 
     filesToIndex = filesToIndex.filter((file) => {
       return !excludePatterns.some((pattern) => minimatch(file.path, pattern))

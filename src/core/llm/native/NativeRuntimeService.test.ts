@@ -130,7 +130,7 @@ describe('getUpdateDecision', () => {
     expect(decision.reason).toContain('opportunity to run')
   })
 
-  it('launches Antigravity from a fresh Smart Composer-owned temp directory', () => {
+  it('launches Antigravity from a fresh CMDS Achmage-owned temp directory', () => {
     const geminiDiscovery = {
       ...discovery('native'),
       provider: 'gemini' as const,

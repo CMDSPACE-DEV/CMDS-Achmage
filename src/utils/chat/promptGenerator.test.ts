@@ -96,7 +96,7 @@ function createSettings(
   overrides: Partial<SmartComposerSettings> = {},
 ): SmartComposerSettings {
   return {
-    version: 30,
+    version: 31,
     providers: [...DEFAULT_PROVIDERS],
     chatModels: [...DEFAULT_CHAT_MODELS],
     embeddingModels: [
@@ -112,7 +112,7 @@ function createSettings(
     inlineEdit: { modelId: null, contextCharacters: 4000 },
     imageGeneration: {
       modelId: 'gpt-5.6-sol (plan)',
-      outputFolder: 'Smart Composer/Generated Images',
+      outputFolder: 'CMDS Achmage/Generated Images',
       quality: 'high',
       concurrency: 1,
       destination: 'ask',
@@ -143,9 +143,10 @@ function createSettings(
       },
     },
     imageAnalysis: { modelId: null },
+    artifacts: { outputFolder: 'CMDS Achmage/Artifacts' },
     documentEditing: {
       largeEditRouting: 'auto-confirm',
-      destinationFolder: 'Smart Composer/Document Drafts',
+      destinationFolder: 'CMDS Achmage/Document Drafts',
       preserveFrontmatter: true,
       concurrency: 1,
       retryLimit: 2,
@@ -168,6 +169,7 @@ function createSettings(
       planRerankCandidateLimit: 40,
       excludePatterns: [],
       includePatterns: [],
+      respectObsidianExcludedFiles: true,
     },
     mcp: {
       routingMode: 'auto',

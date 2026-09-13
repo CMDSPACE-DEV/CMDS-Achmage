@@ -9,6 +9,7 @@ import {
   BackgroundTaskRunContext,
   BackgroundTaskRunResult,
 } from '../../types/background-task'
+import { resolveAttachmentFolder } from '../../utils/vault/attachmentFolder'
 import { BackgroundTaskManager } from '../tasks/BackgroundTaskManager'
 
 import { copyImageToClipboard } from './clipboard-image'
@@ -19,7 +20,6 @@ import {
   isImageGenerator,
   sniffImageMimeType,
 } from './image-generator'
-import { resolveImageOutputFolder } from './output-folder'
 import {
   loadReferenceImageDataUrls,
   readReferenceImagePaths,
@@ -99,7 +99,10 @@ export class PlanImageTaskAdapter implements BackgroundTaskAdapter {
     const mimeType =
       sniffImageMimeType(bytes) ?? generated.mimeType ?? 'image/png'
     const dimensions = readPngDimensions(bytes)
-    const folder = normalizePath(resolveImageOutputFolder(settings))
+    const folder = normalizePath(
+      settings.imageGeneration.outputFolder.trim() ||
+        resolveAttachmentFolder(this.app),
+    )
     await ensureFolder(this.app, folder)
     // Name the file after the user's own brief, not the composed prompt
     // (template + rules), so files stay recognisable in the folder.

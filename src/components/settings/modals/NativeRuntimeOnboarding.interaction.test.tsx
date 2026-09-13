@@ -125,7 +125,7 @@ const readyGeminiSnapshot: NativeRuntimeSnapshot = {
     status: 'subscription',
     allowed: true,
     reason:
-      'Antigravity is signed in and returned a usable model catalog. Gemini requests are enabled in compatibility mode; the CLI does not expose the account quota source to Smart Composer.',
+      'Antigravity is signed in and returned a usable model catalog. Gemini requests are enabled in compatibility mode; the CLI does not expose the account quota source to CMDS Achmage.',
     evidence: ['agy models --json returned a non-empty catalog'],
   },
 }

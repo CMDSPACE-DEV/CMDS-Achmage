@@ -118,13 +118,13 @@ describe('DocumentJobRepository', () => {
 
     manifest = await repository.rebuildTransformDraft(
       manifest.jobId,
-      'Smart Composer/Document Drafts',
+      'CMDS Achmage/Document Drafts',
     )
 
     expect(await repository.readSource(manifest)).toBe(source)
     expect(await repository.readReferences(manifest)).toBe('Reference snapshot')
     expect(manifest.draftPath).toBe(
-      'Smart Composer/Document Drafts/Imported - Smart Composer draft.md',
+      'CMDS Achmage/Document Drafts/Imported - CMDS Achmage draft.md',
     )
     const draftPath = manifest.draftPath
     if (!draftPath) throw new Error('Expected a visible draft path')
@@ -168,8 +168,8 @@ describe('DocumentJobRepository', () => {
       content: 'Second',
     })
 
-    expect(first).toBe('Drafts/Document - Smart Composer draft.md')
-    expect(second).toBe('Drafts/Document - Smart Composer draft 2.md')
+    expect(first).toBe('Drafts/Document - CMDS Achmage draft.md')
+    expect(second).toBe('Drafts/Document - CMDS Achmage draft 2.md')
     expect(await repository.listJobs()).toHaveLength(1)
   })
 })

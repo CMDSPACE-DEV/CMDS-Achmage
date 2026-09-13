@@ -532,7 +532,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
       return
     }
     const { textCard } = this.settings.imageGeneration
-    const outputFolder = resolveImageOutputFolder(this.settings)
+    const outputFolder = resolveImageOutputFolder(this.app, this.settings)
     try {
       const bytes = await renderTextCard(view.containerEl.ownerDocument, text, {
         style: textCard.style,

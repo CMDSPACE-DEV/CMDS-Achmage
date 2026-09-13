@@ -38,7 +38,7 @@ export class McpOAuthProvider implements OAuthClientProvider {
   get clientMetadata(): OAuthClientMetadata {
     return {
       redirect_uris: [this.redirect.toString()],
-      client_name: 'Smart Composer Achmage',
+      client_name: 'CMDS Achmage',
       grant_types: ['authorization_code', 'refresh_token'],
       response_types: ['code'],
       token_endpoint_auth_method: this.connection.auth.clientSecretId
@@ -243,6 +243,11 @@ export async function startMcpOAuthCallbackSession(
   }, CALLBACK_TIMEOUT_MS)
 
   server = http.createServer((request, response) => {
+    // finish() closes the server from inside this handler. server.close() only
+    // ends connections that are already idle, so a keep-alive socket from the
+    // browser would otherwise linger for the full keepAliveTimeout (5 s) and
+    // hold the callback port open after the flow is done.
+    response.setHeader('Connection', 'close')
     const address = server?.address()
     const port =
       address && typeof address !== 'string' ? address.port : undefined
