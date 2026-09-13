@@ -1,5 +1,5 @@
 import { Check, CircleAlert, FilePenLine, LoaderCircle } from 'lucide-react'
-import { Notice, TFile } from 'obsidian'
+import { App, Notice, TFile } from 'obsidian'
 import { useState } from 'react'
 
 import { useApp } from '../../contexts/app-context'
@@ -16,8 +16,47 @@ const OP_LABELS: Record<EditOpKind, string> = {
   'append-section': 'Append to section',
 }
 
-function isOpKind(value: string): value is EditOpKind {
+export function isOpKind(value: string): value is EditOpKind {
   return value in OP_LABELS
+}
+
+export type EditCardState =
+  | { kind: 'idle' }
+  | { kind: 'busy' }
+  | { kind: 'applied'; file: string }
+  | { kind: 'failed'; reason: string }
+
+export type EditBlockInput = {
+  op: string
+  anchor?: string
+  until?: string
+  heading?: string
+  content: string
+}
+
+/** Applies one edit block to the active note; shared by Apply and Apply all. */
+export async function runEditBlock(
+  app: App,
+  block: EditBlockInput,
+): Promise<EditCardState> {
+  if (!isOpKind(block.op)) {
+    return { kind: 'failed', reason: `Unknown operation "${block.op}".` }
+  }
+  const file = app.workspace.getActiveFile()
+  if (!(file instanceof TFile)) {
+    return { kind: 'failed', reason: 'Open the note you want to edit first.' }
+  }
+  const editOp: EditOp = {
+    op: block.op,
+    anchor: block.anchor,
+    until: block.until,
+    heading: block.heading,
+    content: block.content,
+  }
+  const result = await applyEditToFile(app, file, editOp)
+  return result.status === 'applied'
+    ? { kind: 'applied', file: file.basename }
+    : { kind: 'failed', reason: result.reason }
 }
 
 /**
@@ -31,6 +70,8 @@ export function EditBlockCard({
   heading,
   content,
   complete,
+  state: controlledState,
+  onStateChange,
 }: {
   op: string
   anchor?: string
@@ -38,34 +79,33 @@ export function EditBlockCard({
   heading?: string
   content: string
   complete: boolean
+  /** When provided (Apply all), the parent owns the state. */
+  state?: EditCardState
+  onStateChange?: (state: EditCardState) => void
 }) {
   const app = useApp()
-  const [state, setState] = useState<
-    | { kind: 'idle' }
-    | { kind: 'busy' }
-    | { kind: 'applied'; file: string }
-    | { kind: 'failed'; reason: string }
-  >({ kind: 'idle' })
+  const [localState, setLocalState] = useState<EditCardState>({ kind: 'idle' })
+  const state = controlledState ?? localState
+  const setState = (next: EditCardState) => {
+    setLocalState(next)
+    onStateChange?.(next)
+  }
   const target = app.workspace.getActiveFile()
   const validOp = isOpKind(op)
   const where = heading ?? anchor ?? ''
 
   const apply = async () => {
     if (!validOp) return
-    const file = app.workspace.getActiveFile()
-    if (!(file instanceof TFile)) {
-      new Notice('Open the note you want to edit first.')
-      return
-    }
     setState({ kind: 'busy' })
-    const editOp: EditOp = { op, anchor, until, heading, content }
-    const result = await applyEditToFile(app, file, editOp)
-    if (result.status === 'applied') {
-      setState({ kind: 'applied', file: file.basename })
-      return
-    }
-    setState({ kind: 'failed', reason: result.reason })
-    new Notice(result.reason)
+    const next = await runEditBlock(app, {
+      op,
+      anchor,
+      until,
+      heading,
+      content,
+    })
+    setState(next)
+    if (next.kind === 'failed') new Notice(next.reason)
   }
 
   const insertAtCursor = () => {

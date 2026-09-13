@@ -5389,3 +5389,29 @@ body:not(.theme-dark)
     transform: rotate(360deg);
   }
 }
+
+.smtcmp-edit-apply-all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 8px 0 4px;
+  padding: 6px 10px;
+  border: 1px dashed var(--ach-border, var(--background-modifier-border));
+  border-radius: var(--radius-m);
+  font-size: var(--font-ui-smaller);
+  color: var(--ach-muted, var(--text-muted));
+}
+
+.smtcmp-edit-apply-all button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-ui-smaller);
+  background: var(--ach-action, var(--interactive-accent));
+  color: var(--ach-on-action, var(--text-on-accent));
+}
+
+.smtcmp-edit-apply-all button:disabled {
+  opacity: 0.6;
+}
