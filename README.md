@@ -110,6 +110,14 @@ plus your own). Four commands turn a copied screenshot into note content:
 **Convert clipboard image to Markdown (auto structure)**, **… to Markdown
 list**, **… to Markdown table**, **… to Mermaid diagram**.
 
+Image generation has four doors besides the composer's wand icon: **Generate
+image (text to image)…**, **Generate image from selection**, **Generate image
+from current note** (the chat model condenses the note into a brief you can
+edit), and **Generate image from clipboard image (image to image)…**. The
+editor context menu offers the selection / note variants. The modal takes a
+template, model, count, and reference images (clipboard or any vault image);
+GPT Plan and Gemini image models use references, grok-imagine is text-only.
+
 ## Before using Plan mode
 
 - Plan connections are **an experimental feature that uses subscription
@@ -227,6 +235,8 @@ CMDS Achmage도 남의 배에서 출발했습니다. 잘 만들어진 옵시디�
 생성된 이미지는 항상 볼트 출력 폴더에 먼저 저장됩니다. **설정 → CMDS Achmage → Image destination**에서 그 다음을 정합니다: 태스크 카드에서 매번 선택, 볼트에 보관, [Eagle](https://eagle.cool) 라이브러리로 전송, CMDS Eagle 플러그인의 클라우드 업로드. Eagle을 고르면 라이브러리(Eagle 열람 이력 + CMDS Eagle이 기억하는 라이브러리), 폴더, 노트에 들어갈 링크 형식(볼트 임베드 / Eagle 원본 파일 / 딥링크), 태그, 볼트 복사본 삭제 여부를 정할 수 있습니다.
 
 이미지 생성은 GPT Plan 모델(구독) 또는 API 키를 넣은 Gemini·Grok 이미지 모델로 동작합니다. **설정 → CMDS Achmage → Image model**에서 모델을 고르고, 컴포저의 이미지 모드에서 **프롬프트 템플릿 슬롯**(CMDS 일러스트, 인포그래픽, 개념도, 아이콘 세트, 실사, 직접 추가)을 선택할 수 있습니다. 복사한 스크린샷을 노트 내용으로 바꾸는 명령 4개: **Convert clipboard image to Markdown (auto structure)**, **… to Markdown list**, **… to Markdown table**, **… to Mermaid diagram**.
+
+이미지 생성 진입점은 컴포저 지팡이 아이콘 외에 네 가지입니다: **Generate image (text to image)…**, **Generate image from selection**, **Generate image from current note**(채팅 모델이 노트를 브리프로 요약해 주고 수정 후 생성), **Generate image from clipboard image (image to image)…**. 에디터 우클릭 메뉴에서도 선택/노트 버전을 실행할 수 있습니다. 모달에서 템플릿·모델·장수·참조 이미지(클립보드 또는 볼트 이미지)를 정하며, GPT Plan과 Gemini 이미지 모델은 참조 이미지를 쓰고 grok-imagine은 텍스트 전용입니다.
 
 ## Plan 모드를 쓰기 전에
 
