@@ -27,6 +27,10 @@ import {
 } from './settings/schema/setting.types'
 import { parseSmartComposerSettings } from './settings/schema/settings'
 import { SmartComposerSettingTab } from './settings/SettingTab'
+import {
+  applySkinModeToBody,
+  clearSkinModeFromBody,
+} from './utils/chat/chatSkin'
 import { getMentionableBlockData } from './utils/obsidian'
 import { SettingsSaveQueue } from './utils/settingsSaveQueue'
 
@@ -111,6 +115,15 @@ export default class SmartComposerPlugin extends Plugin {
     this.conversationRunManager = new ConversationRunManager(this.app)
 
     this.registerView(CHAT_VIEW_TYPE, (leaf) => new ChatView(leaf, this))
+
+    // Mirror the skin mode onto <body> for surfaces without a settings handle
+    // (the inline edit Shadow DOM widget). See utils/chat/chatSkin.ts.
+    applySkinModeToBody(document.body, this.settings.appearance?.skinMode)
+    this.register(
+      this.addSettingsChangeListener((settings) =>
+        applySkinModeToBody(document.body, settings.appearance?.skinMode),
+      ),
+    )
 
     // This creates an icon in the left ribbon.
     this.addRibbonIcon('wand-sparkles', 'Open CMDS Achmage chat', () =>
@@ -252,6 +265,7 @@ export default class SmartComposerPlugin extends Plugin {
 
   onunload() {
     this.unloading = true
+    clearSkinModeFromBody(document.body)
     void this.backgroundTaskManager?.cleanup()
     this.backgroundTaskManager = null
     this.inlineEditController?.cleanup()

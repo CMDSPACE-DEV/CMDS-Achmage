@@ -6,7 +6,7 @@ settings:
     -
         id: ach-where-heading
         title: Where these settings apply
-        description: Every option below changes only the CMDS Achmage chat pane (the "Chat" side panel and its composer). Nothing here touches the editor, the inline edit popup, or other plugins. By default the pane follows your Obsidian theme; the plugin's own skins (Operator Console in dark mode, Conversation Studio in light mode) are an opt-in under the plugin's Settings -> Writing -> Appearance. The options below apply on top of whichever skin is active and are only written when you change them, so leaving them alone keeps your theme's colors.
+        description: Every option below changes only surfaces CMDS Achmage draws itself: the Chat side panel with its composer, and the Inline edit panel that appears inside a note. Nothing here touches the editor text, other panes, or other plugins. By default the pane follows your Obsidian theme; the plugin's own skins (Operator Console in dark mode, Conversation Studio in light mode) are an opt-in under the plugin's Settings -> Writing -> Appearance. The options below apply on top of whichever skin is active and are only written when you change them, so leaving them alone keeps your theme's colors.
         type: heading
         level: 2
         collapsed: false
