@@ -47,3 +47,26 @@ A memory leak has been identified when reloading the plugin. This may not be cri
 ## Releasing & the Obsidian community review
 
 See [docs/obsidian-community-review.md](docs/obsidian-community-review.md) for how the community review tiers its findings (only the `obsidianmd/*` "Error" tier fails the bot), how to reproduce the reviewer locally before shipping, and the version-bump → tag → publish procedure.
+
+## Running the plugin from a vault checkout
+
+Cloning this repository straight into `.obsidian/plugins/cmds-achmage/` is a
+supported development setup, but Obsidian loads whatever `main.js` sits in that
+folder. It never checks that the bundle matches the source next to it. After
+every checkout, pull, or branch switch, rebuild before judging the UI:
+
+```bash
+npm run build      # one-off production bundle + bundle budget
+npm run dev        # or: watch mode while iterating
+```
+
+`main.js` and `meta.json` are gitignored build outputs and CI fails if either is
+tracked. Until 1.0.3 a stale `main.js` from August 2026 was committed, so a
+checkout came with a bundle that predated theme following (R-030); the source
+said `follow-obsidian` while the running pane still drew the owned dual skin.
+R-032 records the investigation. If the pane and the settings disagree, check
+the bundle first:
+
+```bash
+grep -c "studio-console" main.js   # 0 means the bundle predates R-030
+```
