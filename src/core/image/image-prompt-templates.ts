@@ -62,6 +62,26 @@ export function applyImagePromptTemplate(
   return `${template.prompt.trim()}\n\n${body}`
 }
 
+/**
+ * Final prompt for every image job (R-039): the chosen template first, the
+ * brief in the middle, and the always-on instructions last so they apply no
+ * matter which template or entry point produced the brief.
+ */
+export function composeImagePrompt({
+  brief,
+  template,
+  globalInstructions,
+}: {
+  brief: string
+  template?: ImagePromptTemplate
+  globalInstructions?: string
+}): string {
+  const body = applyImagePromptTemplate(brief, template)
+  const rules = globalInstructions?.trim()
+  if (!rules) return body
+  return `${body}\n\nAlways follow these rules:\n${rules}`
+}
+
 export function newImagePromptTemplateId(): string {
   return `tpl-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
 }

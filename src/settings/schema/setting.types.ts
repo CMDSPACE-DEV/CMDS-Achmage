@@ -130,6 +130,8 @@ export const smartComposerSettingsSchema = z.object({
           }),
         )
         .catch(DEFAULT_IMAGE_PROMPT_TEMPLATES),
+      /** Always-on instructions appended to every image prompt (R-039). */
+      globalInstructions: z.string().catch(''),
       /** Default template id per entry point; '' = no template (R-037). */
       templateByPurpose: z
         .object({
@@ -159,6 +161,7 @@ export const smartComposerSettingsSchema = z.object({
       destination: 'ask',
       eagle: { ...DEFAULT_EAGLE_TARGET },
       promptTemplates: DEFAULT_IMAGE_PROMPT_TEMPLATES,
+      globalInstructions: '',
       templateByPurpose: { ...DEFAULT_TEMPLATE_BY_PURPOSE },
       copyToClipboard: false,
       textCard: { ...DEFAULT_TEXT_CARD, insertEmbed: true },

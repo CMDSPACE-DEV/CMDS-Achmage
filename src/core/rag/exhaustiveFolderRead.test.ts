@@ -55,6 +55,7 @@ function createSettings(
         tags: 'cmds-achmage',
       },
       promptTemplates: DEFAULT_IMAGE_PROMPT_TEMPLATES,
+      globalInstructions: '',
       templateByPurpose: {
         composer: '',
         text: '',

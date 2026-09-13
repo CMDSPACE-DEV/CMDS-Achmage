@@ -109,6 +109,7 @@ describe('processQueryWithPlanRerank', () => {
             tags: 'cmds-achmage',
           },
           promptTemplates: DEFAULT_IMAGE_PROMPT_TEMPLATES,
+          globalInstructions: '',
           templateByPurpose: {
             composer: '',
             text: '',
@@ -252,6 +253,7 @@ describe('processQueryWithPlanRerank', () => {
             tags: 'cmds-achmage',
           },
           promptTemplates: DEFAULT_IMAGE_PROMPT_TEMPLATES,
+          globalInstructions: '',
           templateByPurpose: {
             composer: '',
             text: '',
