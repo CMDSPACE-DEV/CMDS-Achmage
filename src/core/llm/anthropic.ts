@@ -137,7 +137,7 @@ To resolve this issue:
 2. Create a new organization
 3. Your API key should work properly after creating an organization
 
-For more information, please refer to the following issue:
+For more information, see this issue in the upstream Smart Composer project:
 https://github.com/glowingjade/obsidian-smart-composer/issues/286`,
             error,
           )
@@ -232,7 +232,7 @@ To resolve this issue:
 2. Create a new organization
 3. Your API key should work properly after creating an organization
 
-For more information, please refer to the following issue:
+For more information, see this issue in the upstream Smart Composer project:
 https://github.com/glowingjade/obsidian-smart-composer/issues/286`,
             error,
           )

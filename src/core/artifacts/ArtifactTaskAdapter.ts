@@ -8,6 +8,7 @@ import {
 import { v4 as uuidv4 } from 'uuid'
 import { z } from 'zod'
 
+import { CLIENT_ID } from '../../constants/client-identity'
 import type SmartComposerPlugin from '../../main'
 import {
   ArtifactRecord,
@@ -310,7 +311,7 @@ function buildExcalidraw(
     {
       type: 'excalidraw',
       version: 2,
-      source: 'smart-composer-achmage',
+      source: CLIENT_ID,
       elements,
       appState: { viewBackgroundColor: '#ffffff' },
       files: {},

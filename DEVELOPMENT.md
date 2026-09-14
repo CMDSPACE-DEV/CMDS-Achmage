@@ -70,3 +70,9 @@ the bundle first:
 ```bash
 grep -c "studio-console" main.js   # 0 means the bundle predates R-030
 ```
+
+## Inherited identifiers
+
+Some identifiers still spell `smtcmp` or `smart-composer`. They name data that
+already exists in users' vaults, so they are kept on purpose. Before renaming
+any of them, read [docs/lineage-identifiers.md](docs/lineage-identifiers.md).

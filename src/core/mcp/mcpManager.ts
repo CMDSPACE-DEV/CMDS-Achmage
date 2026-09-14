@@ -1,6 +1,7 @@
 import type { App } from 'obsidian'
 import { Platform } from 'obsidian'
 
+import { CLIENT_ID, CLIENT_VERSION } from '../../constants/client-identity'
 import type { SmartComposerSettings } from '../../settings/schema/setting.types'
 import type {
   McpClient,
@@ -759,7 +760,7 @@ export class McpManager {
     })
     const { Client } = await import('@modelcontextprotocol/sdk/client/index.js')
     const client = new Client(
-      { name: 'smart-composer-achmage', version: '2.3.0' },
+      { name: CLIENT_ID, version: CLIENT_VERSION },
       { capabilities: { tasks: { list: {}, cancel: {} } } },
     )
 
