@@ -48,6 +48,7 @@ import {
   writeImageBriefFromText,
 } from '../image/image-brief'
 import { queueImageJob } from '../image/queue-image-job'
+import { OBSIDIAN_EDITING_RULES } from '../prompts/obsidian-editing-rules'
 import {
   CompiledVaultReferences,
   VaultReferenceScope,
@@ -2016,7 +2017,9 @@ export class InlineEditController {
         input.from,
       )
       const after = input.snapshot.slice(input.to, input.to + contextLimit)
-      const systemPrompt = getInlineEditSystemPrompt(placement)
+      const systemPrompt = settings.applyObsidianEditingRules
+        ? `${getInlineEditSystemPrompt(placement)}\n\n${OBSIDIAN_EDITING_RULES}`
+        : getInlineEditSystemPrompt(placement)
       const response = await providerClient.generateResponse(
         model,
         {

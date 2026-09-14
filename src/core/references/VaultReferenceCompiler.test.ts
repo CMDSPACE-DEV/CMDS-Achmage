@@ -113,6 +113,7 @@ function createSettings(
     },
     embeddingModelId: 'openai/text-embedding-3-small',
     systemPrompt: '',
+    applyObsidianEditingRules: false,
     ragOptions: {
       retrievalMode: 'plan-rerank',
       folderReadMode: 'auto',

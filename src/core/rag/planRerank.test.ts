@@ -141,6 +141,7 @@ describe('processQueryWithPlanRerank', () => {
         },
         embeddingModelId: 'openai/text-embedding-3-small',
         systemPrompt: '',
+        applyObsidianEditingRules: false,
         ragOptions: {
           retrievalMode: 'plan-rerank',
           folderReadMode: 'auto',
@@ -287,6 +288,7 @@ describe('processQueryWithPlanRerank', () => {
         },
         embeddingModelId: 'openai/text-embedding-3-small',
         systemPrompt: '',
+        applyObsidianEditingRules: false,
         ragOptions: {
           retrievalMode: 'plan-rerank',
           folderReadMode: 'auto',
