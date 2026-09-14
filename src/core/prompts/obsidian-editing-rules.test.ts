@@ -9,6 +9,12 @@ describe('OBSIDIAN_EDITING_RULES', () => {
     expect(OBSIDIAN_EDITING_RULES).toContain('TABS')
   })
 
+  it('separates the metadata region from the editable body', () => {
+    expect(OBSIDIAN_EDITING_RULES).toContain('metadata')
+    expect(OBSIDIAN_EDITING_RULES).toMatch(/top of the document/i)
+    expect(OBSIDIAN_EDITING_RULES).toMatch(/never insert above/i)
+  })
+
   it('covers every rule the settings toggle promises', () => {
     for (const topic of [
       'frontmatter',

@@ -23,7 +23,21 @@ requirements, not style preferences.
   makes the whole frontmatter fail to parse and the Properties panel go blank.
 - The markdown body indents with TABS. Nested list items use one tab per level.
 
-## Frontmatter
+## The frontmatter is a metadata region, not the top of the document
+
+If a note opens with \`---\`, everything through the closing \`---\` is YAML
+metadata. The editable body starts on the line after it.
+
+- "The top of the document", "the beginning", and "add this first" all mean the
+  first line of the BODY, below the closing \`---\`. Never insert above the
+  opening \`---\`; content placed there detaches the block, and Obsidian then
+  shows no properties at all and renders the YAML as plain text.
+- Never edit frontmatter fields unless the user asks for that specifically. Do
+  not rewrite the title, add tags, or touch dates while making a body edit.
+- When a note has no frontmatter and the user asks to add one, it goes at the
+  very first line with nothing above it, not even a blank line.
+
+## Frontmatter field rules
 
 - Wrap wikilinks in quotes: "[[Note]]", never bare [[Note]].
 - Dates use ISO 8601: YYYY-MM-DD or YYYY-MM-DDTHH:mm.
