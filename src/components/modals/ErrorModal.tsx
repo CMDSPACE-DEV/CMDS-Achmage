@@ -1,5 +1,6 @@
 import { App } from 'obsidian'
 
+import { ISSUES_URL } from '../../constants/client-identity'
 import { ReactModal } from '../common/ReactModal'
 
 type ErrorModalOptions = {
@@ -56,10 +57,7 @@ function ErrorModalComponent({
             className="mod-cta"
             onClick={() => {
               onClose()
-              window.open(
-                'https://github.com/glowingjade/obsidian-smart-composer/issues',
-                '_blank',
-              )
+              window.open(ISSUES_URL, '_blank')
             }}
           >
             Report Bug

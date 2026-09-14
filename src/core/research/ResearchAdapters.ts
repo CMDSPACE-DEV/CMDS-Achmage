@@ -1,3 +1,4 @@
+import { CLIENT_ID } from '../../constants/client-identity'
 import type {
   ResearchEvidence,
   ResearchSearchRequest,
@@ -733,7 +734,7 @@ async function searchPubMed(
         retmax: clampLimit(request.limit, 10, 50),
         api_key: apiKey,
         email,
-        tool: 'smart-composer-achmage',
+        tool: CLIENT_ID,
       }),
     },
     signal,
@@ -751,7 +752,7 @@ async function searchPubMed(
           retmode: 'json',
           api_key: apiKey,
           email,
-          tool: 'smart-composer-achmage',
+          tool: CLIENT_ID,
         },
       ),
     },
