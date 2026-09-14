@@ -31,7 +31,29 @@ author:
 		- Third level (two tabs)
 ```
 
-## 2. Frontmatter
+## 2. The frontmatter is a metadata region, not the top of the document
+
+If a note opens with `---`, everything through the closing `---` is YAML
+metadata. The editable body begins on the line after it.
+
+This one exists because "edit the top of the document" is ambiguous and models
+resolve it wrongly. Asked to add a line at the top, a model will happily insert
+it above the opening `---`. The block is then no longer frontmatter: Obsidian
+shows no properties at all and renders the YAML as plain text in the note body.
+
+- The top of the document, the beginning, and add this first all mean the first
+  line of the **body**, below the closing `---`.
+- Body edits leave frontmatter fields alone. Do not retitle, add tags, or bump
+  dates while making an unrelated edit.
+- A note that has no frontmatter and needs one gets it at line 1, with nothing
+  above it, not even a blank line.
+
+The plugin enforces this in code as well as in the prompt: anchored edit
+operations are matched and applied against the body only, so an anchor that
+exists solely inside the frontmatter fails rather than editing metadata, and an
+insert at the start of the body can never land above the opening `---`.
+
+## 3. Frontmatter field rules
 
 - Quote wikilinks: `"[[Note]]"`, never bare `[[Note]]`.
 - Dates in ISO 8601: `YYYY-MM-DD` or `YYYY-MM-DDTHH:mm`.
@@ -51,7 +73,7 @@ Tags must contain a non-numeric character. Obsidian will not render a numeric
 tag, so never harvest a body reference like `#22` into `tags:`, and write such
 references in backticks in the body so they are not parsed as tag attempts.
 
-## 3. Blank lines: tight by default
+## 4. Blank lines: tight by default
 
 No blank line after a heading, between a heading and its subheading, between a
 heading and a list, or between a list and the heading that follows.
@@ -67,13 +89,13 @@ Three places require one:
 A table directly after a heading is fine without a blank line, because the
 heading already closes the block.
 
-## 4. Tables start at column zero
+## 5. Tables start at column zero
 
 An indented table does not render, and a blank line before it does not help. A
 table cannot be nested inside a list item at all. If a list item needs a table,
 promote it to a heading or paragraph and start the table at column zero.
 
-## 5. Links
+## 6. Links
 
 Use `[[wikilinks]]` for vault-internal references rather than markdown links.
 
@@ -87,7 +109,7 @@ which keeps the target exact.
 The rules also tell the model not to invent link targets, since a hallucinated
 wikilink has the same placeholder-file effect.
 
-## 6. Mermaid
+## 7. Mermaid
 
 Obsidian's mermaid parser is sensitive to non-Latin text, spaces, and slashes.
 

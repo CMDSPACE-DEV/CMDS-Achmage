@@ -1,6 +1,7 @@
 import {
   applyEditOp,
   findSection,
+  frontmatterEnd,
   locateAnchor,
   normalizeForMatch,
 } from './edit-ops'
@@ -116,5 +117,65 @@ describe('applyEditOp', () => {
     const { value, map } = normalizeForMatch('a  b\n\tc')
     expect(value).toBe('a b c')
     expect(map).toEqual([0, 1, 3, 4, 6])
+  })
+})
+
+describe('frontmatter boundary', () => {
+  const note = [
+    '---',
+    'title: Draft',
+    'tags:',
+    '  - draft',
+    '---',
+    'Opening line of the body.',
+    '',
+    'A second paragraph.',
+  ].join('\n')
+
+  it('inserts at the top of the body, not above the frontmatter', () => {
+    const result = applyEditOp(note, {
+      op: 'insert-before',
+      anchor: 'Opening line of the body.',
+      content: 'Inserted first line.',
+    })
+    expect(result.status).toBe('applied')
+    if (result.status !== 'applied') return
+    expect(result.text.startsWith('---\ntitle: Draft')).toBe(true)
+    const body = result.text.slice(frontmatterEnd(result.text))
+    expect(body.startsWith('Inserted first line.')).toBe(true)
+  })
+
+  it('refuses an anchor that only exists inside the frontmatter', () => {
+    const result = applyEditOp(note, {
+      op: 'replace',
+      anchor: 'title: Draft',
+      content: 'title: Rewritten',
+    })
+    expect(result.status).toBe('failed')
+    if (result.status !== 'failed') return
+    expect(result.reason).toContain('not found')
+  })
+
+  it('reports offsets relative to the whole note', () => {
+    const result = applyEditOp(note, {
+      op: 'replace',
+      anchor: 'A second paragraph.',
+      content: 'A replaced paragraph.',
+    })
+    expect(result.status).toBe('applied')
+    if (result.status !== 'applied') return
+    expect(note.slice(result.from, result.to)).toBe('A second paragraph.')
+  })
+
+  it('still edits a note that has no frontmatter', () => {
+    const plain = 'Just a body.\n\nSecond paragraph.'
+    const result = applyEditOp(plain, {
+      op: 'insert-before',
+      anchor: 'Just a body.',
+      content: 'Header line.',
+    })
+    expect(result.status).toBe('applied')
+    if (result.status !== 'applied') return
+    expect(result.text.startsWith('Header line.')).toBe(true)
   })
 })

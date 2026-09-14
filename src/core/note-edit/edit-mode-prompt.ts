@@ -19,4 +19,5 @@ Rules:
 - Prefer anchors that are unique in the note. If a sentence repeats, extend the anchor until it is unique.
 - Put diagrams, tables, and code inside <content> using normal Markdown fences.
 - One operation per change. Order operations top to bottom as they appear in the note.
+- The editable region starts AFTER the note's YAML frontmatter. If the note opens with \`---\`, everything up to and including the closing \`---\` is metadata: never anchor inside it and never insert above it. "The top of the document" means the first line of the body, below the closing \`---\`.
 - If the request cannot be expressed as edits (for example it needs information you do not have), say so instead of inventing content.`

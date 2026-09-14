@@ -42,6 +42,20 @@ export type ApplyResult =
     }
   | { status: 'failed'; reason: string; candidates?: AnchorMatch[] }
 
+/**
+ * Offset where the editable body begins: the end of a leading YAML frontmatter
+ * block, or 0 when the note has none.
+ *
+ * Frontmatter is metadata, not prose. Anchor matching that reaches into it can
+ * land an edit inside the YAML, and an insert at offset 0 puts content above
+ * the opening `---`, which detaches the block and blanks the Properties panel.
+ * Every anchored operation is therefore scoped to the body.
+ */
+export function frontmatterEnd(text: string): number {
+  const match = text.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/)
+  return match ? match[0].length : 0
+}
+
 const FUZZY_THRESHOLD = 0.75
 const FUZZY_MARGIN = 0.08
 
@@ -317,7 +331,7 @@ function splice(
   }
 }
 
-export function applyEditOp(text: string, op: EditOp): ApplyResult {
+function applyEditOpToBody(text: string, op: EditOp): ApplyResult {
   const content = op.content.replace(/\r\n/g, '\n')
   if (op.op === 'append-section') {
     if (!op.heading)
@@ -367,4 +381,35 @@ export function applyEditOp(text: string, op: EditOp): ApplyResult {
   }
   const at = paragraphStart(text, from)
   return splice(text, at, at, padBlock(text, at, content))
+}
+
+/**
+ * Applies one edit operation, never touching the frontmatter. Offsets in the
+ * result are relative to the whole note, so callers need no adjustment.
+ */
+export function applyEditOp(text: string, op: EditOp): ApplyResult {
+  const bodyStart = frontmatterEnd(text)
+  if (bodyStart === 0) {
+    return applyEditOpToBody(text, op)
+  }
+  const result = applyEditOpToBody(text.slice(bodyStart), op)
+  if (result.status === 'applied') {
+    return {
+      ...result,
+      text: text.slice(0, bodyStart) + result.text,
+      from: result.from + bodyStart,
+      to: result.to + bodyStart,
+    }
+  }
+  if (result.candidates) {
+    return {
+      ...result,
+      candidates: result.candidates.map((candidate) => ({
+        ...candidate,
+        from: candidate.from + bodyStart,
+        to: candidate.to + bodyStart,
+      })),
+    }
+  }
+  return result
 }

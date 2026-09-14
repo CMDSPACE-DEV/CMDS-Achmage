@@ -1,4 +1,4 @@
-import { normalizeForMatch } from './edit-ops'
+import { frontmatterEnd, normalizeForMatch } from './edit-ops'
 
 /**
  * Paragraph-level patching for whole-document or abbreviated blocks (R-042):
@@ -27,8 +27,7 @@ type Para = { from: number; to: number; text: string; key: string }
 const PLACEHOLDER = /^<!--\s*\.{3}.*?\.{3}\s*-->$|^\.{3}$|^…$/
 
 export function stripFrontmatterRange(text: string): number {
-  const m = text.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/)
-  return m ? m[0].length : 0
+  return frontmatterEnd(text)
 }
 
 /**
