@@ -158,6 +158,7 @@ function createSettings(
     },
     embeddingModelId: 'openai/text-embedding-3-small',
     systemPrompt: '',
+    applyObsidianEditingRules: false,
     ragOptions: {
       retrievalMode: 'auto',
       folderReadMode: 'auto',
@@ -536,3 +537,50 @@ function createToolMessage(
     ],
   }
 }
+
+describe('PromptGenerator Obsidian editing rules', () => {
+  const generate = async (applyObsidianEditingRules: boolean) => {
+    const generator = new PromptGenerator(
+      jest.fn<Promise<RAGEngine>, []>(),
+      {} as App,
+      createSettings({ applyObsidianEditingRules }),
+    )
+    return generator.generateRequestMessages({
+      messages: [createUserMessage('user-1', 'write a note')],
+    })
+  }
+
+  const rulesMessage = (messages: { content?: unknown }[]) =>
+    messages.find(
+      (message) =>
+        typeof message.content === 'string' &&
+        message.content.includes('<obsidian_editing_rules>'),
+    )
+
+  it('sends the rules when the setting is on', async () => {
+    const messages = await generate(true)
+    const message = rulesMessage(messages)
+    expect(message).toBeDefined()
+    expect(String(message?.content)).toContain('TWO SPACES')
+  })
+
+  it('sends nothing when the setting is off', async () => {
+    expect(rulesMessage(await generate(false))).toBeUndefined()
+  })
+
+  it('places the rules before the user turn', async () => {
+    const messages = await generate(true)
+    const rulesIndex = messages.findIndex(
+      (message) =>
+        typeof message.content === 'string' &&
+        message.content.includes('<obsidian_editing_rules>'),
+    )
+    const userIndex = messages.findIndex(
+      (message) =>
+        typeof message.content === 'string' &&
+        message.content.includes('write a note'),
+    )
+    expect(rulesIndex).toBeGreaterThanOrEqual(0)
+    expect(rulesIndex).toBeLessThan(userIndex)
+  })
+})

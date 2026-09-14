@@ -206,6 +206,12 @@ export const smartComposerSettingsSchema = z.object({
   // System Prompt
   systemPrompt: z.string().catch(''),
 
+  /**
+   * Prepends the hardcoded CMDS Obsidian editing rules to chat and inline edit
+   * requests. Defaults off so existing installs keep their current behaviour.
+   */
+  applyObsidianEditingRules: z.boolean().catch(false),
+
   // RAG Options
   ragOptions: ragOptionsSchema.catch({
     retrievalMode: 'auto',

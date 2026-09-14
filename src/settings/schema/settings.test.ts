@@ -78,6 +78,7 @@ describe('parseSmartComposerSettings', () => {
       },
 
       systemPrompt: '',
+      applyObsidianEditingRules: false,
 
       ragOptions: {
         retrievalMode: 'auto',

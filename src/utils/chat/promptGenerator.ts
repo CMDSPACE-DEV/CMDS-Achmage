@@ -9,6 +9,7 @@ import {
   LLMBaseUrlNotSetException,
 } from '../../core/llm/exception'
 import { EDIT_NOTE_MODE_INSTRUCTIONS } from '../../core/note-edit/edit-mode-prompt'
+import { OBSIDIAN_EDITING_RULES } from '../../core/prompts/obsidian-editing-rules'
 import { processQueryWithExhaustiveFolderRead } from '../../core/rag/exhaustiveFolderRead'
 import { processQueryWithPlanRerank } from '../../core/rag/planRerank'
 import { RAGEngine } from '../../core/rag/ragEngine'
@@ -119,6 +120,8 @@ export class PromptGenerator {
 
     const customInstructionMessage = this.getCustomInstructionMessage()
 
+    const obsidianEditingRulesMessage = this.getObsidianEditingRulesMessage()
+
     const currentFile = lastUserMessage.mentionables.find(
       (m) => m.type === 'current-file',
     )?.file
@@ -129,6 +132,7 @@ export class PromptGenerator {
 
     const requestMessages: RequestMessage[] = [
       systemMessage,
+      ...(obsidianEditingRulesMessage ? [obsidianEditingRulesMessage] : []),
       ...(customInstructionMessage ? [customInstructionMessage] : []),
       ...(currentFileMessage ? [currentFileMessage] : []),
       ...this.getChatHistoryMessages({ messages: compiledMessages }),
@@ -710,6 +714,19 @@ ${
     return {
       role: 'system',
       content: shouldUseRAG ? systemPromptRAG : systemPrompt,
+    }
+  }
+
+  private getObsidianEditingRulesMessage(): RequestMessage | null {
+    if (!this.settings.applyObsidianEditingRules) {
+      return null
+    }
+    return {
+      role: 'user',
+      content: `Follow these Obsidian markdown rules in every file you write or edit. They are parser requirements; ignoring them produces files that render incorrectly. There's no need to acknowledge them.
+<obsidian_editing_rules>
+${OBSIDIAN_EDITING_RULES}
+</obsidian_editing_rules>`,
     }
   }
 

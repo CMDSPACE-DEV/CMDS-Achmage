@@ -3,6 +3,7 @@ import { App } from 'obsidian'
 import { RECOMMENDED_MODELS_FOR_CHAT } from '../../../constants'
 import { useSettings } from '../../../contexts/settings-context'
 import { getProviderCapabilities } from '../../../core/llm/providerCapabilities'
+import { OBSIDIAN_EDITING_RULES_DOC_URL } from '../../../core/prompts/obsidian-editing-rules'
 import { ObsidianDropdown } from '../../common/ObsidianDropdown'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
 import { ObsidianTextArea } from '../../common/ObsidianTextArea'
@@ -334,6 +335,31 @@ export function ChatSection({
               }}
             />
           </ObsidianSetting>
+
+          <ObsidianSetting
+            name="CMDS Obsidian editing rules"
+            desc="Adds the CMDS markdown conventions to every chat and inline edit: two-space YAML vs tab body indentation, quoted frontmatter values, tight blank lines, tables at column zero, exact wikilink targets, quoted mermaid labels. Built into the plugin, so it needs no file in your vault."
+          >
+            <ObsidianToggle
+              value={settings.applyObsidianEditingRules}
+              onChange={async (value) => {
+                await setSettings({
+                  ...settings,
+                  applyObsidianEditingRules: value,
+                })
+              }}
+            />
+          </ObsidianSetting>
+
+          <div className="smtcmp-settings-desc">
+            <a
+              href={OBSIDIAN_EDITING_RULES_DOC_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Read the rules and why each one exists
+            </a>
+          </div>
 
           <ObsidianSetting
             name="Include current file"
