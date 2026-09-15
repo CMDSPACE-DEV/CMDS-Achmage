@@ -5314,6 +5314,7 @@ body:not(.theme-dark)
 
 .smtcmp-shell .smtcmp-chat-user-input-controls__model-select-container {
   flex: 1 1 180px;
+  flex-wrap: wrap;
 }
 
 .smtcmp-shell .smtcmp-chat-user-input-controls__buttons {
@@ -5321,7 +5322,46 @@ body:not(.theme-dark)
 }
 
 .smtcmp-shell button.smtcmp-chat-input-model-select {
-  max-width: 240px !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 30px;
+}
+
+.smtcmp-shell .smtcmp-chat-input-model-select__model-name {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+/* The model menu is portalled outside the leaf's paint containment. */
+.smtcmp-model-select-popover {
+  box-sizing: border-box;
+  width: max-content;
+  max-width: var(--radix-dropdown-menu-content-available-width);
+  max-height: min(20rem, var(--radix-dropdown-menu-content-available-height));
+  overflow-y: auto;
+}
+
+.smtcmp-model-select-popover ul {
+  max-height: none;
+  overflow: visible;
+}
+
+.smtcmp-model-select-popover ul li {
+  min-width: 0;
+  max-height: none;
+  overflow: visible;
+}
+
+.smtcmp-model-select-popover__label {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.smtcmp-model-select-popover li[data-highlighted] {
+  background: var(--background-modifier-hover);
 }
 
 /* R-035: image prompt template picker, shown only in image mode. */

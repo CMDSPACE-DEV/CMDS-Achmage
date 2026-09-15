@@ -12,7 +12,10 @@ export function ModelSelect() {
   const [isOpen, setIsOpen] = useState(false)
   return (
     <DropdownMenu.Root open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenu.Trigger className="smtcmp-chat-input-model-select">
+      <DropdownMenu.Trigger
+        className="smtcmp-chat-input-model-select"
+        title={settings.chatModelId}
+      >
         <div className="smtcmp-chat-input-model-select__model-name">
           {settings.chatModelId}
         </div>
@@ -21,8 +24,15 @@ export function ModelSelect() {
         </div>
       </DropdownMenu.Trigger>
 
-      <DropdownMenu.Portal container={dialogContainer}>
-        <DropdownMenu.Content className="smtcmp-popover">
+      {/* Escape the workspace leaf's paint containment, including in popouts. */}
+      <DropdownMenu.Portal container={dialogContainer.ownerDocument.body}>
+        <DropdownMenu.Content
+          className="smtcmp-popover smtcmp-model-select-popover"
+          side="top"
+          align="start"
+          sideOffset={5}
+          collisionPadding={8}
+        >
           <ul>
             {settings.chatModels
               .filter(({ enable }) => enable ?? true)
@@ -38,7 +48,11 @@ export function ModelSelect() {
                   }}
                   asChild
                 >
-                  <li>{chatModelOption.id}</li>
+                  <li>
+                    <span className="smtcmp-model-select-popover__label">
+                      {chatModelOption.id}
+                    </span>
+                  </li>
                 </DropdownMenu.Item>
               ))}
           </ul>

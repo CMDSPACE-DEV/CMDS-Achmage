@@ -56,3 +56,6 @@ tools/
 *.md
 REFERENCES
 .github
+
+# Local browser test artifacts
+.playwright-mcp/

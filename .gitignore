@@ -24,3 +24,5 @@ data.json
 
 # Claude Code
 CLAUDE.md
+# Local browser test artifacts
+.playwright-mcp/
