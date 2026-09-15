@@ -20,7 +20,7 @@ import {
   TextNode,
   createCommand,
 } from 'lexical'
-import { startTransition, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import {
   LexicalMenu,
@@ -232,11 +232,13 @@ export function LexicalTypeaheadMenuPlugin<TOption extends MenuOption>({
         const text = getQueryTextForSearch(editor)
 
         if (
+          editor.isComposing() ||
           !$isRangeSelection(selection) ||
           !selection.isCollapsed() ||
           text === null ||
           range === null
         ) {
+          onQueryChange(null)
           closeTypeahead()
           return
         }
@@ -253,13 +255,11 @@ export function LexicalTypeaheadMenuPlugin<TOption extends MenuOption>({
             range,
             editorWindow,
           )
-          if (isRangePositioned !== null) {
-            startTransition(() =>
-              openTypeahead({
-                getRect: () => range.getBoundingClientRect(),
-                match,
-              }),
-            )
+          if (isRangePositioned) {
+            openTypeahead({
+              getRect: () => range.getBoundingClientRect(),
+              match,
+            })
             return
           }
         }

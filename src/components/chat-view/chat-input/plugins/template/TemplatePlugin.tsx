@@ -1,6 +1,11 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import clsx from 'clsx'
-import { COMMAND_PRIORITY_NORMAL, TextNode } from 'lexical'
+import {
+  COMMAND_PRIORITY_HIGH,
+  COMMAND_PRIORITY_NORMAL,
+  KEY_ENTER_COMMAND,
+  TextNode,
+} from 'lexical'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -60,23 +65,48 @@ export default function TemplatePlugin() {
 
   const [queryString, setQueryString] = useState<string | null>(null)
   const [searchResults, setSearchResults] = useState<Template[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [searchFailed, setSearchFailed] = useState(false)
 
   useEffect(() => {
     let cancelled = false
     setSearchResults([])
+    setSearchFailed(false)
+    setIsLoading(queryString != null)
     if (queryString == null) return
     void templateManager.searchTemplates(queryString).then(
       (results) => {
-        if (!cancelled) setSearchResults(results)
+        if (!cancelled) {
+          setSearchResults(results)
+          setIsLoading(false)
+        }
       },
       (error: unknown) => {
-        if (!cancelled) console.error('Failed to search templates:', error)
+        if (!cancelled) {
+          console.error('Failed to search templates:', error)
+          setSearchFailed(true)
+          setIsLoading(false)
+        }
       },
     )
     return () => {
       cancelled = true
     }
   }, [queryString, templateManager])
+
+  useEffect(() => {
+    if (queryString == null || !isLoading) return
+    // Enter should not send a half-resolved slash command as a chat message.
+    return editor.registerCommand(
+      KEY_ENTER_COMMAND,
+      (event) => {
+        if (editor.isComposing() || event?.isComposing) return false
+        event?.preventDefault()
+        return true
+      },
+      COMMAND_PRIORITY_HIGH,
+    )
+  }, [editor, isLoading, queryString])
 
   const options = useMemo(
     () =>
@@ -111,7 +141,7 @@ export default function TemplatePlugin() {
         anchorElementRef,
         { selectedIndex, selectOptionAndCleanUp, setHighlightedIndex },
       ) =>
-        anchorElementRef.current && searchResults.length
+        anchorElementRef.current && queryString !== null
           ? createPortal(
               <div
                 className="smtcmp-popover"
@@ -120,6 +150,17 @@ export default function TemplatePlugin() {
                 }}
               >
                 <ul>
+                  {options.length === 0 && (
+                    <li role="presentation">
+                      <span role="status">
+                        {isLoading
+                          ? 'Loading templates...'
+                          : searchFailed
+                            ? 'Could not load templates. Reopen / to retry.'
+                            : 'No matching templates. Save one in Prompt templates.'}
+                      </span>
+                    </li>
+                  )}
                   {options.map((option, i: number) => (
                     <TemplateMenuItem
                       index={i}
