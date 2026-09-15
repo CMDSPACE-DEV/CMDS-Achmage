@@ -65,7 +65,6 @@ export function McpSection({ app, plugin }: McpSectionProps) {
 
   return (
     <div className="smtcmp-settings-section">
-      <div className="smtcmp-settings-header">MCP connections</div>
       <div className="smtcmp-settings-desc smtcmp-settings-callout">
         Connect external apps and tools by URL. Full auto trusts schemas during
         a manual connection scan; the other modes keep explicit schema review.

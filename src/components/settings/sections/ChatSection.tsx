@@ -17,20 +17,24 @@ export function ChatSection({
   mode = 'all',
   app,
 }: {
-  mode?: 'all' | 'models' | 'writing'
+  /**
+   * Which block to render. The writing settings are long enough that one tab
+   * showing all of them scrolls for pages, so each purpose can be requested
+   * on its own and placed in its own collapsible group.
+   */
+  mode?: 'all' | 'models' | 'writing' | 'inline' | 'document' | 'images'
   /** Needed for the image destination controls (Eagle lookups). */
   app?: App
 }) {
   const { settings, setSettings } = useSettings()
-  const showModels = mode !== 'writing'
-  const showWriting = mode !== 'models'
+  const showModels = mode === 'all' || mode === 'models'
+  const showInline = mode === 'all' || mode === 'inline'
+  const showDocument = mode === 'all' || mode === 'document'
+  const showImages = mode === 'all' || mode === 'images'
+  const showPrompt = mode === 'all' || mode === 'writing'
 
   return (
     <div className="smtcmp-settings-section">
-      <div className="smtcmp-settings-header">
-        {mode === 'models' ? 'Default models' : 'Writing and generation'}
-      </div>
-
       {showModels && (
         <ObsidianSetting
           name="Chat model"
@@ -57,7 +61,7 @@ export function ChatSection({
         </ObsidianSetting>
       )}
 
-      {showWriting && (
+      {showInline && (
         <>
           <ObsidianSetting
             name="Inline edit surrounding context"
@@ -104,7 +108,11 @@ export function ChatSection({
               }}
             />
           </ObsidianSetting>
+        </>
+      )}
 
+      {showDocument && (
+        <>
           <ObsidianSetting
             name="Document draft folder"
             desc="Vault-relative folder for completed large replacement drafts. New drafts get achmage-source / achmage-generated / achmage-model frontmatter keys so they can be told apart from originals; your own keys are never rewritten."
@@ -183,7 +191,11 @@ export function ChatSection({
               }}
             />
           </ObsidianSetting>
+        </>
+      )}
 
+      {showImages && (
+        <>
           <ObsidianSetting
             name="Image model"
             desc="(plan) models draw on your subscription. Gemini and Grok image models use that provider's API key from the Providers section. Leave on 'Inherit' to use the chat model when it can generate images."
@@ -316,7 +328,7 @@ export function ChatSection({
         </ObsidianSetting>
       )}
 
-      {showWriting && (
+      {showPrompt && (
         <>
           <ObsidianSetting
             name="System prompt"

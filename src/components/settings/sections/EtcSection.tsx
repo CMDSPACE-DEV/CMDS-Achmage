@@ -31,8 +31,6 @@ export function EtcSection({ app }: EtcSectionProps) {
 
   return (
     <div className="smtcmp-settings-section">
-      <div className="smtcmp-settings-header">Etc</div>
-
       <ObsidianSetting
         name="Reset settings"
         desc="Reset all settings to default values"

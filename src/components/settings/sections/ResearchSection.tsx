@@ -52,7 +52,6 @@ export function ResearchSection({ plugin }: { plugin: SmartComposerPlugin }) {
 
   return (
     <div className="smtcmp-settings-section smtcmp-research-section">
-      <div className="smtcmp-settings-header">Research connections</div>
       <div className="smtcmp-settings-desc smtcmp-settings-callout">
         Add verified research and official-data sources without editing JSON.
         Native APIs stay separate from MCP connections. Secrets are stored only
