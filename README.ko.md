@@ -3,7 +3,7 @@
 # CMDS Achmage
 Obsidian 안에서 노트를 AI의 맥락으로 제공하고 편집을 검토하며 자료 조사와 이미지 제작을 이어갑니다.
 
-**버전 1.1.0 | 커뮤니티 플러그인에서 설치할 수 있습니다.**
+**버전 1.2.0 | 커뮤니티 플러그인에서 설치할 수 있습니다.**
 
 Obsidian 1.11.4 이상 | 데스크톱 전용.
 
@@ -16,7 +16,7 @@ Obsidian 1.11.4 이상 | 데스크톱 전용.
 ## 설치와 첫 사용
 **커뮤니티 설치:** 설정 → 커뮤니티 플러그인 → 탐색 → **CMDS Achmage** → 설치 → 활성화.
 
-**수동 설치:** [1.1.0 릴리스](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.1.0)의 `main.js`, `manifest.json`, `styles.css`를 `<vault>/.obsidian/plugins/cmds-achmage/`에 넣고 다시 로드한 뒤 활성화합니다. 기존 설정을 백업하고 다른 사용자의 `data.json`을 복사하지 않습니다.
+**수동 설치:** [1.2.0 릴리스](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.2.0)의 `main.js`, `manifest.json`, `styles.css`를 `<vault>/.obsidian/plugins/cmds-achmage/`에 넣고 다시 로드한 뒤 활성화합니다. 기존 설정을 백업하고 다른 사용자의 `data.json`을 복사하지 않습니다.
 
 **Advanced → Providers/Models**에서 API 제공업체와 채팅 모델을 설정합니다. **Writing → Include current file**을 확인하고 도구 연결 전 **MCP → Tool execution → Per-tool approvals**로 바꿉니다. **Open chat**에서 `@`로 예제 노트를 멘션해 좁은 질문 하나를 보냅니다.
 

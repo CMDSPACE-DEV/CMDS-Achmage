@@ -2,7 +2,7 @@
 Use your notes as working context for AI chat, reviewable edits, research, and image creation inside Obsidian.
 
 ## Status, requirements, and cost
-This manual describes **CMDS Achmage 1.1.0**, checked on **2026-09-14**. It has a public stable release with three plugin assets and is listed in Community Plugins. The listing explicitly says it has not been manually reviewed by Obsidian staff. Older 2.x numbers in research reports belong to its inherited development lineage, not a later CMDS release.
+This manual describes **CMDS Achmage 1.2.0**, updated on **2026-09-15**. Releases contain three plugin assets: `main.js`, `manifest.json`, and `styles.css`. Community listing and review status are tracked in the [Obsidian portal](https://community.obsidian.md/plugins/cmds-achmage); automatic checks are not a manual review by Obsidian staff. Older 2.x numbers in research reports belong to its inherited development lineage, not a later CMDS release.
 - **Obsidian desktop 1.11.4+**. Desktop capabilities include native processes, clipboard and MCP connections; no Obsidian Mobile support.
 - An API provider account/key and available usage credit for the recommended beginner path. A chat subscription is not an API-credit balance.
 - Optional embedding-provider access for vector retrieval. Explicit note/folder context can work without an embedding key using the available reading/reranking paths; model calls can still consume usage.
@@ -11,7 +11,7 @@ This manual describes **CMDS Achmage 1.1.0**, checked on **2026-09-14**. It has 
 
 ## Install and prepare safely
 1. In **Settings → Community plugins → Browse**, search **CMDS Achmage**, install and enable it.
-2. Alternatively download `main.js`, `manifest.json`, and `styles.css` from [1.1.0](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.1.0) into `<vault>/.obsidian/plugins/cmds-achmage/` and restart/reload Obsidian. Keep existing settings and chat data backed up; do not import someone else's `data.json`.
+2. Alternatively download `main.js`, `manifest.json`, and `styles.css` from [1.2.0](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.2.0) into `<vault>/.obsidian/plugins/cmds-achmage/` and restart/reload Obsidian. Keep existing settings and chat data backed up; do not import someone else's `data.json`.
 3. Open a test vault or a non-sensitive note that is safe to send to your chosen provider.
 4. Open **Settings → CMDS Achmage → Advanced → Providers**. Add/edit an API provider and its key; use [the API-key guide](https://github.com/CMDSPACE-DEV/CMDS-Achmage/blob/main/docs/getting-api-keys.md) and that provider's current official console.
 5. In **Advanced → Models**, configure an enabled chat model tied to that provider. Choose it under **Plan → Chat model** or in the chat composer. Despite the tab name, the chat-model selection is not limited to subscription Plan models.
@@ -151,7 +151,9 @@ Developed by **Yohan Koo (CMDSPACE)**, https://cmdspace.work, together with **Pr
 Forked from [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer). Preserve [LINEAGE.md](https://github.com/CMDSPACE-DEV/CMDS-Achmage/blob/main/LINEAGE.md), [LICENSE](https://github.com/CMDSPACE-DEV/CMDS-Achmage/blob/main/LICENSE). The MIT license retains **Copyright (c) 2024 Heesu Suh**; rebranding does not replace upstream attribution.
 
 ## Verification scope
-The 1.1.0 `manifest.json`, command registration, `SettingsTabRoot.tsx`, `ChatSection.tsx`, `RAGSection.tsx`, `McpSection.tsx`, settings schema, research register and relevant runtime/provenance reports were inspected. Source evidence is not a fresh functional test of every provider/tool/OS. No current UI screenshot is claimed or fabricated, no code changed, and no credentials or private source notes were sent for these documentation checks.
+The 1.2.0 update adds model-picker clipping fixes, template saving and slash insertion repairs, Korean IME selection guards, and grouped settings. Local verification passed 766 tests plus type, lint, build, minimum-app-version and community-review Error gates. Model-picker layout and template save/insertion were exercised in the running desktop app; native OS IME typing remains a manual-check boundary. See [1.2.0 release notes](releases/RELEASE_NOTES_1.2.0.md).
+
+Original documentation baseline: The 1.1.0 `manifest.json`, command registration, `SettingsTabRoot.tsx`, `ChatSection.tsx`, `RAGSection.tsx`, `McpSection.tsx`, settings schema, research register and relevant runtime/provenance reports were inspected. Source evidence is not a fresh functional test of every provider/tool/OS. No current UI screenshot is claimed or fabricated, no code changed, and no credentials or private source notes were sent for these documentation checks.
 
 ## Appendix: the ship of Theseus
 Repairing a ship means replacing one plank after another. When the mast, deck, bow and stern have all changed, is it still the same ship?

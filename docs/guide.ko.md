@@ -2,7 +2,7 @@
 Obsidian의 노트를 AI 채팅, 검토 가능한 편집, 자료 조사, 이미지 제작의 작업 맥락으로 사용합니다.
 
 ## 배포 상태, 준비물, 비용
-**2026-09-14**에 확인한 **CMDS Achmage 1.1.0** 기준입니다. 파일 3종을 갖춘 공개 안정 릴리스이며 Community Plugins 목록에도 등록되었습니다. 목록에는 Obsidian 직원의 수동 검토를 받지 않았다는 고지가 있습니다. 연구 보고서의 과거 2.x 번호는 계승한 개발 계보의 버전이지 더 최신 CMDS 릴리스가 아닙니다.
+**2026-09-15**에 갱신한 **CMDS Achmage 1.2.0** 기준입니다. 릴리스 파일은 `main.js`, `manifest.json`, `styles.css` 3종입니다. 커뮤니티 등재·심사 상태는 [Obsidian 포털](https://community.obsidian.md/plugins/cmds-achmage)에서 확인하며, 자동 검사는 직원의 수동 검토와 다릅니다. 연구 보고서의 과거 2.x 번호는 계승한 개발 계보의 버전이지 더 최신 CMDS 릴리스가 아닙니다.
 - **Obsidian 데스크톱 1.11.4 이상**. 네이티브 프로세스, 클립보드, MCP 연결을 사용하며 모바일은 지원하지 않습니다.
 - 첫 사용에는 API 제공업체의 계정/키와 사용 가능한 크레딧을 권장합니다. 채팅 서비스 구독료와 API 잔액은 다릅니다.
 - 벡터 검색에는 선택적 임베딩 제공업체가 필요합니다. 노트/폴더 참조는 읽기/재순위화 경로로 임베딩 키 없이도 가능하지만 모델 사용량까지 없어지는 것은 아닙니다.
@@ -11,7 +11,7 @@ Obsidian의 노트를 AI 채팅, 검토 가능한 편집, 자료 조사, 이미�
 
 ## 설치와 안전한 준비
 1. **설정 → 커뮤니티 플러그인 → 탐색**에서 **CMDS Achmage**를 찾아 설치하고 활성화합니다.
-2. 수동 설치는 [1.1.0 릴리스](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.1.0)의 `main.js`, `manifest.json`, `styles.css`를 `<vault>/.obsidian/plugins/cmds-achmage/`에 넣고 Obsidian을 다시 로드합니다. 설정과 채팅 데이터를 백업하고 타인의 `data.json`은 가져오지 않습니다.
+2. 수동 설치는 [1.2.0 릴리스](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.2.0)의 `main.js`, `manifest.json`, `styles.css`를 `<vault>/.obsidian/plugins/cmds-achmage/`에 넣고 Obsidian을 다시 로드합니다. 설정과 채팅 데이터를 백업하고 타인의 `data.json`은 가져오지 않습니다.
 3. 선택한 제공업체에 보내도 되는 테스트 볼트 또는 비민감 노트를 엽니다.
 4. **설정 → CMDS Achmage → Advanced → Providers**에서 API 제공업체와 키를 추가/편집합니다. [API 키 안내](https://github.com/CMDSPACE-DEV/CMDS-Achmage/blob/main/docs/getting-api-keys.md)와 제공업체의 현재 공식 콘솔을 참고합니다.
 5. **Advanced → Models**에서 해당 제공업체의 활성 채팅 모델을 설정하고 **Plan → Chat model** 또는 컴포저에서 선택합니다. 탭 이름이 Plan이지만 채팅 모델 선택 자체가 구독 모델 전용은 아닙니다.
@@ -151,7 +151,9 @@ MCP와 리서치 인증은 일반 설정과 별도로 Obsidian secretStorage를 
 [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer)에서 출발한 포크입니다. [LINEAGE.md](https://github.com/CMDSPACE-DEV/CMDS-Achmage/blob/main/LINEAGE.md), [LICENSE](https://github.com/CMDSPACE-DEV/CMDS-Achmage/blob/main/LICENSE)를 보존합니다. MIT 라이선스의 **Copyright (c) 2024 Heesu Suh**는 유지되며 리브랜딩으로 원저자 표기를 대체하지 않습니다.
 
 ## 검증 범위
-1.1.0의 `manifest.json`, 명령 등록, `SettingsTabRoot.tsx`, `ChatSection.tsx`, `RAGSection.tsx`, `McpSection.tsx`, 설정 스키마, 연구 등록부, 관련 런타임/출처 보고서를 확인했습니다. 소스 근거는 모든 제공업체/도구/OS의 새 실기 시험을 뜻하지 않습니다. 현재 UI 스크린샷을 꾸며내지 않았고 런타임 코드를 수정하거나 인증/개인 노트를 외부 검증에 보내지 않았습니다.
+1.2.0에는 모델 선택창 잘림, 템플릿 저장·슬래시 삽입, 한글 IME 선택 오인 수정과 설정 그룹화가 포함됩니다. 로컬 테스트 766개, 타입·린트·빌드·최소 앱 버전·커뮤니티 심사 Error 게이트를 통과했습니다. 실행 중인 데스크톱 앱에서 모델 목록 배치와 템플릿 저장·삽입을 확인했으며, 실제 OS 한글 입력기 타이핑은 별도 수동 확인 범위입니다. [1.2.0 릴리스 노트](releases/RELEASE_NOTES_1.2.0.md)를 참고합니다.
+
+기존 문서 검증 기준: 1.1.0의 `manifest.json`, 명령 등록, `SettingsTabRoot.tsx`, `ChatSection.tsx`, `RAGSection.tsx`, `McpSection.tsx`, 설정 스키마, 연구 등록부, 관련 런타임/출처 보고서를 확인했습니다. 소스 근거는 모든 제공업체/도구/OS의 새 실기 시험을 뜻하지 않습니다. 현재 UI 스크린샷을 꾸며내지 않았고 런타임 코드를 수정하거나 인증/개인 노트를 외부 검증에 보내지 않았습니다.
 
 ## 부록: 테세우스의 배
 낡은 배를 고쳐 쓰다 보면 널빤지를 하나씩 갈아 끼우게 됩니다. 돛대를 바꾸고, 갑판을 새로 깔고, 이물과 고물까지 손을 대고 나면 어느 순간 처음 그 배의 나무는 한 조각도 남아 있지 않습니다. 그래도 이것은 같은 배인가 — 오래된 질문입니다.
