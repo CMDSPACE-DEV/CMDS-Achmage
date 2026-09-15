@@ -1,7 +1,7 @@
 import { $generateNodesFromSerializedNodes } from '@lexical/clipboard'
 import { BaseSerializedNode } from '@lexical/clipboard/clipboard'
 import { InitialEditorStateType } from '@lexical/react/LexicalComposer'
-import { $insertNodes, LexicalEditor } from 'lexical'
+import { $getRoot, $insertNodes, LexicalEditor } from 'lexical'
 import { App, Notice } from 'obsidian'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
@@ -72,7 +72,7 @@ export class EditTemplateModal extends ReactModal<TemplateFormComponentProps> {
   }
 }
 
-function TemplateFormComponentWrapper({
+export function TemplateFormComponentWrapper({
   app,
   selectedSerializedNodes,
   templateId,
@@ -102,6 +102,8 @@ function TemplateFormComponent({
   const templateManager = useMemo(() => new TemplateManager(app), [app])
 
   const [templateName, setTemplateName] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const savingRef = useRef(false)
   const editorRef = useRef<LexicalEditor | null>(null)
   const contentEditableRef = useRef<HTMLDivElement>(null)
 
@@ -118,27 +120,33 @@ function TemplateFormComponent({
   }
 
   const handleSubmit = async () => {
+    if (savingRef.current || !editorRef.current) return
+    const name = templateName.trim()
     try {
-      if (!editorRef.current) return
+      const hasContent = editorRef.current
+        .getEditorState()
+        .read(() => $getRoot().getTextContent().trim().length > 0)
       const serializedEditorState = editorRef.current.toJSON()
       const nodes = serializedEditorState.editorState.root.children
-      if (nodes.length === 0) {
+      if (!hasContent) {
         new Notice('Please enter a content for your template')
         return
       }
-      if (templateName.trim().length === 0) {
+      if (name.length === 0) {
         new Notice('Please enter a name for your template')
         return
       }
 
+      savingRef.current = true
+      setIsSaving(true)
       if (templateId === undefined) {
         await templateManager.createTemplate({
-          name: templateName,
+          name,
           content: { nodes },
         })
       } else {
         await templateManager.updateTemplate(templateId, {
-          name: templateName,
+          name,
           content: { nodes },
         })
       }
@@ -156,6 +164,9 @@ function TemplateFormComponent({
         console.error(error)
         new Notice('Failed to create template')
       }
+    } finally {
+      savingRef.current = false
+      if (isMountedRef.current) setIsSaving(false)
     }
   }
 
@@ -173,6 +184,7 @@ function TemplateFormComponent({
             const parsedNodes = $generateNodesFromSerializedNodes(
               existingTemplate.content.nodes,
             )
+            $getRoot().clear().selectEnd()
             $insertNodes(parsedNodes)
           })
         }
@@ -210,12 +222,16 @@ function TemplateFormComponent({
           initialEditorState={initialEditorState}
           editorRef={editorRef}
           contentEditableRef={contentEditableRef}
-          onEnter={handleSubmit}
         />
       </div>
 
       <ObsidianSetting>
-        <ObsidianButton text="Save" onClick={handleSubmit} cta />
+        <ObsidianButton
+          text={isSaving ? 'Saving...' : 'Save'}
+          onClick={handleSubmit}
+          disabled={isSaving}
+          cta
+        />
         <ObsidianButton text="Cancel" onClick={onClose} />
       </ObsidianSetting>
     </>

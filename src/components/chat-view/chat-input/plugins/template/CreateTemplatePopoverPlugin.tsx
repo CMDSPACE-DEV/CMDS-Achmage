@@ -43,8 +43,10 @@ export default function CreateTemplatePopoverPlugin({
 
   const updatePopoverPosition = useCallback(() => {
     if (!anchorElement || !contentEditableElement) return
-    const nativeSelection = document.getSelection()
-    const range = nativeSelection?.getRangeAt(0)
+    const nativeSelection = contentEditableElement.ownerDocument.getSelection()
+    const range = nativeSelection?.rangeCount
+      ? nativeSelection.getRangeAt(0)
+      : null
     if (!range || range.collapsed) {
       setIsPopoverOpen(false)
       return
@@ -119,6 +121,7 @@ export default function CreateTemplatePopoverPlugin({
         visibility: isPopoverOpen ? 'visible' : 'hidden',
         ...popoverStyle,
       }}
+      onMouseDown={(event) => event.preventDefault()}
       onClick={() => {
         new CreateTemplateModal({
           app,

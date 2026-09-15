@@ -1,20 +1,15 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import clsx from 'clsx'
-import {
-  $parseSerializedNode,
-  COMMAND_PRIORITY_NORMAL,
-  TextNode,
-} from 'lexical'
+import { COMMAND_PRIORITY_NORMAL, TextNode } from 'lexical'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { Template } from '../../../../../database/json/template/types'
 import { useTemplateManager } from '../../../../../hooks/useJsonManagers'
 import { MenuOption } from '../shared/LexicalMenu'
-import {
-  LexicalTypeaheadMenuPlugin,
-  useBasicTypeaheadTriggerMatch,
-} from '../typeahead-menu/LexicalTypeaheadMenuPlugin'
+import { LexicalTypeaheadMenuPlugin } from '../typeahead-menu/LexicalTypeaheadMenuPlugin'
+
+import { $insertTemplate, matchTemplateTrigger } from './template-insertion'
 
 class TemplateTypeaheadOption extends MenuOption {
   name: string
@@ -67,8 +62,20 @@ export default function TemplatePlugin() {
   const [searchResults, setSearchResults] = useState<Template[]>([])
 
   useEffect(() => {
+    let cancelled = false
+    setSearchResults([])
     if (queryString == null) return
-    templateManager.searchTemplates(queryString).then(setSearchResults)
+    void templateManager.searchTemplates(queryString).then(
+      (results) => {
+        if (!cancelled) setSearchResults(results)
+      },
+      (error: unknown) => {
+        if (!cancelled) console.error('Failed to search templates:', error)
+      },
+    )
+    return () => {
+      cancelled = true
+    }
   }, [queryString, templateManager])
 
   const options = useMemo(
@@ -79,10 +86,6 @@ export default function TemplatePlugin() {
     [searchResults],
   )
 
-  const checkForTriggerMatch = useBasicTypeaheadTriggerMatch('/', {
-    minLength: 0,
-  })
-
   const onSelectOption = useCallback(
     (
       selectedOption: TemplateTypeaheadOption,
@@ -90,15 +93,7 @@ export default function TemplatePlugin() {
       closeMenu: () => void,
     ) => {
       editor.update(() => {
-        const parsedNodes = selectedOption.template.content.nodes.map((node) =>
-          $parseSerializedNode(node),
-        )
-        if (nodeToRemove) {
-          const parent = nodeToRemove.getParentOrThrow()
-          parent.splice(nodeToRemove.getIndexWithinParent(), 1, parsedNodes)
-          const lastNode = parsedNodes[parsedNodes.length - 1]
-          lastNode.selectEnd()
-        }
+        $insertTemplate(selectedOption.template.content.nodes, nodeToRemove)
         closeMenu()
       })
     },
@@ -109,7 +104,7 @@ export default function TemplatePlugin() {
     <LexicalTypeaheadMenuPlugin<TemplateTypeaheadOption>
       onQueryChange={setQueryString}
       onSelectOption={onSelectOption}
-      triggerFn={checkForTriggerMatch}
+      triggerFn={matchTemplateTrigger}
       options={options}
       commandPriority={COMMAND_PRIORITY_NORMAL}
       menuRenderFn={(

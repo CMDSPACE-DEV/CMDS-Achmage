@@ -73,7 +73,6 @@ export default function LexicalContentEditable({
   plugins,
 }: LexicalContentEditableProps) {
   const app = useApp()
-  const { settings } = useSettings()
 
   const initialConfig: InitialConfigType = {
     namespace: 'LexicalContentEditable',
@@ -89,46 +88,8 @@ export default function LexicalContentEditable({
   }
 
   const searchResultByQuery = useCallback(
-    (query: string) =>
-      includeMcpConnections
-        ? fuzzySearchWithConnections(
-            app,
-            query,
-            settings.mcp.connections
-              .filter((connection) => connection.enabled)
-              .map((connection) => ({
-                type: 'connection' as const,
-                connectionId: connection.id,
-                name: connection.name,
-              })),
-            [
-              ...(Object.keys(settings.research.sources) as ResearchSourceId[])
-                .filter(
-                  (sourceId) => settings.research.sources[sourceId]?.enabled,
-                )
-                .map((sourceId) => ({
-                  type: 'research-source' as const,
-                  sourceId,
-                  name: getResearchSource(sourceId).name,
-                })),
-              ...RESEARCH_PACKS.filter((pack) =>
-                pack.sourceIds.some(
-                  (sourceId) => settings.research.sources[sourceId]?.enabled,
-                ),
-              ).map((pack) => ({
-                type: 'research-pack' as const,
-                packId: pack.id,
-                name: pack.name,
-              })),
-            ],
-          )
-        : fuzzySearch(app, query),
-    [
-      app,
-      includeMcpConnections,
-      settings.mcp.connections,
-      settings.research.sources,
-    ],
+    (query: string) => fuzzySearch(app, query),
+    [app],
   )
 
   /*
@@ -168,7 +129,11 @@ export default function LexicalContentEditable({
         ErrorBoundary={LexicalErrorBoundary}
       />
       <HistoryPlugin />
-      <MentionPlugin searchResultByQuery={searchResultByQuery} />
+      {includeMcpConnections ? (
+        <ConnectedMentionPlugin />
+      ) : (
+        <MentionPlugin searchResultByQuery={searchResultByQuery} />
+      )}
       <OnChangePlugin
         onChange={(editorState) => {
           onChange?.(editorState.toJSON())
@@ -201,4 +166,45 @@ export default function LexicalContentEditable({
       )}
     </LexicalComposer>
   )
+}
+
+// Standalone template forms only need vault search, not chat settings.
+function ConnectedMentionPlugin() {
+  const app = useApp()
+  const { settings } = useSettings()
+  const searchResultByQuery = useCallback(
+    (query: string) =>
+      fuzzySearchWithConnections(
+        app,
+        query,
+        settings.mcp.connections
+          .filter((connection) => connection.enabled)
+          .map((connection) => ({
+            type: 'connection' as const,
+            connectionId: connection.id,
+            name: connection.name,
+          })),
+        [
+          ...(Object.keys(settings.research.sources) as ResearchSourceId[])
+            .filter((sourceId) => settings.research.sources[sourceId]?.enabled)
+            .map((sourceId) => ({
+              type: 'research-source' as const,
+              sourceId,
+              name: getResearchSource(sourceId).name,
+            })),
+          ...RESEARCH_PACKS.filter((pack) =>
+            pack.sourceIds.some(
+              (sourceId) => settings.research.sources[sourceId]?.enabled,
+            ),
+          ).map((pack) => ({
+            type: 'research-pack' as const,
+            packId: pack.id,
+            name: pack.name,
+          })),
+        ],
+      ),
+    [app, settings.mcp.connections, settings.research.sources],
+  )
+
+  return <MentionPlugin searchResultByQuery={searchResultByQuery} />
 }
