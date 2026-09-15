@@ -113,8 +113,6 @@ export function PlanConnectionsSection({
 
   return (
     <div className="smtcmp-settings-section">
-      <div className="smtcmp-settings-header">Plan runtimes</div>
-
       <div className="smtcmp-settings-desc">
         Claude와 Gemini 연결은 이 컴퓨터에 설치된 공식 CLI에 인증을 위임합니다.
         CMDS Achmage는 로그인 토큰을 저장하지 않으며, vault 접근은 Smart

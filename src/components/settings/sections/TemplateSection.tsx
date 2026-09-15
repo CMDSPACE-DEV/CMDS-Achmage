@@ -82,8 +82,6 @@ export function TemplateSection({ app }: TemplateSectionProps) {
 
   return (
     <div className="smtcmp-settings-section">
-      <div className="smtcmp-settings-header">Prompt Templates</div>
-
       <div className="smtcmp-settings-desc smtcmp-settings-callout">
         <strong>How to use:</strong> Create templates with reusable content that
         you can quickly insert into your chat. Type <code>/template-name</code>{' '}

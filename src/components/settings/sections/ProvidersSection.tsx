@@ -86,8 +86,6 @@ export function ProvidersSection({ app, plugin }: ProvidersSectionProps) {
 
   return (
     <div className="smtcmp-settings-section">
-      <div className="smtcmp-settings-header">Providers</div>
-
       <div className="smtcmp-settings-desc">
         <span>Configure API providers (usage-based billing).</span>
         <br />

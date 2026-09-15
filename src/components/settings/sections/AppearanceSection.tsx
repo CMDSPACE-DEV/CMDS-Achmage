@@ -57,8 +57,6 @@ export function AppearanceSection() {
 
   return (
     <div className="smtcmp-settings-section">
-      <div className="smtcmp-settings-header">Appearance</div>
-
       <ObsidianSetting
         name="Preset"
         desc="One-click looks for the Chat pane and the Inline edit panel. Picking a preset sets the three options below; changing any of them afterwards turns the preset into Custom. The plugin never restyles the editor, other panes, or other plugins."

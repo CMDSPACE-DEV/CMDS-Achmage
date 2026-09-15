@@ -14,7 +14,6 @@ type ModelsSectionProps = {
 export function ModelsSection({ app, plugin }: ModelsSectionProps) {
   return (
     <div className="smtcmp-settings-section">
-      <div className="smtcmp-settings-header">Models</div>
       <ChatModelsSubSection app={app} plugin={plugin} />
       <EmbeddingModelsSubSection app={app} plugin={plugin} />
     </div>

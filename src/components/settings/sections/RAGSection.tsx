@@ -24,8 +24,6 @@ export function RAGSection({ app, plugin }: RAGSectionProps) {
 
   return (
     <div className="smtcmp-settings-section">
-      <div className="smtcmp-settings-header">RAG</div>
-
       <ObsidianSetting
         name="Retrieval mode"
         desc="Choose how CMDS Achmage selects context for large folder or vault mentions."
