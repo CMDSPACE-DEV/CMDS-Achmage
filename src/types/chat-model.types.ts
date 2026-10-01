@@ -2,6 +2,8 @@ import { z } from 'zod'
 
 import { PromptLevel } from './prompt-level.types'
 
+// Every effort an OpenAI Plan model may accept (GPT-5.6 and GPT-6). Each
+// model's own subset is in core/llm/openaiPlanModels.ts.
 export const GPT_5_6_EFFORTS = [
   'none',
   'low',
@@ -104,7 +106,10 @@ export const chatModelSchema = z.discriminatedUnion('providerType', [
     thinking: z
       .object({
         enabled: z.boolean(),
+        // Haiku 4.5 and older models.
         budget_tokens: z.number(),
+        // Claude 4.6+ and 5.x use adaptive thinking with an effort (R-045).
+        effort: z.enum(CLAUDE_ADAPTIVE_EFFORTS).optional(),
       })
       .optional(),
   }),

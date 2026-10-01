@@ -81,6 +81,8 @@ const GEMINI_BLOCKED_ENVIRONMENT = new Set([
   'GOOGLE_CLOUD_PROJECT_ID',
   'GOOGLE_CLOUD_QUOTA_PROJECT',
   'GOOGLE_GENAI_USE_ENTERPRISE',
+  // Antigravity sends model requests to this endpoint instead (R-045).
+  'GOOGLE_GEMINI_BASE_URL',
   'GOOGLE_GENAI_USE_VERTEXAI',
   'VERTEX_AI_PROJECT',
   'VERTEX_AI_LOCATION',
@@ -320,17 +322,19 @@ export async function verifyAntigravityPlanAuth(
   }
 
   const runner = options.runner ?? runNativeProcess
-  let result = await runAntigravityAuthCheck(
+  // Antigravity 1.2 prints `id<TAB>label` lines; `models --json` was removed
+  // and now exits with "flags provided but not defined" (R-045).
+  const result = await runAntigravityAuthCheck(
     runner,
     {
       executable: executablePath,
-      args: ['models', '--json'],
+      args: ['models'],
       env: environment.env,
     },
     options.signal,
   )
   if (!result) return antigravityAuthCheckFailed(environment)
-  let blockingDecision = classifyAntigravityBlockingSignals(
+  const blockingDecision = classifyAntigravityBlockingSignals(
     [result.stdout, result.stderr],
     environment,
   )
@@ -338,62 +342,9 @@ export async function verifyAntigravityPlanAuth(
     return { environment, decision: blockingDecision }
   }
   if (result.exitCode === 0) {
-    const jsonDecision = classifyAntigravityQuotaProvenance(
-      result.stdout,
+    return {
       environment,
-    )
-    if (jsonDecision.status !== 'quota-unverified') {
-      return { environment, decision: jsonDecision }
-    }
-    result = await runAntigravityAuthCheck(
-      runner,
-      {
-        executable: executablePath,
-        args: ['models'],
-        env: environment.env,
-      },
-      options.signal,
-    )
-    if (!result) return antigravityAuthCheckFailed(environment)
-    blockingDecision = classifyAntigravityBlockingSignals(
-      [result.stdout, result.stderr],
-      environment,
-    )
-    if (blockingDecision) {
-      return { environment, decision: blockingDecision }
-    }
-    if (result.exitCode === 0) {
-      return {
-        environment,
-        decision: classifyAntigravityTextCatalog(result.stdout, environment),
-      }
-    }
-  } else {
-    const failureText = `${result.stderr}\n${result.stdout}`
-    if (!isLoginText(failureText)) {
-      result = await runAntigravityAuthCheck(
-        runner,
-        {
-          executable: executablePath,
-          args: ['models'],
-          env: environment.env,
-        },
-        options.signal,
-      )
-      if (!result) return antigravityAuthCheckFailed(environment)
-      blockingDecision = classifyAntigravityBlockingSignals(
-        [result.stdout, result.stderr],
-        environment,
-      )
-      if (blockingDecision) {
-        return { environment, decision: blockingDecision }
-      }
-      if (result.exitCode === 0) {
-        return {
-          environment,
-          decision: classifyAntigravityTextCatalog(result.stdout, environment),
-        }
-      }
+      decision: classifyAntigravityTextCatalog(result.stdout, environment),
     }
   }
 
@@ -535,46 +486,6 @@ export function classifyClaudeAuthStatus(
   }
 }
 
-export function classifyAntigravityQuotaProvenance(
-  output: string,
-  environment: PreparedNativePlanEnvironment = prepareNativePlanEnvironment(
-    'gemini',
-    {},
-  ),
-): RuntimeAuthDecision {
-  const blockingDecision = classifyAntigravityBlockingSignals(
-    [output],
-    environment,
-  )
-  if (blockingDecision) return blockingDecision
-  const parsed = parseJsonValue(output)
-
-  if (!hasAntigravityJsonModelCatalog(parsed)) {
-    return {
-      status: 'quota-unverified',
-      allowed: false,
-      reason:
-        'Antigravity did not return a readable JSON model catalog, so Gemini request readiness could not be confirmed.',
-      evidence: ['agy models --json returned no readable models'],
-    }
-  }
-
-  // Antigravity does not currently expose a supported personal-quota field.
-  // For compatibility with the working 2.6.1 flow, a successful non-empty
-  // catalog is accepted as login/readiness evidence only when neither the
-  // environment nor the machine-readable response identifies Cloud billing.
-  return {
-    status: 'subscription',
-    allowed: true,
-    reason:
-      'Antigravity is signed in and returned a usable model catalog. Gemini requests are enabled in compatibility mode; the CLI does not expose the account quota source to CMDS Achmage.',
-    evidence: [
-      'agy models --json returned a non-empty catalog',
-      'no explicit API or Google Cloud override detected',
-    ],
-  }
-}
-
 export function classifyAntigravityTextCatalog(
   output: string,
   environment: PreparedNativePlanEnvironment = prepareNativePlanEnvironment(
@@ -600,9 +511,9 @@ export function classifyAntigravityTextCatalog(
     status: 'subscription',
     allowed: true,
     reason:
-      'Antigravity is signed in and returned a usable legacy text model catalog. Gemini requests are enabled in compatibility mode; the CLI does not expose the account quota source to CMDS Achmage.',
+      'Antigravity is signed in and returned a usable Gemini model catalog. Gemini requests are enabled in compatibility mode; the CLI does not expose the account quota source to CMDS Achmage.',
     evidence: [
-      'agy models returned a non-empty text catalog',
+      'agy models returned a non-empty Gemini catalog',
       'no explicit API or Google Cloud override detected',
     ],
   }
@@ -868,34 +779,6 @@ function collectRecords(value: unknown): Record<string, unknown>[] {
   if (Array.isArray(value)) return value.flatMap(collectRecords)
   if (!isRecord(value)) return []
   return [value, ...Object.values(value).flatMap(collectRecords)]
-}
-
-function hasAntigravityJsonModelCatalog(value: unknown): boolean {
-  return hasAntigravityCatalogEntries(value, Array.isArray(value))
-}
-
-function hasAntigravityCatalogEntries(
-  value: unknown,
-  insideCatalog: boolean,
-): boolean {
-  if (Array.isArray(value)) {
-    return value.some((entry) => hasAntigravityCatalogEntries(entry, true))
-  }
-  if (!isRecord(value)) return false
-  for (const key of ['models', 'data', 'items', 'availableModels']) {
-    if (key in value && hasAntigravityCatalogEntries(value[key], true)) {
-      return true
-    }
-  }
-  return insideCatalog && hasAntigravityModelRecord(value)
-}
-
-function hasAntigravityModelRecord(value: unknown): boolean {
-  if (!isRecord(value)) return false
-  return ['slug', 'id', 'value', 'name'].some((key) => {
-    const candidate = value[key]
-    return typeof candidate === 'string' && candidate.trim().length > 0
-  })
 }
 
 function parseRecord(value: string): Record<string, unknown> | null {

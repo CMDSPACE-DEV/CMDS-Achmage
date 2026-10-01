@@ -1,10 +1,6 @@
 import { Reasoning } from 'openai/resources/shared'
 
-import {
-  ChatModel,
-  GPT_5_6_EFFORTS,
-  Gpt56Effort,
-} from '../../types/chat-model.types'
+import { ChatModel } from '../../types/chat-model.types'
 import {
   LLMOptions,
   LLMRequestNonStreaming,
@@ -25,15 +21,10 @@ import {
   LLMAPIKeyInvalidException,
   LLMAPIKeyNotSetException,
 } from './exception'
+import { normalizeOpenAIPlanEffort } from './openaiPlanModels'
 
 export type { Gpt56Effort } from '../../types/chat-model.types'
 
-const GPT_5_6_EFFORT_SET = new Set<Gpt56Effort>(GPT_5_6_EFFORTS)
-const GPT_5_6_DEFAULT_EFFORTS: Record<string, Gpt56Effort> = {
-  'gpt-5.6-sol': 'medium',
-  'gpt-5.6-terra': 'low',
-  'gpt-5.6-luna': 'none',
-}
 const OAUTH_REFRESH_SKEW_MS = 60_000
 const CODEX_RESPONSES_ENDPOINT =
   'https://chatgpt.com/backend-api/codex/responses'
@@ -77,28 +68,6 @@ export function buildCodexImageContent(
     ),
     { type: 'input_text', text: prompt },
   ]
-}
-
-function isGpt56Model(model: string): boolean {
-  return /^gpt-5\.6-(?:sol|terra|luna)$/.test(model)
-}
-
-function normalizeGpt56Effort(
-  model: string,
-  effort: string | undefined,
-): Gpt56Effort | undefined {
-  if (!effort) {
-    return GPT_5_6_DEFAULT_EFFORTS[model]
-  }
-  if (!isGpt56Model(model)) {
-    return effort as Gpt56Effort
-  }
-  if (!GPT_5_6_EFFORT_SET.has(effort as Gpt56Effort)) {
-    throw new Error(
-      `Unsupported reasoning effort "${effort}" for ${model}. Expected one of: ${GPT_5_6_EFFORTS.join(', ')}.`,
-    )
-  }
-  return effort as Gpt56Effort
 }
 
 export class OpenAICodexProvider extends BaseLLMProvider<
@@ -205,7 +174,7 @@ export class OpenAICodexProvider extends BaseLLMProvider<
           stream: true,
           include: ['reasoning.encrypted_content'],
           reasoning: {
-            effort: normalizeGpt56Effort(
+            effort: normalizeOpenAIPlanEffort(
               model.model,
               model.reasoning?.reasoning_effort,
             ),
@@ -336,7 +305,7 @@ export class OpenAICodexProvider extends BaseLLMProvider<
   private normalizeRequest<
     T extends LLMRequestNonStreaming | LLMRequestStreaming,
   >(model: Extract<ChatModel, { providerType: 'openai-plan' }>, request: T): T {
-    const reasoningEffort = normalizeGpt56Effort(
+    const reasoningEffort = normalizeOpenAIPlanEffort(
       model.model,
       model.reasoning?.reasoning_effort,
     )
@@ -352,8 +321,8 @@ export class OpenAICodexProvider extends BaseLLMProvider<
         reasoningEffort !== 'none' && reasoningSummary
           ? (reasoningSummary as Reasoning['summary'])
           : undefined,
-      // The installed SDK type predates GPT-5.6's `max` effort. The adapter
-      // narrows a local wire type without requiring a broad SDK upgrade.
+      // The installed SDK type predates the `max` effort. The adapter narrows
+      // a local wire type without requiring a broad SDK upgrade.
     } as T
   }
 }

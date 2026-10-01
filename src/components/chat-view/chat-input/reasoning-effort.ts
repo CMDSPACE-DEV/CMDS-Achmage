@@ -1,8 +1,11 @@
 import {
+  OpenAIPlanModelSpec,
+  getOpenAIPlanModelSpec,
+} from '../../../core/llm/openaiPlanModels'
+import {
   CLAUDE_ADAPTIVE_EFFORTS,
   ChatModel,
   ClaudeEffort,
-  GPT_5_6_EFFORTS,
   Gpt56Effort,
 } from '../../../types/chat-model.types'
 
@@ -19,12 +22,6 @@ export type QuickReasoningControl = {
   label: string
   value: QuickReasoningEffort
   options: readonly QuickReasoningOption[]
-}
-
-const GPT_5_6_DEFAULT_EFFORTS: Record<string, Gpt56Effort> = {
-  'gpt-5.6-sol': 'medium',
-  'gpt-5.6-terra': 'low',
-  'gpt-5.6-luna': 'none',
 }
 
 export const GPT_QUICK_REASONING_OPTIONS: readonly QuickReasoningOption[] = [
@@ -45,30 +42,29 @@ export const CLAUDE_QUICK_REASONING_OPTIONS: readonly QuickReasoningOption[] = [
   { value: 'max', label: 'max', description: 'Deepest reasoning' },
 ]
 
-function isGpt56PlanModel(
-  model: ChatModel,
-): model is Extract<ChatModel, { providerType: 'openai-plan' }> {
-  return (
-    model.providerType === 'openai-plan' &&
-    (model.model === 'gpt-5.6-sol' ||
-      model.model === 'gpt-5.6-terra' ||
-      model.model === 'gpt-5.6-luna')
-  )
+function getGptPlanSpec(model: ChatModel): OpenAIPlanModelSpec | undefined {
+  return model.providerType === 'openai-plan'
+    ? getOpenAIPlanModelSpec(model.model)
+    : undefined
 }
 
+// Haiku takes no effort level; Fable always thinks, so "off" lowers effort.
 function isClaudeAdaptivePlanModel(
   model: ChatModel,
 ): model is Extract<ChatModel, { providerType: 'anthropic-plan' }> {
   return (
     model.providerType === 'anthropic-plan' &&
     (model.thinking?.mode === 'adaptive' ||
-      ['default', 'opus', 'sonnet'].includes(model.model) ||
-      /^claude-(opus|sonnet)-/i.test(model.model))
+      ['default', 'opus', 'sonnet', 'fable'].includes(model.model) ||
+      /^claude-(opus|sonnet|fable)-/i.test(model.model))
   )
 }
 
-function isGpt56Effort(value: string | undefined): value is Gpt56Effort {
-  return GPT_5_6_EFFORTS.includes(value as Gpt56Effort)
+function isSupportedGptEffort(
+  spec: OpenAIPlanModelSpec,
+  value: string | undefined,
+): value is Gpt56Effort {
+  return spec.efforts.includes(value as Gpt56Effort)
 }
 
 function isClaudeEffort(value: string): value is ClaudeEffort {
@@ -82,15 +78,18 @@ export function getQuickReasoningControl(
     return null
   }
 
-  if (isGpt56PlanModel(model)) {
+  const gptSpec = getGptPlanSpec(model)
+  if (model.providerType === 'openai-plan' && gptSpec) {
     const configuredEffort = model.reasoning?.reasoning_effort
     return {
       kind: 'gpt',
       label: 'GPT reasoning effort',
-      value: isGpt56Effort(configuredEffort)
+      value: isSupportedGptEffort(gptSpec, configuredEffort)
         ? configuredEffort
-        : GPT_5_6_DEFAULT_EFFORTS[model.model],
-      options: GPT_QUICK_REASONING_OPTIONS,
+        : gptSpec.defaultEffort,
+      options: GPT_QUICK_REASONING_OPTIONS.filter((option) =>
+        isSupportedGptEffort(gptSpec, option.value),
+      ),
     }
   }
 
@@ -115,9 +114,12 @@ export function updateQuickReasoningEffort(
   model: ChatModel,
   value: string,
 ): ChatModel {
-  if (isGpt56PlanModel(model)) {
-    if (!isGpt56Effort(value)) {
-      throw new Error(`Unsupported GPT-5.6 reasoning effort: ${value}`)
+  const gptSpec = getGptPlanSpec(model)
+  if (model.providerType === 'openai-plan' && gptSpec) {
+    if (!isSupportedGptEffort(gptSpec, value)) {
+      throw new Error(
+        `Unsupported reasoning effort for ${model.model}: ${value}`,
+      )
     }
 
     const reasoning = {

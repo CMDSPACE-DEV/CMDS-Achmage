@@ -1,21 +1,17 @@
 import { ChatModel } from '../../types/chat-model.types'
-
-const GPT_5_6_PLAN_MODELS = new Set([
-  'gpt-5.6-sol',
-  'gpt-5.6-terra',
-  'gpt-5.6-luna',
-])
+import { getOpenAIPlanModelSpec } from '../llm/openaiPlanModels'
 
 /** Returns a copy suitable for deterministic, low-token internal RAG calls. */
 export function getInternalRagModel(model: ChatModel): ChatModel {
-  if (
-    model.providerType === 'openai-plan' &&
-    GPT_5_6_PLAN_MODELS.has(model.model)
-  ) {
+  const planSpec =
+    model.providerType === 'openai-plan'
+      ? getOpenAIPlanModelSpec(model.model)
+      : undefined
+  if (model.providerType === 'openai-plan' && planSpec) {
     return {
       ...model,
       reasoning: {
-        reasoning_effort: 'none',
+        reasoning_effort: planSpec.internalEffort,
       },
     }
   }
@@ -30,6 +26,16 @@ export function getInternalRagModel(model: ChatModel): ChatModel {
         mode: 'adaptive',
         effort: adaptive?.effort ?? 'high',
         display: adaptive?.display ?? 'summarized',
+      },
+    }
+  }
+
+  if (model.providerType === 'anthropic') {
+    return {
+      ...model,
+      thinking: {
+        enabled: false,
+        budget_tokens: model.thinking?.budget_tokens ?? 1024,
       },
     }
   }

@@ -131,7 +131,7 @@ describe('parseSmartComposerSettings', () => {
       },
     })
 
-    expect(result.version).toBe(31)
+    expect(result.version).toBe(32)
     expect(result.providers).toEqual(DEFAULT_PROVIDERS)
     expect(result.chatModels).toEqual([
       ...DEFAULT_CHAT_MODELS,
