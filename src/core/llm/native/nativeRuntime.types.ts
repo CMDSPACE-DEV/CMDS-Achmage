@@ -40,6 +40,22 @@ export type RuntimeDiscovery = {
   ambiguous: boolean
 }
 
+/**
+ * Machine-readable reason for a Claude Plan decision. The UI keys copy and
+ * actions off this instead of matching evidence strings. Decisions are never
+ * persisted, so adding a code needs no settings migration.
+ */
+export type RuntimeAuthDecisionCode =
+  | 'subscription'
+  | 'organization-subscription'
+  | 'organization-opt-in-required'
+  | 'login-required'
+  | 'environment-override'
+  | 'managed-settings'
+  | 'billing-marker'
+  | 'subscription-unknown'
+  | 'unknown-schema'
+
 export type RuntimeAuthDecision = {
   status:
     | 'subscription'
@@ -50,6 +66,7 @@ export type RuntimeAuthDecision = {
   reason: string
   /** Non-secret classifications only. Never include credential values. */
   evidence: string[]
+  code?: RuntimeAuthDecisionCode
 }
 
 export type NativeRuntimeInstallationState =

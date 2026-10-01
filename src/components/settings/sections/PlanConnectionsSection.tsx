@@ -1,4 +1,5 @@
 import {
+  Building2,
   Check,
   CircleAlert,
   CircleMinus,
@@ -28,6 +29,13 @@ import { ConnectOpenAIPlanModal } from '../modals/ConnectOpenAIPlanModal'
 import { NativeRuntimeInstallModal } from '../modals/NativeRuntimeInstallModal'
 import { NativeRuntimeLoginModal } from '../modals/NativeRuntimeLoginModal'
 import { NativeRuntimeUpdateModal } from '../modals/NativeRuntimeUpdateModal'
+import {
+  CLAUDE_ORGANIZATION_CONSENT_MESSAGE,
+  CLAUDE_ORGANIZATION_CONSENT_TITLE,
+  hasAuthenticatedPolicyBlock,
+  isClaudeOrganizationOptInRequired,
+  isClaudeOrganizationSubscription,
+} from '../nativeRuntimePolicy'
 
 type PlanConnectionsSectionProps = {
   app: App
@@ -220,19 +228,43 @@ export function NativeRuntimeCard({
   const [customPath, setCustomPath] = useState(() =>
     service.getCustomPath(provider),
   )
+  const [allowsOrganizationPlans, setAllowsOrganizationPlans] = useState(
+    () => provider === 'claude' && service.allowsClaudeOrganizationPlans(),
+  )
   const isDiagnosing = snapshot.phase === 'checking'
   const isInstalled = snapshot.installation === 'installed'
   const isAuthenticatedButBlocked = hasAuthenticatedPolicyBlock(snapshot)
+  const needsOrganizationOptIn = isClaudeOrganizationOptInRequired(snapshot)
 
   const diagnose = async () => {
     if (isDiagnosing) return
     try {
       const result = await service.diagnose(provider)
       await onDiagnostics(result)
-      new Notice(runtimeNotice(title, result.status))
+      new Notice(runtimeNotice(title, result))
     } catch (error) {
       new Notice(`${title} 진단 실패: ${toErrorMessage(error)}`)
     }
+  }
+
+  const allowOrganizationPlans = () => {
+    new ConfirmModal(app, {
+      title: CLAUDE_ORGANIZATION_CONSENT_TITLE,
+      message: CLAUDE_ORGANIZATION_CONSENT_MESSAGE,
+      ctaText: '이 컴퓨터에서 허용',
+      onConfirm: () => {
+        service.setClaudeOrganizationPlans(true)
+        setAllowsOrganizationPlans(true)
+        void diagnose()
+      },
+    }).open()
+  }
+
+  const revokeOrganizationPlans = () => {
+    service.setClaudeOrganizationPlans(false)
+    setAllowsOrganizationPlans(false)
+    new Notice('Team/Enterprise 계정 허용을 해제했습니다.')
+    void diagnose()
   }
 
   const openInstallWizard = () => {
@@ -309,6 +341,7 @@ export function NativeRuntimeCard({
         <PlanConnectionStatusBadge
           status={snapshot.status}
           authenticatedButBlocked={isAuthenticatedButBlocked}
+          organizationOptInRequired={needsOrganizationOptIn}
         />
       </div>
 
@@ -326,7 +359,7 @@ export function NativeRuntimeCard({
         ) : null}
       </div>
 
-      {snapshot.error && (
+      {snapshot.error && !needsOrganizationOptIn && (
         <div
           className="smtcmp-plan-runtime-error"
           role="alert"
@@ -341,6 +374,60 @@ export function NativeRuntimeCard({
             </strong>
           )}
           {snapshot.error}
+        </div>
+      )}
+
+      {needsOrganizationOptIn && (
+        <div
+          className="smtcmp-plan-runtime-organization"
+          role="status"
+          data-runtime-notice="organization-opt-in"
+        >
+          <Building2 size={16} aria-hidden="true" />
+          <div>
+            <strong>Team/Enterprise 계정 · 허용 필요</strong>
+            <span>
+              조직 관리자가 적용한 Claude Code 설정이 이 플러그인의 요청에도
+              적용될 수 있어, 이 컴퓨터에서 허용하기 전에는 요청을 보내지
+              않습니다.
+            </span>
+            <button
+              className="mod-cta"
+              data-runtime-action="allow-organization"
+              disabled={isDiagnosing || !Platform.isDesktop}
+              onClick={allowOrganizationPlans}
+            >
+              Team/Enterprise 계정 허용…
+            </button>
+          </div>
+        </div>
+      )}
+
+      {provider === 'claude' && allowsOrganizationPlans && (
+        <div
+          className="smtcmp-plan-runtime-organization is-allowed"
+          role="status"
+          data-runtime-notice="organization-allowed"
+        >
+          <Building2 size={16} aria-hidden="true" />
+          <div>
+            <strong>
+              {isClaudeOrganizationSubscription(snapshot)
+                ? 'Team/Enterprise 계정으로 연결됨'
+                : 'Team/Enterprise 계정 허용됨'}
+            </strong>
+            <span>
+              이 컴퓨터에서만 허용되어 있습니다. 조직이 관리하는 Claude Code
+              설정이 요청에 적용될 수 있습니다.
+            </span>
+            <button
+              data-runtime-action="revoke-organization"
+              disabled={isDiagnosing}
+              onClick={revokeOrganizationPlans}
+            >
+              허용 해제
+            </button>
+          </div>
         </div>
       )}
 
@@ -481,18 +568,26 @@ function PlanConnectionStatusBadge({
   connectedLabel,
   disconnectedLabel,
   authenticatedButBlocked = false,
+  organizationOptInRequired = false,
 }: {
   status: NativeRuntimeStatus
   connectedLabel?: string
   disconnectedLabel?: string
   authenticatedButBlocked?: boolean
+  organizationOptInRequired?: boolean
 }) {
-  const config = statusConfig(
-    status,
-    connectedLabel,
-    disconnectedLabel,
-    authenticatedButBlocked,
-  )
+  const config = organizationOptInRequired
+    ? {
+        icon: <Building2 size={14} />,
+        label: '조직 계정 · 허용 필요',
+        statusClass: 'smtcmp-mcp-server-status-badge--warning',
+      }
+    : statusConfig(
+        status,
+        connectedLabel,
+        disconnectedLabel,
+        authenticatedButBlocked,
+      )
 
   return (
     <div
@@ -614,8 +709,11 @@ function uniqueModelId(models: ChatModel[], candidate: string): string {
   return `${candidate} ${suffix}`
 }
 
-function runtimeNotice(title: string, status: NativeRuntimeStatus): string {
-  switch (status) {
+function runtimeNotice(title: string, snapshot: NativeRuntimeSnapshot): string {
+  if (isClaudeOrganizationOptInRequired(snapshot)) {
+    return `${title}: Team/Enterprise 계정입니다. 카드의 'Team/Enterprise 계정 허용'으로 이 컴퓨터에서 사용을 허용할 수 있습니다.`
+  }
+  switch (snapshot.status) {
     case 'checking':
       return `${title} 확인을 시작했습니다.`
     case 'ready':
@@ -631,28 +729,6 @@ function runtimeNotice(title: string, status: NativeRuntimeStatus): string {
     case 'error':
       return `${title} runtime 진단에서 오류를 발견했습니다.`
   }
-}
-
-function hasAuthenticatedPolicyBlock(snapshot: NativeRuntimeSnapshot): boolean {
-  if (
-    snapshot.status !== 'billing-blocked' &&
-    snapshot.status !== 'quota-unverified'
-  ) {
-    return false
-  }
-
-  const evidence = snapshot.authDecision?.evidence ?? []
-  if (snapshot.provider === 'gemini') {
-    return snapshot.catalog === 'ready' && evidence.length > 0
-  }
-
-  // Environment and managed-policy preflight failures happen before
-  // `claude auth status`; only parsed auth metadata confirms a Claude login.
-  return evidence.some(
-    (item) =>
-      item === 'auth metadata contains a non-subscription billing marker' ||
-      item === 'subscription provenance is incomplete or unknown',
-  )
 }
 
 function isSafeClaudeUpdate(update: NativeRuntimeSnapshot['update']): boolean {

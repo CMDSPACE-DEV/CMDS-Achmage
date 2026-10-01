@@ -29,6 +29,7 @@ describe('Claude Plan billing guard', () => {
           'apiProvider=firstParty',
           `subscriptionType=${subscriptionType}`,
         ],
+        code: 'subscription',
       })
     },
   )
@@ -113,18 +114,24 @@ describe('Claude Plan billing guard', () => {
   )
 
   it.each(['team', 'enterprise'])(
-    'fails closed for %s until managed billing provenance is machine-readable',
+    'blocks %s with an organization explanation until this computer opts in',
     (subscriptionType) => {
-      expect(
-        classifyClaudeAuthStatus(
-          JSON.stringify({
-            loggedIn: true,
-            authMethod: 'claude.ai',
-            apiProvider: 'firstParty',
-            subscriptionType,
-          }),
-        ),
-      ).toMatchObject({ status: 'billing-blocked', allowed: false })
+      const decision = classifyClaudeAuthStatus(
+        JSON.stringify({
+          loggedIn: true,
+          authMethod: 'claude.ai',
+          apiProvider: 'firstParty',
+          subscriptionType,
+        }),
+      )
+      expect(decision).toMatchObject({
+        status: 'billing-blocked',
+        allowed: false,
+        code: 'organization-opt-in-required',
+      })
+      // R-044: the organization block must not be explained as API, helper,
+      // gateway, or cloud-provider billing (issue #38).
+      expect(decision.reason).not.toMatch(/API|helper|gateway|cloud/i)
     },
   )
 
@@ -327,8 +334,8 @@ describe('Claude Plan billing guard', () => {
     expect(JSON.stringify(environment)).not.toContain('must-never-reach-claude')
   })
 
-  it('blocks managed settings before invoking auth status', async () => {
-    const runner = jest.fn()
+  it('keeps managed settings blocking a personal Pro login', async () => {
+    const runner = jest.fn().mockResolvedValue(cleanProAuthStatus())
     const verification = await verifyClaudePlanAuth('/runtime/claude', {
       environment: prepareNativePlanEnvironment('claude', {
         PATH: '/safe/bin',
@@ -340,10 +347,13 @@ describe('Claude Plan billing guard', () => {
       ],
     })
 
-    expect(runner).not.toHaveBeenCalled()
+    // `auth status` runs so an organization account can be recognized
+    // (R-044); a personal account stays blocked by managed settings.
+    expect(runner).toHaveBeenCalledTimes(1)
     expect(verification.decision).toMatchObject({
       status: 'billing-blocked',
       allowed: false,
+      code: 'managed-settings',
     })
     expect(verification.decision.evidence).toEqual([
       'managed settings file present',
@@ -352,7 +362,7 @@ describe('Claude Plan billing guard', () => {
   })
 
   it('fails closed when managed settings inspection throws', async () => {
-    const runner = jest.fn()
+    const runner = jest.fn().mockResolvedValue(cleanProAuthStatus())
     const verification = await verifyClaudePlanAuth('/runtime/claude', {
       environment: prepareNativePlanEnvironment('claude', {
         PATH: '/safe/bin',
@@ -363,7 +373,6 @@ describe('Claude Plan billing guard', () => {
       },
     })
 
-    expect(runner).not.toHaveBeenCalled()
     expect(verification.decision).toMatchObject({
       status: 'billing-blocked',
       allowed: false,
@@ -857,3 +866,16 @@ describe('Gemini Plan compatibility guard', () => {
     })
   })
 })
+
+function cleanProAuthStatus() {
+  return {
+    stdout: JSON.stringify({
+      loggedIn: true,
+      authMethod: 'claude.ai',
+      apiProvider: 'firstParty',
+      subscriptionType: 'pro',
+    }),
+    stderr: '',
+    exitCode: 0,
+  }
+}
