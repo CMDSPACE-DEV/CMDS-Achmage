@@ -87,7 +87,7 @@ describe('processQueryWithPlanRerank', () => {
     const { results, retrievalMetadata } = await processQueryWithPlanRerank({
       app,
       settings: {
-        version: 31,
+        version: 32,
         providers: [],
         chatModels: [],
         embeddingModels: [],
@@ -234,7 +234,7 @@ describe('processQueryWithPlanRerank', () => {
     const result = await processQueryWithPlanRerank({
       app,
       settings: {
-        version: 31,
+        version: 32,
         providers: [],
         chatModels: [],
         embeddingModels: [],

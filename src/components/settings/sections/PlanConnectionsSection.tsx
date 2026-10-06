@@ -149,7 +149,7 @@ export function PlanConnectionsSection({
           app={app}
           provider="claude"
           title="Claude Plan"
-          description="설치된 공식 Claude Code CLI를 직접 사용합니다. 모델 선택은 안정적인 Opus, Sonnet, Haiku alias를 따릅니다."
+          description="설치된 공식 Claude Code CLI를 직접 사용합니다. 모델은 Opus·Sonnet·Haiku·Fable 최신 alias나 Opus 5.5·Sonnet 5.5·Fable 5.1 고정 버전 중에서 고릅니다."
           service={runtimeService}
           onDiagnostics={applyDiagnostics}
           experimental
@@ -679,7 +679,7 @@ function syncRuntimeModels(
     const stableAlias = runtimeModel.id.toLowerCase()
     if (
       providerType === 'anthropic-plan' &&
-      ['default', 'opus', 'sonnet', 'haiku'].includes(stableAlias)
+      ['default', 'opus', 'sonnet', 'haiku', 'fable'].includes(stableAlias)
     ) {
       continue
     }

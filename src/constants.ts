@@ -15,13 +15,13 @@ export const CODEX_RESPONSES_ENDPOINT =
   'https://chatgpt.com/backend-api/codex/responses'
 
 // Default model ids
-export const DEFAULT_CHAT_MODEL_ID = 'claude-sonnet-4.6'
+export const DEFAULT_CHAT_MODEL_ID = 'claude-sonnet-5.5'
 // gpt-4.1-mini is preferred over gpt-5-mini because gpt-5 models do not support
 // predicted outputs, making them significantly slower for apply tasks.
 export const DEFAULT_APPLY_MODEL_ID = 'gpt-4.1-mini'
 
 // Recommended model ids
-export const RECOMMENDED_MODELS_FOR_CHAT = ['claude-sonnet-4.6', 'gpt-5.5']
+export const RECOMMENDED_MODELS_FOR_CHAT = ['claude-sonnet-5.5', 'gpt-6.1-sol']
 export const RECOMMENDED_MODELS_FOR_APPLY = ['gpt-4.1-mini']
 export const RECOMMENDED_MODELS_FOR_EMBEDDING = [
   'openai/text-embedding-3-small',
@@ -316,6 +316,70 @@ export const DEFAULT_CHAT_MODELS: readonly ChatModel[] = [
       display: 'summarized',
     },
   },
+  // Pinned versions; they need Claude Code 2.1.280 (5.5) or 2.1.257 (Fable 5.1).
+  {
+    providerType: 'anthropic-plan',
+    providerId: PROVIDER_TYPES_INFO['anthropic-plan'].defaultProviderId,
+    id: 'claude-opus-5.5 (plan)',
+    model: 'claude-opus-5-5',
+    thinking: {
+      enabled: true,
+      mode: 'adaptive',
+      effort: 'high',
+      display: 'summarized',
+    },
+  },
+  {
+    providerType: 'anthropic-plan',
+    providerId: PROVIDER_TYPES_INFO['anthropic-plan'].defaultProviderId,
+    id: 'claude-sonnet-5.5 (plan)',
+    model: 'claude-sonnet-5-5',
+    thinking: {
+      enabled: true,
+      mode: 'adaptive',
+      effort: 'high',
+      display: 'summarized',
+    },
+  },
+  {
+    providerType: 'anthropic-plan',
+    providerId: PROVIDER_TYPES_INFO['anthropic-plan'].defaultProviderId,
+    id: 'claude-fable-5.1 (plan)',
+    model: 'claude-fable-5-1',
+    thinking: {
+      enabled: true,
+      mode: 'adaptive',
+      effort: 'high',
+      display: 'summarized',
+    },
+  },
+  {
+    providerType: 'openai-plan',
+    providerId: PROVIDER_TYPES_INFO['openai-plan'].defaultProviderId,
+    id: 'gpt-6.1-sol (plan)',
+    model: 'gpt-6.1-sol',
+    reasoning: {
+      reasoning_effort: 'medium',
+    },
+  },
+  {
+    providerType: 'openai-plan',
+    providerId: PROVIDER_TYPES_INFO['openai-plan'].defaultProviderId,
+    id: 'gpt-6-sol (plan)',
+    model: 'gpt-6-sol',
+    reasoning: {
+      reasoning_effort: 'medium',
+    },
+  },
+  {
+    providerType: 'openai-plan',
+    providerId: PROVIDER_TYPES_INFO['openai-plan'].defaultProviderId,
+    id: 'gpt-6-luna (plan)',
+    model: 'gpt-6-luna',
+    reasoning: {
+      reasoning_effort: 'medium',
+    },
+  },
   {
     providerType: 'openai-plan',
     providerId: PROVIDER_TYPES_INFO['openai-plan'].defaultProviderId,
@@ -343,46 +407,63 @@ export const DEFAULT_CHAT_MODELS: readonly ChatModel[] = [
       reasoning_effort: 'none',
     },
   },
+  // Antigravity model IDs carry the effort tier; `agy models` lists the rest.
   {
     providerType: 'gemini-plan',
     providerId: PROVIDER_TYPES_INFO['gemini-plan'].defaultProviderId,
-    id: 'gemini-3-pro-preview (plan)',
-    model: 'gemini-3-pro-preview',
-    enable: false,
+    id: 'gemini-3.1-pro-high (plan)',
+    model: 'gemini-3.1-pro-high',
   },
   {
-    providerType: 'anthropic-plan',
-    providerId: PROVIDER_TYPES_INFO['anthropic-plan'].defaultProviderId,
-    id: 'claude-opus-4.8 (plan)',
-    model: 'claude-opus-4-8',
-    enable: false,
-  },
-  {
-    providerType: 'anthropic-plan',
-    providerId: PROVIDER_TYPES_INFO['anthropic-plan'].defaultProviderId,
-    id: 'claude-sonnet-5 (plan)',
-    model: 'claude-sonnet-5',
-    enable: false,
+    providerType: 'gemini-plan',
+    providerId: PROVIDER_TYPES_INFO['gemini-plan'].defaultProviderId,
+    id: 'gemini-3.8-flash-medium (plan)',
+    model: 'gemini-3.8-flash-medium',
   },
   {
     providerType: 'openai-plan',
     providerId: PROVIDER_TYPES_INFO['openai-plan'].defaultProviderId,
     id: 'gpt-6-astra (plan)',
     model: 'gpt-6-astra',
+    reasoning: {
+      reasoning_effort: 'low',
+    },
     enable: false,
   },
   {
-    providerType: 'gemini-plan',
-    providerId: PROVIDER_TYPES_INFO['gemini-plan'].defaultProviderId,
-    id: 'gemini-3-flash-preview (plan)',
-    model: 'gemini-3-flash-preview',
-    enable: false,
+    providerType: 'anthropic',
+    providerId: PROVIDER_TYPES_INFO.anthropic.defaultProviderId,
+    id: 'claude-opus-5.5',
+    model: 'claude-opus-5-5',
+    thinking: { enabled: true, budget_tokens: 8192, effort: 'high' },
+  },
+  {
+    providerType: 'anthropic',
+    providerId: PROVIDER_TYPES_INFO.anthropic.defaultProviderId,
+    id: 'claude-sonnet-5.5',
+    model: 'claude-sonnet-5-5',
+    thinking: { enabled: true, budget_tokens: 8192, effort: 'high' },
   },
   {
     providerType: 'anthropic',
     providerId: PROVIDER_TYPES_INFO.anthropic.defaultProviderId,
     id: 'claude-fable-5.1',
     model: 'claude-fable-5-1',
+    thinking: { enabled: true, budget_tokens: 8192, effort: 'high' },
+  },
+  {
+    providerType: 'anthropic',
+    providerId: PROVIDER_TYPES_INFO.anthropic.defaultProviderId,
+    id: 'claude-opus-5',
+    model: 'claude-opus-5',
+    thinking: { enabled: true, budget_tokens: 8192, effort: 'high' },
+  },
+  {
+    providerType: 'anthropic',
+    providerId: PROVIDER_TYPES_INFO.anthropic.defaultProviderId,
+    id: 'claude-sonnet-5',
+    model: 'claude-sonnet-5',
+    thinking: { enabled: true, budget_tokens: 8192, effort: 'high' },
   },
   {
     providerType: 'anthropic',
@@ -405,8 +486,26 @@ export const DEFAULT_CHAT_MODELS: readonly ChatModel[] = [
   {
     providerType: 'openai',
     providerId: PROVIDER_TYPES_INFO.openai.defaultProviderId,
+    id: 'gpt-6.1-sol',
+    model: 'gpt-6.1-sol',
+  },
+  {
+    providerType: 'openai',
+    providerId: PROVIDER_TYPES_INFO.openai.defaultProviderId,
     id: 'gpt-6-astra',
     model: 'gpt-6-astra',
+  },
+  {
+    providerType: 'openai',
+    providerId: PROVIDER_TYPES_INFO.openai.defaultProviderId,
+    id: 'gpt-6-sol',
+    model: 'gpt-6-sol',
+  },
+  {
+    providerType: 'openai',
+    providerId: PROVIDER_TYPES_INFO.openai.defaultProviderId,
+    id: 'gpt-6-luna',
+    model: 'gpt-6-luna',
   },
   {
     providerType: 'openai',
@@ -417,60 +516,50 @@ export const DEFAULT_CHAT_MODELS: readonly ChatModel[] = [
   {
     providerType: 'openai',
     providerId: PROVIDER_TYPES_INFO.openai.defaultProviderId,
-    id: 'gpt-5-mini',
-    model: 'gpt-5-mini',
-  },
-  {
-    providerType: 'openai',
-    providerId: PROVIDER_TYPES_INFO.openai.defaultProviderId,
     id: 'gpt-4.1-mini',
     model: 'gpt-4.1-mini',
   },
   {
-    providerType: 'openai',
-    providerId: PROVIDER_TYPES_INFO.openai.defaultProviderId,
-    id: 'o4-mini',
-    model: 'o4-mini',
-    reasoning: {
-      enabled: true,
-      reasoning_effort: 'medium',
-    },
+    providerType: 'gemini',
+    providerId: PROVIDER_TYPES_INFO.gemini.defaultProviderId,
+    id: 'gemini-3.8-flash',
+    model: 'gemini-3.8-flash',
   },
   {
     providerType: 'gemini',
     providerId: PROVIDER_TYPES_INFO.gemini.defaultProviderId,
-    id: 'gemini-3-pro-preview',
-    model: 'gemini-3-pro-preview',
+    id: 'gemini-3.1-pro-preview',
+    model: 'gemini-3.1-pro-preview',
   },
   {
     providerType: 'gemini',
     providerId: PROVIDER_TYPES_INFO.gemini.defaultProviderId,
-    id: 'gemini-3-flash-preview',
-    model: 'gemini-3-flash-preview',
+    id: 'gemini-3.5-flash-lite',
+    model: 'gemini-3.5-flash-lite',
   },
   {
     providerType: 'deepseek',
     providerId: PROVIDER_TYPES_INFO.deepseek.defaultProviderId,
-    id: 'deepseek-chat',
-    model: 'deepseek-chat',
+    id: 'deepseek-flash',
+    model: 'deepseek-flash',
   },
   {
     providerType: 'deepseek',
     providerId: PROVIDER_TYPES_INFO.deepseek.defaultProviderId,
-    id: 'deepseek-reasoner',
-    model: 'deepseek-reasoner',
+    id: 'deepseek-v4-pro',
+    model: 'deepseek-v4-pro',
   },
   {
     providerType: 'xai',
     providerId: PROVIDER_TYPES_INFO.xai.defaultProviderId,
-    id: 'grok-4-1-fast',
-    model: 'grok-4-1-fast',
+    id: 'grok-4.7',
+    model: 'grok-4.7',
   },
   {
     providerType: 'xai',
     providerId: PROVIDER_TYPES_INFO.xai.defaultProviderId,
-    id: 'grok-4-1-fast-non-reasoning',
-    model: 'grok-4-1-fast-non-reasoning',
+    id: 'grok-4.3',
+    model: 'grok-4.3',
   },
 ]
 
@@ -495,11 +584,14 @@ export const DEFAULT_EMBEDDING_MODELS: readonly EmbeddingModel[] = [
     dimension: 3072,
   },
   {
+    // text-embedding-004 shut down on 2026-01-14. Requested at 768 dimensions
+    // to stay within the vector index limit (R-045).
     providerType: 'gemini',
     providerId: PROVIDER_TYPES_INFO.gemini.defaultProviderId,
-    id: 'gemini/text-embedding-004',
-    model: 'text-embedding-004',
+    id: 'gemini/gemini-embedding-2',
+    model: 'gemini-embedding-2',
     dimension: 768,
+    outputDimension: 768,
   },
   {
     providerType: 'ollama',
@@ -524,13 +616,21 @@ export const DEFAULT_EMBEDDING_MODELS: readonly EmbeddingModel[] = [
   },
 ]
 
-// Pricing in dollars per million tokens
+// Pricing in dollars per million tokens (standard tier, checked 2026-10-01;
+// sources in R-045). Long-context and off-peak rates are not modelled.
 type ModelPricing = {
   input: number
   output: number
 }
 
 export const OPENAI_PRICES: Record<string, ModelPricing> = {
+  'gpt-6.1-sol': { input: 2, output: 10 },
+  'gpt-6-sol': { input: 2, output: 10 },
+  'gpt-6-astra': { input: 10, output: 50 },
+  'gpt-6-luna': { input: 0.1, output: 0.5 },
+  'gpt-5.6-sol': { input: 4, output: 20 },
+  'gpt-5.6-terra': { input: 2, output: 12 },
+  'gpt-5.6-luna': { input: 0.2, output: 1.2 },
   'gpt-5.5': { input: 5, output: 30 },
   'gpt-5.2': { input: 1.75, output: 14 },
   'gpt-5.1': { input: 1.25, output: 10 },
@@ -550,7 +650,11 @@ export const OPENAI_PRICES: Record<string, ModelPricing> = {
 }
 
 export const ANTHROPIC_PRICES: Record<string, ModelPricing> = {
+  'claude-opus-5-5': { input: 4, output: 20 },
+  'claude-sonnet-5-5': { input: 2, output: 10 },
   'claude-fable-5-1': { input: 10, output: 50 },
+  'claude-opus-5': { input: 5, output: 25 },
+  'claude-sonnet-5': { input: 2, output: 10 },
   'claude-opus-4-8': { input: 5, output: 25 },
   'claude-sonnet-4-6': { input: 3, output: 15 },
   'claude-opus-4-5': { input: 5, output: 25 },
@@ -564,16 +668,31 @@ export const ANTHROPIC_PRICES: Record<string, ModelPricing> = {
   'claude-3-5-haiku-latest': { input: 1, output: 5 },
 }
 
-// Gemini is currently free for low rate limits
-export const GEMINI_PRICES: Record<string, ModelPricing> = {}
-
-export const XAI_PRICES: Record<string, ModelPricing> = {
-  'grok-4-1-fast': { input: 0.2, output: 0.5 },
-  'grok-4-1-fast-non-reasoning': { input: 0.2, output: 0.5 },
+// Prompts up to 200k tokens; Gemini 3.x Flash rises on 2027-01-01.
+export const GEMINI_PRICES: Record<string, ModelPricing> = {
+  'gemini-3.8-flash': { input: 0.75, output: 3.75 },
+  'gemini-3.7-flash': { input: 0.75, output: 3.75 },
+  'gemini-3.6-flash': { input: 0.75, output: 3.75 },
+  'gemini-3.5-flash': { input: 1.5, output: 9 },
+  'gemini-3.5-flash-lite': { input: 0.3, output: 2.5 },
+  'gemini-3.1-flash-lite': { input: 0.25, output: 1.5 },
+  'gemini-3.1-pro-preview': { input: 2, output: 12 },
+  'gemini-3-flash-preview': { input: 0.5, output: 3 },
+  'gemini-2.5-pro': { input: 1.25, output: 10 },
+  'gemini-2.5-flash': { input: 0.3, output: 2.5 },
+  'gemini-2.5-flash-lite': { input: 0.1, output: 0.4 },
 }
 
+// Prompts under 200k tokens.
+export const XAI_PRICES: Record<string, ModelPricing> = {
+  'grok-4.7': { input: 2, output: 6 },
+  'grok-4.6': { input: 2, output: 6 },
+  'grok-4.5': { input: 2, output: 6 },
+  'grok-4.3': { input: 1.25, output: 2.5 },
+}
+
+// Peak-hour cache-miss rates; off-peak hours cost half.
 export const DEEPSEEK_PRICES: Record<string, ModelPricing> = {
-  // Model version: DeepSeek-V3.2
-  'deepseek-chat': { input: 0.28, output: 0.42 },
-  'deepseek-reasoner': { input: 0.28, output: 0.42 },
+  'deepseek-flash': { input: 0.3, output: 1.2 },
+  'deepseek-v4-pro': { input: 1.32, output: 3.96 },
 }
