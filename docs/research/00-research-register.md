@@ -14,7 +14,7 @@ Gemini Plan authentication and the 2.6.4 compatibility hotfix or release.
 R-029 is mandatory for Antigravity updater, ready-state UX, and the 2.6.5
 patch or release. R-044 is mandatory for Claude Plan authentication
 classification and partially supersedes R-027's Team/Enterprise row.
-patch or release. R-045 is mandatory for the chat model catalog, Plan model
+R-045 is mandatory for the chat model catalog, Plan model
 handling, and the Anthropic API request shape.
 
 ## Purpose
@@ -71,6 +71,8 @@ premature synthesis.
 | R-031 | Community-release vault safety: product-named default folders with Obsidian attachment-folder resolution, setting-owned artifact folder, namespaced draft provenance keys, Obsidian excluded-files respected, rebrand of 40 user-facing strings | **Verified + Implemented** | **Mandatory for vault write paths, RAG scope, and naming** | [R-031 report](R-031-community-safe-vault-defaults.md) |
 | R-044 | Claude Team/Enterprise organization login opt-in: corrected classification (issue #38), device-local consent, managed settings for organization logins, `system/init` session guard; partially supersedes R-027's Team/Enterprise row | **Partially verified; source, 2.1.285 executable inspection, first-party documentation, and fixture tests complete; live Team/Enterprise validation pending** | **Mandatory for Claude Plan auth** | [R-044 report](R-044-claude-organization-plan-opt-in.md) |
 | R-045 | Model catalog refresh 2026-10 (issue #39): Claude Plan pinned models and effort fix, GPT Plan capability table (GPT-6), Antigravity 1.2 catalog and endpoint guard, Anthropic API request shape and thinking replay, retired models, prices, schema 32 | **Partially verified; first-party sources, local Claude Code 2.1.285 and Antigravity 1.2.14 probes, and 838 local tests complete; GPT-6 on the Codex OAuth path and live API-key requests pending** | **Mandatory for chat model catalog and Plan model work** | [R-045 report](R-045-model-catalog-refresh-2026-10.md) |
+| R-046 | Eagle 1.8.4 cloud upload rejected by a 1.7-only guard; capability detection and local hotfix | **Verified source, 850 tests, build and offline installed-provider integration; live UI/network untested** | **Mandatory for Eagle cloud bridge changes** | [R-046 report](R-046-eagle-cloud-api-version-compatibility.md) |
+| R-048 | Plan/model catalog/Eagle integration for a proposed 1.3 update | **Locally verified; hosted CI and live release checks remain separate** | **Mandatory for this integration PR** | [R-048 report](R-048-plan-models-eagle-integration.md) |
 
 ## Mandatory Synthesis Rule
 

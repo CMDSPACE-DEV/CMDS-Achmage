@@ -15,7 +15,6 @@ type CmdsCloudProvider = {
 }
 
 type CmdsEagleRuntime = {
-  manifest?: { version?: string }
   getActiveCloudProvider?: () => CmdsCloudProvider | null
 }
 
@@ -33,10 +32,15 @@ export async function uploadWithCmdsEagle(
   const runtime = (app as AppWithPlugins).plugins?.plugins?.['cmds-eagle'] as
     | CmdsEagleRuntime
     | undefined
-  if (!runtime?.manifest?.version?.startsWith('1.7.')) {
-    throw new Error('CMDS Eagle 1.7.x is not installed or enabled.')
+  if (!runtime) {
+    throw new Error('CMDS Eagle is not installed or enabled.')
   }
-  const provider = runtime.getActiveCloudProvider?.()
+  // Eagle 1.8.x retains the cloud API introduced in 1.7.x. Check the
+  // integration capability rather than rejecting compatible version updates.
+  if (typeof runtime.getActiveCloudProvider !== 'function') {
+    throw new Error('CMDS Eagle does not expose a compatible cloud upload API.')
+  }
+  const provider = runtime.getActiveCloudProvider()
   if (!provider || typeof provider.upload !== 'function') {
     throw new Error('CMDS Eagle has no active cloud provider.')
   }
