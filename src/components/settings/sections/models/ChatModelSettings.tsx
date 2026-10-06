@@ -1,12 +1,16 @@
 import { App, Notice } from 'obsidian'
 import { useState } from 'react'
 
+import {
+  anthropicThinkingStyle,
+  anthropicThinksByDefault,
+} from '../../../../core/llm/anthropicRequestShape'
+import { getOpenAIPlanModelSpec } from '../../../../core/llm/openaiPlanModels'
 import SmartComposerPlugin from '../../../../main'
 import {
   CLAUDE_ADAPTIVE_EFFORTS,
   ChatModel,
   ClaudeEffort,
-  GPT_5_6_EFFORTS,
   Gpt56Effort,
   chatModelSchema,
 } from '../../../../types/chat-model.types'
@@ -154,20 +158,23 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
     SettingsComponent: (props: SettingsComponentProps) => {
       const { model, plugin, onClose } = props
       const typedModel = model as OpenAIPlanModel
-      const isGpt56 = isGpt56PlanModel(typedModel)
+      // Known Codex models accept only their own efforts (R-045).
+      const planSpec = getOpenAIPlanModelSpec(typedModel.model)
       const [reasoningEffort, setReasoningEffort] = useState<
         OpenAIPlanEffort | ''
-      >(typedModel.reasoning?.reasoning_effort ?? (isGpt56 ? 'medium' : ''))
+      >(typedModel.reasoning?.reasoning_effort ?? planSpec?.defaultEffort ?? '')
       const [reasoningSummary, setReasoningSummary] = useState<
         OpenAIPlanSummary | ''
       >(typedModel.reasoning?.reasoning_summary ?? '')
 
       const handleSubmit = async () => {
         if (
-          isGpt56 &&
-          !GPT_5_6_EFFORTS.includes(reasoningEffort as Gpt56Effort)
+          planSpec &&
+          !planSpec.efforts.includes(reasoningEffort as Gpt56Effort)
         ) {
-          new Notice('Select a supported GPT-5.6 reasoning effort.')
+          new Notice(
+            `Select a reasoning effort supported by ${typedModel.model}.`,
+          )
           return
         }
 
@@ -213,15 +220,13 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
             <ObsidianDropdown
               value={reasoningEffort}
               options={
-                isGpt56
-                  ? {
-                      none: 'none (fastest)',
-                      low: 'low',
-                      medium: 'medium',
-                      high: 'high',
-                      xhigh: 'xhigh',
-                      max: 'max (deepest)',
-                    }
+                planSpec
+                  ? Object.fromEntries(
+                      planSpec.efforts.map((effort) => [
+                        effort,
+                        GPT_PLAN_EFFORT_LABELS[effort],
+                      ]),
+                    )
                   : {
                       '': 'Not set (OpenAI default)',
                       none: 'none',
@@ -273,8 +278,8 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
     check: (model) =>
       model.providerType === 'anthropic-plan' &&
       (model.thinking?.mode === 'adaptive' ||
-        ['default', 'opus', 'sonnet'].includes(model.model) ||
-        /^claude-(opus|sonnet)-/i.test(model.model)),
+        ['default', 'opus', 'sonnet', 'fable'].includes(model.model) ||
+        /^claude-(opus|sonnet|fable)-/i.test(model.model)),
     SettingsComponent: (props: SettingsComponentProps) => {
       const { model, plugin, onClose } = props
       const typedModel = model as Extract<
@@ -398,13 +403,25 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
         typedModel.thinking && 'budget_tokens' in typedModel.thinking
           ? typedModel.thinking
           : undefined
+      // Unset means the model default, which is "on" for 5.x and Fable.
       const [thinkingEnabled, setThinkingEnabled] = useState<boolean>(
-        typedModel.thinking?.enabled ?? false,
+        typedModel.thinking?.enabled ??
+          (typedModel.providerType === 'anthropic' &&
+            anthropicThinksByDefault(typedModel.model)),
       )
       const [budgetTokens, setBudgetTokens] = useState(
         (
           manualThinking?.budget_tokens ?? DEFAULT_THINKING_BUDGET_TOKENS
         ).toString(),
+      )
+      // Claude 4.6+ on the API: adaptive thinking takes an effort, not a budget.
+      const usesEffort =
+        typedModel.providerType === 'anthropic' &&
+        anthropicThinkingStyle(typedModel.model) !== 'budget'
+      const [apiEffort, setApiEffort] = useState<ClaudeEffort>(
+        typedModel.providerType === 'anthropic'
+          ? (typedModel.thinking?.effort ?? 'high')
+          : 'high',
       )
 
       const handleSubmit = async () => {
@@ -424,6 +441,7 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
           thinking: {
             enabled: thinkingEnabled,
             budget_tokens: parsedTokens,
+            ...(usesEffort ? { effort: apiEffort } : {}),
           },
         }
 
@@ -455,7 +473,25 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
               onChange={(value: boolean) => setThinkingEnabled(value)}
             />
           </ObsidianSetting>
-          {thinkingEnabled && (
+          {thinkingEnabled && usesEffort && (
+            <ObsidianSetting
+              name="Effort"
+              desc="How much Claude thinks before answering. Claude 4.6 stops at high."
+              className="smtcmp-setting-item--nested"
+              required
+            >
+              <ObsidianDropdown
+                value={apiEffort}
+                options={Object.fromEntries(
+                  CLAUDE_ADAPTIVE_EFFORTS.map((effort) => [effort, effort]),
+                )}
+                onChange={(value: string) =>
+                  setApiEffort(value as ClaudeEffort)
+                }
+              />
+            </ObsidianSetting>
+          )}
+          {thinkingEnabled && !usesEffort && (
             <ObsidianSetting
               name="Budget Tokens"
               desc="The maximum number of tokens that Claude can use for thinking. Must be at least 1024."
@@ -709,10 +745,13 @@ function getModelSettings(model: ChatModel): ModelSettingsRegistry | undefined {
   return MODEL_SETTINGS_REGISTRY.find((registry) => registry.check(model))
 }
 
-function isGpt56PlanModel(
-  model: Extract<ChatModel, { providerType: 'openai-plan' }>,
-): boolean {
-  return ['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna'].includes(model.model)
+const GPT_PLAN_EFFORT_LABELS: Record<Gpt56Effort, string> = {
+  none: 'none (fastest)',
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+  xhigh: 'xhigh',
+  max: 'max (deepest)',
 }
 
 export function hasChatModelSettings(model: ChatModel): boolean {

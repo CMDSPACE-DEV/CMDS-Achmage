@@ -458,3 +458,7 @@ Claude.ai login or route personal-plan credentials for users. Consequently:
   fail-closed future-provenance coverage, passed 582 local tests and the bundle
   budget, and recorded only the non-sensitive shape of one authorized live
   request. Real-Obsidian, exact-SHA CI, and publication evidence remain pending.
+- 2026-10-01: [R-044](R-044-claude-organization-plan-opt-in.md) partially
+  supersedes the Team/Enterprise row of the classification matrix: a clean
+  first-party Team/Enterprise login is now explained as an organization login
+  and allowed after device-local opt-in. All other blocks are unchanged.

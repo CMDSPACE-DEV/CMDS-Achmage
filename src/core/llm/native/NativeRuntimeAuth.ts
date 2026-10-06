@@ -81,6 +81,8 @@ const GEMINI_BLOCKED_ENVIRONMENT = new Set([
   'GOOGLE_CLOUD_PROJECT_ID',
   'GOOGLE_CLOUD_QUOTA_PROJECT',
   'GOOGLE_GENAI_USE_ENTERPRISE',
+  // Antigravity sends model requests to this endpoint instead (R-045).
+  'GOOGLE_GEMINI_BASE_URL',
   'GOOGLE_GENAI_USE_VERTEXAI',
   'VERTEX_AI_PROJECT',
   'VERTEX_AI_LOCATION',
@@ -93,11 +95,25 @@ const GEMINI_BOOLEAN_ROUTING_ENVIRONMENT = new Set([
 
 const CLAUDE_PERSONAL_SUBSCRIPTION_TYPES = new Set(['pro', 'max'])
 
+// Team and Enterprise logins can receive organization-managed Claude Code
+// settings that this plugin cannot read, so they need device-local opt-in.
+const CLAUDE_ORGANIZATION_SUBSCRIPTION_TYPES = new Set(['team', 'enterprise'])
+
+export const CLAUDE_ORGANIZATION_PLAN_OPT_IN_EVIDENCE =
+  'organization plan requires opt-in'
+export const CLAUDE_ORGANIZATION_PLAN_ALLOWED_EVIDENCE =
+  'organization plan allowed by this device opt-in'
+
+// `forcedLoginMethod` and `allowedProviders` appear only when managed policy
+// sets them (Claude Code 2.1.285). Each is accepted only in the value that
+// keeps requests on the first-party subscription route.
 const CLAUDE_ALLOWED_ROOT_AUTH_FIELDS = new Set([
   'loggedIn',
   'authMethod',
   'apiProvider',
   'subscriptionType',
+  'forcedLoginMethod',
+  'allowedProviders',
 ])
 
 const CLAUDE_AUTH_MARKER_KEY_TOKENS = new Set([
@@ -166,6 +182,11 @@ export function prepareNativePlanEnvironment(
   }
 }
 
+export type ClaudePlanAuthPolicy = {
+  /** Device-local opt-in for Team/Enterprise organization logins (R-044). */
+  allowOrganizationPlans?: boolean
+}
+
 export async function verifyClaudePlanAuth(
   executablePath: string,
   options: {
@@ -173,7 +194,7 @@ export async function verifyClaudePlanAuth(
     environment?: PreparedNativePlanEnvironment
     runner?: NativeProcessRunner
     managedSettingsInspector?: ClaudeManagedSettingsInspector
-  } = {},
+  } & ClaudePlanAuthPolicy = {},
 ): Promise<RuntimeAuthVerification> {
   const environment =
     options.environment ?? prepareNativePlanEnvironment('claude')
@@ -195,19 +216,10 @@ export async function verifyClaudePlanAuth(
   } catch {
     managedSettingsEvidence = ['managed settings inspection failed closed']
   }
-  if (managedSettingsEvidence.length > 0) {
-    return {
-      environment,
-      decision: {
-        status: 'billing-blocked',
-        allowed: false,
-        reason:
-          'Claude Plan is blocked because managed settings could supply an API key, gateway, cloud provider, or credential helper.',
-        evidence: managedSettingsEvidence,
-      },
-    }
-  }
 
+  // `auth status` runs even when managed settings exist: it reads no secrets
+  // and makes no model request, and it is the only way to tell an organization
+  // account (which can opt in) from a personal one (which stays blocked).
   const result = await (options.runner ?? runNativeProcess)({
     executable: executablePath,
     args: ['auth', 'status'],
@@ -215,6 +227,8 @@ export async function verifyClaudePlanAuth(
     signal: options.signal,
   })
   if (result.exitCode !== 0) {
+    // Signing in comes first on any computer: only a signed-in account can be
+    // classified as personal or organization.
     return {
       environment,
       decision: {
@@ -222,13 +236,54 @@ export async function verifyClaudePlanAuth(
         allowed: false,
         reason: 'Sign in to Claude Code with an eligible Claude subscription.',
         evidence: ['claude auth status reported signed out'],
+        code: 'login-required',
       },
     }
   }
 
+  const decision = classifyClaudeAuthStatus(result.stdout, environment, {
+    allowOrganizationPlans: options.allowOrganizationPlans,
+  })
   return {
     environment,
-    decision: classifyClaudeAuthStatus(result.stdout, environment),
+    decision:
+      managedSettingsEvidence.length > 0
+        ? applyManagedSettingsEvidence(decision, managedSettingsEvidence)
+        : decision,
+  }
+}
+
+/**
+ * Managed settings outrank every command-line setting, so they keep blocking
+ * personal and unidentified logins. An organization login is the exception:
+ * its consent explicitly covers settings the organization manages, whether
+ * they arrive from the server or from this computer's policy.
+ */
+function applyManagedSettingsEvidence(
+  decision: RuntimeAuthDecision,
+  managedSettingsEvidence: string[],
+): RuntimeAuthDecision {
+  if (
+    decision.code === 'organization-subscription' ||
+    decision.code === 'organization-opt-in-required'
+  ) {
+    return {
+      ...decision,
+      evidence: [...decision.evidence, ...managedSettingsEvidence],
+    }
+  }
+  if (decision.status === 'login-required') return decision
+  return managedSettingsDecision(managedSettingsEvidence)
+}
+
+function managedSettingsDecision(evidence: string[]): RuntimeAuthDecision {
+  return {
+    status: 'billing-blocked',
+    allowed: false,
+    reason:
+      'Claude Plan is blocked because administrator-managed Claude Code settings on this computer could supply an API key, gateway, cloud provider, or credential helper.',
+    evidence,
+    code: 'managed-settings',
   }
 }
 
@@ -320,17 +375,19 @@ export async function verifyAntigravityPlanAuth(
   }
 
   const runner = options.runner ?? runNativeProcess
-  let result = await runAntigravityAuthCheck(
+  // Antigravity 1.2 prints `id<TAB>label` lines; `models --json` was removed
+  // and now exits with "flags provided but not defined" (R-045).
+  const result = await runAntigravityAuthCheck(
     runner,
     {
       executable: executablePath,
-      args: ['models', '--json'],
+      args: ['models'],
       env: environment.env,
     },
     options.signal,
   )
   if (!result) return antigravityAuthCheckFailed(environment)
-  let blockingDecision = classifyAntigravityBlockingSignals(
+  const blockingDecision = classifyAntigravityBlockingSignals(
     [result.stdout, result.stderr],
     environment,
   )
@@ -338,62 +395,9 @@ export async function verifyAntigravityPlanAuth(
     return { environment, decision: blockingDecision }
   }
   if (result.exitCode === 0) {
-    const jsonDecision = classifyAntigravityQuotaProvenance(
-      result.stdout,
+    return {
       environment,
-    )
-    if (jsonDecision.status !== 'quota-unverified') {
-      return { environment, decision: jsonDecision }
-    }
-    result = await runAntigravityAuthCheck(
-      runner,
-      {
-        executable: executablePath,
-        args: ['models'],
-        env: environment.env,
-      },
-      options.signal,
-    )
-    if (!result) return antigravityAuthCheckFailed(environment)
-    blockingDecision = classifyAntigravityBlockingSignals(
-      [result.stdout, result.stderr],
-      environment,
-    )
-    if (blockingDecision) {
-      return { environment, decision: blockingDecision }
-    }
-    if (result.exitCode === 0) {
-      return {
-        environment,
-        decision: classifyAntigravityTextCatalog(result.stdout, environment),
-      }
-    }
-  } else {
-    const failureText = `${result.stderr}\n${result.stdout}`
-    if (!isLoginText(failureText)) {
-      result = await runAntigravityAuthCheck(
-        runner,
-        {
-          executable: executablePath,
-          args: ['models'],
-          env: environment.env,
-        },
-        options.signal,
-      )
-      if (!result) return antigravityAuthCheckFailed(environment)
-      blockingDecision = classifyAntigravityBlockingSignals(
-        [result.stdout, result.stderr],
-        environment,
-      )
-      if (blockingDecision) {
-        return { environment, decision: blockingDecision }
-      }
-      if (result.exitCode === 0) {
-        return {
-          environment,
-          decision: classifyAntigravityTextCatalog(result.stdout, environment),
-        }
-      }
+      decision: classifyAntigravityTextCatalog(result.stdout, environment),
     }
   }
 
@@ -473,6 +477,7 @@ export function classifyClaudeAuthStatus(
     'claude',
     {},
   ),
+  policy: ClaudePlanAuthPolicy = {},
 ): RuntimeAuthDecision {
   if (environment.blockedVariables.length > 0) {
     return blockedEnvironmentDecision('Claude', environment.blockedVariables)
@@ -491,12 +496,16 @@ export function classifyClaudeAuthStatus(
           ? 'auth status explicitly reported logged out'
           : 'unknown auth status schema',
       ],
+      code: parsed?.loggedIn === false ? 'login-required' : 'unknown-schema',
     }
   }
 
   const authMethod = normalizedString(parsed.authMethod)
   const apiProvider = normalizedString(parsed.apiProvider)
   const subscriptionType = normalizedString(parsed.subscriptionType)
+  // Billing markers are checked before the organization branch, so a Team
+  // account that also routes through an API key is never told that opting in
+  // would let it through.
   if (hasBlockedClaudeAuthMetadata(parsed)) {
     return {
       status: 'billing-blocked',
@@ -504,15 +513,17 @@ export function classifyClaudeAuthStatus(
       reason:
         'Claude is configured for API, helper, gateway, or cloud-provider billing instead of subscription Plan usage.',
       evidence: ['auth metadata contains a non-subscription billing marker'],
+      code: 'billing-marker',
     }
   }
 
-  const looksLikePersonalSubscription =
-    authMethod === 'claude.ai' &&
-    apiProvider === 'firstparty' &&
+  const isFirstPartyClaudeLogin =
+    authMethod === 'claude.ai' && apiProvider === 'firstparty'
+  if (
+    isFirstPartyClaudeLogin &&
     subscriptionType !== undefined &&
     CLAUDE_PERSONAL_SUBSCRIPTION_TYPES.has(subscriptionType)
-  if (looksLikePersonalSubscription) {
+  ) {
     return {
       status: 'subscription',
       allowed: true,
@@ -523,6 +534,37 @@ export function classifyClaudeAuthStatus(
         'apiProvider=firstParty',
         `subscriptionType=${subscriptionType}`,
       ],
+      code: 'subscription',
+    }
+  }
+
+  if (
+    isFirstPartyClaudeLogin &&
+    subscriptionType !== undefined &&
+    CLAUDE_ORGANIZATION_SUBSCRIPTION_TYPES.has(subscriptionType)
+  ) {
+    const evidence = [
+      'authMethod=claude.ai',
+      'apiProvider=firstParty',
+      `subscriptionType=${subscriptionType}`,
+    ]
+    if (policy.allowOrganizationPlans) {
+      return {
+        status: 'subscription',
+        allowed: true,
+        reason:
+          'Claude Code reported a first-party Team/Enterprise login that this computer allows. Settings managed by the organization may apply to these requests.',
+        evidence: [...evidence, CLAUDE_ORGANIZATION_PLAN_ALLOWED_EVIDENCE],
+        code: 'organization-subscription',
+      }
+    }
+    return {
+      status: 'billing-blocked',
+      allowed: false,
+      reason:
+        'Claude Code is signed in with a Team or Enterprise organization account. Its administrators can apply Claude Code settings to these requests, so CMDS Achmage waits until you allow organization accounts on this computer.',
+      evidence: [...evidence, CLAUDE_ORGANIZATION_PLAN_OPT_IN_EVIDENCE],
+      code: 'organization-opt-in-required',
     }
   }
 
@@ -532,46 +574,7 @@ export function classifyClaudeAuthStatus(
     reason:
       'Claude is signed in, but an eligible first-party subscription was not explicitly identified.',
     evidence: ['subscription provenance is incomplete or unknown'],
-  }
-}
-
-export function classifyAntigravityQuotaProvenance(
-  output: string,
-  environment: PreparedNativePlanEnvironment = prepareNativePlanEnvironment(
-    'gemini',
-    {},
-  ),
-): RuntimeAuthDecision {
-  const blockingDecision = classifyAntigravityBlockingSignals(
-    [output],
-    environment,
-  )
-  if (blockingDecision) return blockingDecision
-  const parsed = parseJsonValue(output)
-
-  if (!hasAntigravityJsonModelCatalog(parsed)) {
-    return {
-      status: 'quota-unverified',
-      allowed: false,
-      reason:
-        'Antigravity did not return a readable JSON model catalog, so Gemini request readiness could not be confirmed.',
-      evidence: ['agy models --json returned no readable models'],
-    }
-  }
-
-  // Antigravity does not currently expose a supported personal-quota field.
-  // For compatibility with the working 2.6.1 flow, a successful non-empty
-  // catalog is accepted as login/readiness evidence only when neither the
-  // environment nor the machine-readable response identifies Cloud billing.
-  return {
-    status: 'subscription',
-    allowed: true,
-    reason:
-      'Antigravity is signed in and returned a usable model catalog. Gemini requests are enabled in compatibility mode; the CLI does not expose the account quota source to CMDS Achmage.',
-    evidence: [
-      'agy models --json returned a non-empty catalog',
-      'no explicit API or Google Cloud override detected',
-    ],
+    code: 'subscription-unknown',
   }
 }
 
@@ -600,9 +603,9 @@ export function classifyAntigravityTextCatalog(
     status: 'subscription',
     allowed: true,
     reason:
-      'Antigravity is signed in and returned a usable legacy text model catalog. Gemini requests are enabled in compatibility mode; the CLI does not expose the account quota source to CMDS Achmage.',
+      'Antigravity is signed in and returned a usable Gemini model catalog. Gemini requests are enabled in compatibility mode; the CLI does not expose the account quota source to CMDS Achmage.',
     evidence: [
-      'agy models returned a non-empty text catalog',
+      'agy models returned a non-empty Gemini catalog',
       'no explicit API or Google Cloud override detected',
     ],
   }
@@ -673,6 +676,7 @@ function blockedEnvironmentDecision(
     allowed: false,
     reason: `${label} Plan is blocked because API, token, gateway, or cloud-provider environment credentials would take precedence.`,
     evidence: variables.map((name) => `environment variable present: ${name}`),
+    code: 'environment-override',
   }
 }
 
@@ -703,13 +707,24 @@ function containsBlockedClaudeAuthMetadata(value: unknown): boolean {
 
 function isAllowedClaudeRootAuthField(key: string, value: unknown): boolean {
   if (key === 'loggedIn') return value === true
+  if (key === 'allowedProviders') {
+    // Exactly the first-party API. Any additional entry, such as
+    // `customEndpoint`, lets managed settings route through a gateway.
+    return (
+      Array.isArray(value) &&
+      value.length === 1 &&
+      normalizedString(value[0]) === 'anthropic'
+    )
+  }
   const normalized = normalizedString(value)
   if (key === 'authMethod') return normalized === 'claude.ai'
   if (key === 'apiProvider') return normalized === 'firstparty'
+  if (key === 'forcedLoginMethod') return normalized === 'claudeai'
   if (key === 'subscriptionType') {
     return (
       normalized !== undefined &&
-      CLAUDE_PERSONAL_SUBSCRIPTION_TYPES.has(normalized)
+      (CLAUDE_PERSONAL_SUBSCRIPTION_TYPES.has(normalized) ||
+        CLAUDE_ORGANIZATION_SUBSCRIPTION_TYPES.has(normalized))
     )
   }
   return false
@@ -868,34 +883,6 @@ function collectRecords(value: unknown): Record<string, unknown>[] {
   if (Array.isArray(value)) return value.flatMap(collectRecords)
   if (!isRecord(value)) return []
   return [value, ...Object.values(value).flatMap(collectRecords)]
-}
-
-function hasAntigravityJsonModelCatalog(value: unknown): boolean {
-  return hasAntigravityCatalogEntries(value, Array.isArray(value))
-}
-
-function hasAntigravityCatalogEntries(
-  value: unknown,
-  insideCatalog: boolean,
-): boolean {
-  if (Array.isArray(value)) {
-    return value.some((entry) => hasAntigravityCatalogEntries(entry, true))
-  }
-  if (!isRecord(value)) return false
-  for (const key of ['models', 'data', 'items', 'availableModels']) {
-    if (key in value && hasAntigravityCatalogEntries(value[key], true)) {
-      return true
-    }
-  }
-  return insideCatalog && hasAntigravityModelRecord(value)
-}
-
-function hasAntigravityModelRecord(value: unknown): boolean {
-  if (!isRecord(value)) return false
-  return ['slug', 'id', 'value', 'name'].some((key) => {
-    const candidate = value[key]
-    return typeof candidate === 'string' && candidate.trim().length > 0
-  })
 }
 
 function parseRecord(value: string): Record<string, unknown> | null {
