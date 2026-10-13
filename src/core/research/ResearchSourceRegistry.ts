@@ -175,7 +175,20 @@ export const RESEARCH_SOURCES: Record<
     freeBoundary: 'Public application; allowance depends on approval',
     defaultAutoPolicy: 'explicit-only',
     secretFields: [{ id: 'api-key', label: 'KCI API key', required: true }],
-    optionFields: [],
+    optionFields: [
+      {
+        id: 'search-field',
+        label: 'Search field',
+        required: false,
+        defaultValue: 'keyword',
+        description:
+          'KCI matches all terms, so long natural-language phrases return nothing. Keyword covers title, abstract, and author keywords; Title matches article titles only.',
+        choices: [
+          { value: 'keyword', label: 'Keyword (broader recall)' },
+          { value: 'title', label: 'Title only (precise)' },
+        ],
+      },
+    ],
   },
   scienceon: {
     id: 'scienceon',

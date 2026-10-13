@@ -230,6 +230,92 @@ describe('research adapters', () => {
     ).rejects.toThrow('rejected by both API HUB and the legacy Developers API')
     expect(requestJson).toHaveBeenCalledTimes(2)
   })
+
+  // Payloads below are verbatim captures from open.kci.go.kr (2026-09-17).
+  it('returns no records when KCI reports an empty result set', async () => {
+    const request = jest.fn().mockResolvedValue({ text: KCI_NO_DATA_XML })
+    const adapter = getResearchAdapter('kci')
+
+    const outcome = await adapter?.search(
+      { query: 'vocabulary levels CEFR wordlist', limit: 10 },
+      {
+        http: { request } as unknown as ResearchHttpClient,
+        secrets: { get: () => 'kci-key' } as unknown as ResearchSecretStore,
+        settings: { enabled: true, autoPolicy: 'explicit-only', options: {} },
+      },
+    )
+
+    expect(outcome?.records).toHaveLength(0)
+    expect(outcome?.warnings).toContain('No Data')
+    expect(outcome?.nextCursor).toBeUndefined()
+  })
+
+  it('searches the KCI keyword field and pages without displayCount', async () => {
+    const request = jest.fn().mockResolvedValue({ text: KCI_NO_DATA_XML })
+    const adapter = getResearchAdapter('kci')
+
+    await adapter?.search(
+      { query: '어휘 학습', limit: 25 },
+      {
+        http: { request } as unknown as ResearchHttpClient,
+        secrets: { get: () => 'kci-key' } as unknown as ResearchSecretStore,
+        settings: { enabled: true, autoPolicy: 'explicit-only', options: {} },
+      },
+    )
+
+    const [, sent] = request.mock.calls[0] as [string, { url: string }]
+    const url = new URL(sent.url)
+    expect(url.searchParams.get('keyword')).toBe('어휘 학습')
+    expect(url.searchParams.get('title')).toBeNull()
+    expect(url.searchParams.get('page')).toBe('1')
+    expect(url.searchParams.has('displayCount')).toBe(false)
+  })
+
+  it('honours the KCI title-only search option', async () => {
+    const request = jest.fn().mockResolvedValue({ text: KCI_NO_DATA_XML })
+    const adapter = getResearchAdapter('kci')
+
+    await adapter?.search(
+      { query: '어휘연구의 현황과 전망', limit: 10 },
+      {
+        http: { request } as unknown as ResearchHttpClient,
+        secrets: { get: () => 'kci-key' } as unknown as ResearchSecretStore,
+        settings: {
+          enabled: true,
+          autoPolicy: 'explicit-only',
+          options: { 'search-field': 'title' },
+        },
+      },
+    )
+
+    const [, sent] = request.mock.calls[0] as [string, { url: string }]
+    expect(new URL(sent.url).searchParams.get('title')).toBe(
+      '어휘연구의 현황과 전망',
+    )
+  })
+
+  it('reads the KCI article id from the articleInfo attribute', async () => {
+    const request = jest.fn().mockResolvedValue({ text: KCI_RECORD_XML })
+    const adapter = getResearchAdapter('kci')
+
+    const outcome = await adapter?.search(
+      { query: '어휘', limit: 10 },
+      {
+        http: { request } as unknown as ResearchHttpClient,
+        secrets: { get: () => 'kci-key' } as unknown as ResearchSecretStore,
+        settings: { enabled: true, autoPolicy: 'explicit-only', options: {} },
+      },
+    )
+
+    expect(outcome?.records).toHaveLength(1)
+    const [record] = outcome?.records ?? []
+    expect(record.identifiers.kciId).toBe('ART002967395')
+    expect(record.identifiers.doi).toBe('10.14817/jlak.2023.76.39')
+    expect(record.title).toBe('語彙研究の現状と展望')
+    expect(record.url).toBe('https://www.kci.go.kr/kciportal/ci/sereArticle')
+    expect(record.publicationName).toBe('일본어학연구')
+    expect(outcome?.nextCursor).toBe('2')
+  })
 })
 
 const RISS_XML_RESPONSE = `<?xml version='1.0'?>
@@ -278,3 +364,36 @@ function naverSettings(
     },
   }
 }
+
+const KCI_NO_DATA_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<MetaData>
+  <inputData><key>k</key><apiCode>articleSearch</apiCode></inputData>
+  <outputData>
+    <result>
+      <resultMsg>No Data</resultMsg>
+    </result>
+  </outputData>
+</MetaData>`
+
+const KCI_RECORD_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<MetaData>
+  <inputData><key>k</key><apiCode>articleSearch</apiCode></inputData>
+  <outputData>
+    <result><total>10594</total></result>
+    <record>
+      <journalInfo>
+        <journal-name>일본어학연구</journal-name>
+        <pub-year>2023</pub-year>
+      </journalInfo>
+      <articleInfo article-id="ART002967395">
+        <title-group>
+          <article-title lang="original">語彙研究の現状と展望</article-title>
+          <article-title lang="foreign">어휘연구의 현황과 전망</article-title>
+        </title-group>
+        <author-group><author english="Lee, Ja-Ho">이자호(경북대학교)</author></author-group>
+        <doi>http://dx.doi.org/10.14817/jlak.2023.76.39</doi>
+        <url>https://www.kci.go.kr/kciportal/ci/sereArticle</url>
+      </articleInfo>
+    </record>
+  </outputData>
+</MetaData>`
