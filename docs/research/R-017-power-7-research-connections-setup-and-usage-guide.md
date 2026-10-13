@@ -165,6 +165,11 @@ Enabled 소스가 하나 이상 있을 때 나타난다.
 
 공식 API에서 `OC`는 필수 인증값이다.
 
+> [!NOTE] 2026-10-12 (R-045)
+> 법제처 API 자체에는 여전히 OC가 필수다. 다만 `mcp.gomdori.app/law` 공개 서버는 OC 없이도
+> 운영자의 공용 키(전역 한도, 429 가능)로 응답하므로, 플러그인에서 OC는 **선택 항목**이 되었다.
+> 본인 OC를 넣으면 공용 한도를 거치지 않는다.
+
 - [국가법령정보 Open API 요청 규격](https://open.law.go.kr/LSO/openApi/guideResult.do)
 - [Korean Law MCP 공식 저장소](https://github.com/chrisryugj/korean-law-mcp)
 
@@ -359,6 +364,10 @@ list/filter 기준으로 약 10,000회 규모다.
 ```text
 API key: OpenAlex API key
 ```
+
+> [!NOTE] 2026-10-12 (R-045)
+> OpenAlex는 키 없이도 기본 검색을 허용한다(keyless 일일 예산). 무료 키는 예산을 10배로 올린다.
+> 플러그인에서 OpenAlex key는 **선택 항목**이 되었다.
 
 ### 7.4 사용 예
 

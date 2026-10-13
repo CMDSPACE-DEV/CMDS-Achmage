@@ -45,6 +45,8 @@ const adapters: Partial<Record<ResearchSourceId, ResearchAdapter>> = {
   'europe-pmc': { search: searchEuropePmc },
 }
 
+const UNTITLED_RESULT = 'Untitled result'
+
 export function getResearchAdapter(
   sourceId: ResearchSourceId,
 ): ResearchAdapter | null {
@@ -177,12 +179,9 @@ async function searchOpenAlex(
   signal?: AbortSignal,
 ): Promise<ResearchSearchResult> {
   const endpoint = requireEndpoint('openalex')
-  const apiKey = requireSecret(
-    context,
-    'openalex',
-    'api-key',
-    'OpenAlex API key',
-  )
+  // OpenAlex serves basic queries without a key from a small keyless budget;
+  // a free key raises that budget 10x. See R-045.
+  const apiKey = context.secrets.get('openalex', 'api-key') ?? undefined
   const data = await context.http.requestJson<Record<string, unknown>>(
     'openalex',
     {
@@ -236,53 +235,70 @@ async function searchKci(
   const source = getResearchSource('kci')
   const endpoint = requireEndpoint('kci')
   const key = requireSecret(context, 'kci', 'api-key', 'KCI API key')
+  // KCI ANDs every term against a single field, so a long natural-language
+  // query matches nothing. `keyword` spans title, abstract, and author
+  // keywords; `title` stays available for known-item lookups.
+  const searchField =
+    readOption(context.settings, 'search-field', 'keyword') === 'title'
+      ? 'title'
+      : 'keyword'
+  const page = cursorToPage(request.cursor)
   const response = await context.http.request(
     'kci',
     {
+      // KCI ignores displayCount and always returns 10 records per page, so
+      // `page` is the only way to reach further results.
       url: appendQuery(endpoint, {
         apiCode: 'articleSearch',
         key,
-        title: request.query,
-        displayCount: clampLimit(request.limit, 10, 100),
+        [searchField]: request.query,
+        page,
       }),
     },
     signal,
   )
-  return parseXmlSearchResult('kci', response.text, (node) => {
-    const articleId = xmlText(node, [
-      'article-id',
-      'articleId',
-      'arti_id',
-      'id',
-    ])
-    const doi = normalizeDoi(xmlText(node, ['doi', 'DOI']))
-    return evidence('kci', {
-      title: xmlText(node, ['article-title', 'title', 'articleTitle']),
-      url:
-        xmlText(node, ['url', 'link']) ||
-        (doi
-          ? `https://doi.org/${doi}`
-          : articleId
-            ? `https://www.kci.go.kr/kciportal/landing/article.kci?arti_id=${encodeURIComponent(articleId)}`
-            : source.docsUrl),
-      publishedAt: xmlText(node, [
-        'pub-year',
-        'pubYear',
-        'publication-year',
-        'year',
-      ]),
-      authors: xmlTexts(node, ['author-name', 'authorName', 'author']),
-      publicationName: xmlText(node, [
-        'journal-name',
-        'journalName',
-        'journal',
-      ]),
-      snippet: xmlText(node, ['abstract', 'abstract-text', 'summary']),
-      doi,
-      kciId: articleId,
-      indexCoverage: ['KCI'],
-    })
-  })
+  const parsed = parseXmlSearchResult(
+    'kci',
+    response.text,
+    (node) => {
+      // article-id is an attribute of <articleInfo>, not a child element.
+      const articleId =
+        xmlAttr(node, 'articleInfo', 'article-id') ||
+        xmlText(node, ['articleId', 'arti_id'])
+      const doi = normalizeDoi(xmlText(node, ['doi', 'DOI']))
+      return evidence('kci', {
+        title: xmlText(node, ['article-title', 'title', 'articleTitle']),
+        url:
+          xmlText(node, ['url', 'link']) ||
+          (doi
+            ? `https://doi.org/${doi}`
+            : articleId
+              ? `https://www.kci.go.kr/kciportal/landing/article.kci?arti_id=${encodeURIComponent(articleId)}`
+              : source.docsUrl),
+        publishedAt: xmlText(node, [
+          'pub-year',
+          'pubYear',
+          'publication-year',
+          'year',
+        ]),
+        authors: xmlTexts(node, ['author-name', 'authorName', 'author']),
+        publicationName: xmlText(node, [
+          'journal-name',
+          'journalName',
+          'journal',
+        ]),
+        snippet: xmlText(node, ['abstract', 'abstract-text', 'summary']),
+        doi,
+        kciId: articleId,
+        indexCoverage: ['KCI'],
+      })
+    },
+    ['record'],
+  )
+  return {
+    ...parsed,
+    nextCursor: parsed.records.length > 0 ? String(page + 1) : undefined,
+  }
 }
 
 async function searchConfigurableSource(
@@ -878,7 +894,7 @@ function evidence(
     sourceName: source.name,
     operator: source.operator,
     role: source.role,
-    title: input.title?.trim() || 'Untitled result',
+    title: input.title?.trim() || UNTITLED_RESULT,
     url: input.url?.trim() || source.docsUrl,
     publishedAt: input.publishedAt || undefined,
     retrievedAt: new Date().toISOString(),
@@ -912,28 +928,46 @@ function result(
   return { records: records.filter((record) => record.title), warnings }
 }
 
+// Generic shape guess for user-configured endpoints whose schema we cannot know
+// ahead of time. `result` is deliberately absent: several providers (KCI among
+// them) use it as the metadata wrapper that carries the empty-result message, so
+// selecting it turns "no hits" into one untitled phantom record.
+const GENERIC_XML_RECORD_SELECTORS = [
+  'record',
+  'item',
+  'articleInfo',
+  'document',
+]
+
 function parseXmlSearchResult(
   sourceId: ResearchSourceId,
   xml: string,
   map: (node: Element) => ResearchEvidence,
+  recordSelectors: string[] = GENERIC_XML_RECORD_SELECTORS,
 ): ResearchSearchResult {
   const document = new DOMParser().parseFromString(xml, 'application/xml')
-  if (document.querySelector('parsererror')) {
+  if (xmlNodes(document, 'parsererror').length > 0) {
     throw new Error(`${sourceId} returned invalid XML.`)
   }
-  const nodes = firstNonEmptyNodeList(document, [
-    'record',
-    'item',
-    'articleInfo',
-    'result',
-    'document',
+  const nodes = firstNonEmptyNodeList(document, recordSelectors)
+  const notice = xmlText(document.documentElement, [
+    'resultMsg',
+    'message',
+    'error',
   ])
   return {
-    records: nodes.map(map),
-    warnings: xmlText(document.documentElement, ['message', 'error'])
-      ? [xmlText(document.documentElement, ['message', 'error'])]
-      : [],
+    // A node that yields neither a title nor a link is a wrapper we matched by
+    // mistake, not evidence. Dropping it keeps an empty search honestly empty.
+    records: nodes.map(map).filter((record) => !isPlaceholderEvidence(record)),
+    warnings: notice ? [notice] : [],
   }
+}
+
+function isPlaceholderEvidence(record: ResearchEvidence): boolean {
+  return (
+    record.title === UNTITLED_RESULT &&
+    record.url === getResearchSource(record.sourceId).docsUrl
+  )
 }
 
 function firstNonEmptyNodeList(
@@ -941,7 +975,7 @@ function firstNonEmptyNodeList(
   selectors: string[],
 ): Element[] {
   for (const selector of selectors) {
-    const nodes = Array.from(root.querySelectorAll(selector))
+    const nodes = xmlNodes(root, selector)
     if (nodes.length > 0) return nodes
   }
   return []
@@ -1082,17 +1116,37 @@ function readStringList(value: unknown, paths: string[]): string[] {
   return []
 }
 
+// XML tag lookups go through getElementsByTagName rather than querySelector:
+// it is the one traversal API shared by Obsidian's DOM and the XML parser used
+// in tests, and it avoids CSS-selector escaping issues with hyphenated and
+// namespaced tag names such as <article-title>.
+function xmlNodes(root: ParentNode, tagName: string): Element[] {
+  const scope = root as unknown as {
+    getElementsByTagName?: (tag: string) => ArrayLike<Element>
+  }
+  if (typeof scope.getElementsByTagName !== 'function') return []
+  return Array.from(scope.getElementsByTagName(tagName))
+}
+
 function xmlText(node: ParentNode, selectors: string[]): string {
   for (const selector of selectors) {
-    const value = node.querySelector(selector)?.textContent?.trim()
+    const value = xmlNodes(node, selector)[0]?.textContent?.trim()
     if (value) return value
   }
   return ''
 }
 
+function xmlAttr(
+  node: ParentNode,
+  selector: string,
+  attribute: string,
+): string {
+  return xmlNodes(node, selector)[0]?.getAttribute(attribute)?.trim() ?? ''
+}
+
 function xmlTexts(node: ParentNode, selectors: string[]): string[] {
   for (const selector of selectors) {
-    const values = Array.from(node.querySelectorAll(selector))
+    const values = xmlNodes(node, selector)
       .map((entry) => entry.textContent?.trim() ?? '')
       .filter(Boolean)
     if (values.length > 0) return values

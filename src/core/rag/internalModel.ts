@@ -20,6 +20,19 @@ export function getInternalRagModel(model: ChatModel): ChatModel {
     }
   }
 
+  // GPT-6 variants have no `none` level; `low` is their cheapest (R-044).
+  if (
+    model.providerType === 'openai-plan' &&
+    /^gpt-6(?:\.\d+)?-[a-z]+$/.test(model.model)
+  ) {
+    return {
+      ...model,
+      reasoning: {
+        reasoning_effort: 'low',
+      },
+    }
+  }
+
   if (model.providerType === 'anthropic-plan') {
     const adaptive =
       model.thinking?.mode === 'adaptive' ? model.thinking : undefined

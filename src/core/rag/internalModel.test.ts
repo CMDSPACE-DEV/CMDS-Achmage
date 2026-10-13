@@ -24,6 +24,21 @@ describe('getInternalRagModel', () => {
     },
   )
 
+  it.each(['gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-luna'])(
+    'uses low effort for %s, which has no none level',
+    (model) => {
+      expect(
+        getInternalRagModel({
+          providerType: 'openai-plan',
+          providerId: 'openai-plan',
+          id: `${model} (plan)`,
+          model,
+          reasoning: { reasoning_effort: 'max' },
+        }),
+      ).toMatchObject({ reasoning: { reasoning_effort: 'low' } })
+    },
+  )
+
   it.each(['default', 'opus', 'claude-sonnet-5'])(
     'explicitly disables Claude Plan adaptive thinking for %s',
     (model) => {

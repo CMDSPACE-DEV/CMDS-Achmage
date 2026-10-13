@@ -71,6 +71,10 @@ export class McpManager {
   private readonly app: App
   private readonly setSettings: SettingsUpdater
   private readonly secretStore: McpSecretStore
+  private readonly isOptionalSecretQueryParam: (
+    connectionId: string,
+    paramName: string,
+  ) => boolean
   private readonly unsubscribeFromSettings: () => void
   private defaultEnv: Record<string, string> | null = null
   private servers: McpServerState[] = []
@@ -84,6 +88,7 @@ export class McpManager {
     settings,
     setSettings,
     registerSettingsListener,
+    isOptionalSecretQueryParam = () => false,
   }: {
     app: App
     settings: SmartComposerSettings
@@ -91,10 +96,16 @@ export class McpManager {
     registerSettingsListener: (
       listener: (settings: SmartComposerSettings) => void,
     ) => () => void
+    /** Lets a curated preset connect when its query credential is absent. */
+    isOptionalSecretQueryParam?: (
+      connectionId: string,
+      paramName: string,
+    ) => boolean
   }) {
     this.app = app
     this.settings = settings
     this.setSettings = setSettings
+    this.isOptionalSecretQueryParam = isOptionalSecretQueryParam
     this.secretStore = new McpSecretStore(app)
     this.unsubscribeFromSettings = registerSettingsListener((newSettings) => {
       void this.handleSettingsUpdate(newSettings)
@@ -806,6 +817,7 @@ export class McpManager {
         )) {
           const value = this.secretStore.get(secretId)
           if (!value) {
+            if (this.isOptionalSecretQueryParam(config.id, name)) continue
             throw new Error(
               `MCP connection "${config.name}" is missing the stored ${name} credential.`,
             )

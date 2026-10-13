@@ -15,13 +15,13 @@ export const CODEX_RESPONSES_ENDPOINT =
   'https://chatgpt.com/backend-api/codex/responses'
 
 // Default model ids
-export const DEFAULT_CHAT_MODEL_ID = 'claude-sonnet-4.6'
+export const DEFAULT_CHAT_MODEL_ID = 'claude-sonnet-5.5'
 // gpt-4.1-mini is preferred over gpt-5-mini because gpt-5 models do not support
 // predicted outputs, making them significantly slower for apply tasks.
 export const DEFAULT_APPLY_MODEL_ID = 'gpt-4.1-mini'
 
 // Recommended model ids
-export const RECOMMENDED_MODELS_FOR_CHAT = ['claude-sonnet-4.6', 'gpt-5.5']
+export const RECOMMENDED_MODELS_FOR_CHAT = ['claude-sonnet-5.5', 'gpt-6.1-sol']
 export const RECOMMENDED_MODELS_FOR_APPLY = ['gpt-4.1-mini']
 export const RECOMMENDED_MODELS_FOR_EMBEDDING = [
   'openai/text-embedding-3-small',
@@ -387,26 +387,38 @@ export const DEFAULT_CHAT_MODELS: readonly ChatModel[] = [
   {
     providerType: 'anthropic',
     providerId: PROVIDER_TYPES_INFO.anthropic.defaultProviderId,
-    id: 'claude-opus-4.8',
-    model: 'claude-opus-4-8',
+    id: 'claude-opus-5.5',
+    model: 'claude-opus-5-5',
   },
   {
     providerType: 'anthropic',
     providerId: PROVIDER_TYPES_INFO.anthropic.defaultProviderId,
-    id: 'claude-sonnet-4.6',
-    model: 'claude-sonnet-4-6',
+    id: 'claude-sonnet-5.5',
+    model: 'claude-sonnet-5-5',
   },
   {
     providerType: 'anthropic',
     providerId: PROVIDER_TYPES_INFO.anthropic.defaultProviderId,
-    id: 'claude-haiku-4.5',
-    model: 'claude-haiku-4-5',
+    id: 'claude-haiku-5.5',
+    model: 'claude-haiku-5-5',
   },
   {
     providerType: 'openai',
     providerId: PROVIDER_TYPES_INFO.openai.defaultProviderId,
     id: 'gpt-6-astra',
     model: 'gpt-6-astra',
+  },
+  {
+    providerType: 'openai',
+    providerId: PROVIDER_TYPES_INFO.openai.defaultProviderId,
+    id: 'gpt-6.1-sol',
+    model: 'gpt-6.1-sol',
+  },
+  {
+    providerType: 'openai',
+    providerId: PROVIDER_TYPES_INFO.openai.defaultProviderId,
+    id: 'gpt-6-luna',
+    model: 'gpt-6-luna',
   },
   {
     providerType: 'openai',
@@ -439,14 +451,20 @@ export const DEFAULT_CHAT_MODELS: readonly ChatModel[] = [
   {
     providerType: 'gemini',
     providerId: PROVIDER_TYPES_INFO.gemini.defaultProviderId,
-    id: 'gemini-3-pro-preview',
-    model: 'gemini-3-pro-preview',
+    id: 'gemini-3.1-pro-preview',
+    model: 'gemini-3.1-pro-preview',
   },
   {
     providerType: 'gemini',
     providerId: PROVIDER_TYPES_INFO.gemini.defaultProviderId,
-    id: 'gemini-3-flash-preview',
-    model: 'gemini-3-flash-preview',
+    id: 'gemini-3.8-flash',
+    model: 'gemini-3.8-flash',
+  },
+  {
+    providerType: 'gemini',
+    providerId: PROVIDER_TYPES_INFO.gemini.defaultProviderId,
+    id: 'gemini-3.5-flash-lite',
+    model: 'gemini-3.5-flash-lite',
   },
   {
     providerType: 'deepseek',
@@ -531,6 +549,10 @@ type ModelPricing = {
 }
 
 export const OPENAI_PRICES: Record<string, ModelPricing> = {
+  // Per-MTok list prices from the OpenAI models page, 2026-09-30 (R-044).
+  'gpt-6-astra': { input: 10, output: 50 },
+  'gpt-6.1-sol': { input: 2, output: 10 },
+  'gpt-6-luna': { input: 0.1, output: 0.5 },
   'gpt-5.5': { input: 5, output: 30 },
   'gpt-5.2': { input: 1.75, output: 14 },
   'gpt-5.1': { input: 1.25, output: 10 },
@@ -550,7 +572,12 @@ export const OPENAI_PRICES: Record<string, ModelPricing> = {
 }
 
 export const ANTHROPIC_PRICES: Record<string, ModelPricing> = {
+  // Per-MTok list prices from the Claude models overview, 2026-09-30 (R-044).
   'claude-fable-5-1': { input: 10, output: 50 },
+  'claude-opus-5-5': { input: 4, output: 20 },
+  'claude-sonnet-5-5': { input: 2, output: 10 },
+  // Prompts up to 100k tokens; longer prompts bill $0.50 / $2.50 (2026-10-12).
+  'claude-haiku-5-5': { input: 0.1, output: 0.5 },
   'claude-opus-4-8': { input: 5, output: 25 },
   'claude-sonnet-4-6': { input: 3, output: 15 },
   'claude-opus-4-5': { input: 5, output: 25 },

@@ -25,6 +25,11 @@ import {
   LLMAPIKeyInvalidException,
   LLMAPIKeyNotSetException,
 } from './exception'
+import {
+  DiscoveredModel,
+  JsonGetter,
+  fetchCodexPlanModels,
+} from './modelDiscovery'
 
 export type { Gpt56Effort } from '../../types/chat-model.types'
 
@@ -255,6 +260,16 @@ export class OpenAICodexProvider extends BaseLLMProvider<
       }
       return { base64: result, mimeType: 'image/png' }
     })
+  }
+
+  /**
+   * Models this ChatGPT account can use through Codex right now. Shares the
+   * token refresh and single 401 retry with chat requests.
+   */
+  async listPlanModels(getJson: JsonGetter): Promise<DiscoveredModel[]> {
+    return this.withAuthRetry((headers) =>
+      fetchCodexPlanModels(headers, getJson),
+    )
   }
 
   private async withAuthRetry<T>(

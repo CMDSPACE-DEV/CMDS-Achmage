@@ -52,6 +52,38 @@ export function PlanConnectionsSection({
       provider.type === 'openai-plan',
   )
   const isOpenAIConnected = !!openAIPlanProvider?.oauth?.accessToken
+  const [isSyncingOpenAIModels, setIsSyncingOpenAIModels] = useState(false)
+
+  const refreshOpenAIModels = async () => {
+    setIsSyncingOpenAIModels(true)
+    try {
+      // Lazy: the sync pulls in every provider SDK through the LLM manager.
+      const { syncOpenAIPlanModels } = await import(
+        '../../../core/llm/planModelSync'
+      )
+      const result = await syncOpenAIPlanModels({
+        getSettings: () => plugin.settings,
+        setSettings: (next) => plugin.setSettings(next),
+      })
+      if (result.status !== 'synced') {
+        new Notice('OpenAI Plan이 연결되어 있지 않습니다.')
+      } else if (result.added.length > 0) {
+        new Notice(
+          `새 모델 ${result.added.length}개 추가: ${result.added.map((model) => model.model).join(', ')}`,
+        )
+      } else {
+        new Notice(
+          `이미 최신입니다. 이 계정에서 쓸 수 있는 모델: ${result.available.join(', ')}`,
+        )
+      }
+    } catch (error) {
+      new Notice(
+        `OpenAI Plan 모델 목록을 가져오지 못했습니다. ${error instanceof Error ? error.message : ''}`.trim(),
+      )
+    } finally {
+      setIsSyncingOpenAIModels(false)
+    }
+  }
 
   const disconnectOpenAI = () => {
     new ConfirmModal(app, {
@@ -159,7 +191,8 @@ export function PlanConnectionsSection({
 
           <div className="smtcmp-plan-connection-card-desc">
             ChatGPT Plan의 Codex를 사용합니다. 기존 연결과 GPT Plan 이미지
-            workflow는 변경되지 않습니다.
+            workflow는 변경되지 않습니다. 새 모델은 Obsidian을 시작할 때 이
+            계정의 Codex 모델 목록에서 자동으로 추가됩니다.
             <br />
             <a
               href="https://chatgpt.com/codex/settings/usage"
@@ -180,7 +213,21 @@ export function PlanConnectionsSection({
                 Connect
               </button>
             ) : (
-              <button onClick={disconnectOpenAI}>Disconnect</button>
+              <>
+                <button
+                  disabled={isSyncingOpenAIModels}
+                  onClick={() => void refreshOpenAIModels()}
+                >
+                  <RefreshCw
+                    size={15}
+                    className={
+                      isSyncingOpenAIModels ? 'smtcmp-icon-spin' : undefined
+                    }
+                  />
+                  모델 목록 새로 고침
+                </button>
+                <button onClick={disconnectOpenAI}>Disconnect</button>
+              </>
             )}
           </div>
         </div>

@@ -1657,6 +1657,34 @@ button.smtcmp-research-source-main:focus-visible {
   text-overflow: ellipsis;
 }
 
+/* Running without the user's own credential (R-045). */
+.smtcmp-research-keyless {
+  align-self: flex-start;
+  padding: 0 6px;
+  border-radius: var(--radius-s);
+  background: var(--background-modifier-hover);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  line-height: 1.6;
+}
+
+.smtcmp-research-keyless[data-tone='warning'] {
+  background: color-mix(in srgb, var(--text-warning) 14%, transparent);
+  color: var(--text-warning);
+}
+
+.smtcmp-research-keyless-detail {
+  margin: 0;
+  padding: 6px 10px;
+  border-left: 2px solid var(--background-modifier-border);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.smtcmp-research-keyless-detail[data-tone='warning'] {
+  border-left-color: var(--text-warning);
+}
+
 .smtcmp-research-source-details {
   display: grid;
   gap: 9px;
@@ -5656,4 +5684,20 @@ body:not(.theme-dark)
   pointer-events: auto;
   box-shadow: 0 6px 18px color-mix(in srgb, var(--ach-shadow) 18%, transparent);
   backdrop-filter: blur(6px);
+}
+
+/* Model discovery modal (R-044) */
+.smtcmp-discover-models section {
+  margin-block: var(--size-4-3);
+}
+
+.smtcmp-discover-models-row {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  padding-block: var(--size-2-1);
+}
+
+.smtcmp-discover-models-row span {
+  color: var(--text-muted);
 }
