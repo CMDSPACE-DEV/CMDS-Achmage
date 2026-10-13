@@ -1657,6 +1657,34 @@ button.smtcmp-research-source-main:focus-visible {
   text-overflow: ellipsis;
 }
 
+/* Running without the user's own credential (R-045). */
+.smtcmp-research-keyless {
+  align-self: flex-start;
+  padding: 0 6px;
+  border-radius: var(--radius-s);
+  background: var(--background-modifier-hover);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  line-height: 1.6;
+}
+
+.smtcmp-research-keyless[data-tone='warning'] {
+  background: color-mix(in srgb, var(--text-warning) 14%, transparent);
+  color: var(--text-warning);
+}
+
+.smtcmp-research-keyless-detail {
+  margin: 0;
+  padding: 6px 10px;
+  border-left: 2px solid var(--background-modifier-border);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.smtcmp-research-keyless-detail[data-tone='warning'] {
+  border-left-color: var(--text-warning);
+}
+
 .smtcmp-research-source-details {
   display: grid;
   gap: 9px;

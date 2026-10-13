@@ -231,6 +231,28 @@ describe('research adapters', () => {
     expect(requestJson).toHaveBeenCalledTimes(2)
   })
 
+  it.each([
+    ['without a key', null, false],
+    ['with a key', 'openalex-key', true],
+  ])('searches OpenAlex %s', async (_label, key, sendsKey) => {
+    const requestJson = jest
+      .fn()
+      .mockResolvedValue({ results: [], meta: { next_cursor: null } })
+    const adapter = getResearchAdapter('openalex')
+
+    await adapter?.search(
+      { query: 'knowledge management', limit: 5 },
+      {
+        http: { requestJson } as unknown as ResearchHttpClient,
+        secrets: { get: () => key } as unknown as ResearchSecretStore,
+        settings: { enabled: true, autoPolicy: 'allow', options: {} },
+      },
+    )
+
+    const [, sent] = requestJson.mock.calls[0] as [string, { url: string }]
+    expect(new URL(sent.url).searchParams.has('api_key')).toBe(sendsKey)
+  })
+
   // Payloads below are verbatim captures from open.kci.go.kr (2026-09-17).
   it('returns no records when KCI reports an empty result set', async () => {
     const request = jest.fn().mockResolvedValue({ text: KCI_NO_DATA_XML })

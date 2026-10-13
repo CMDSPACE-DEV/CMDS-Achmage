@@ -179,12 +179,9 @@ async function searchOpenAlex(
   signal?: AbortSignal,
 ): Promise<ResearchSearchResult> {
   const endpoint = requireEndpoint('openalex')
-  const apiKey = requireSecret(
-    context,
-    'openalex',
-    'api-key',
-    'OpenAlex API key',
-  )
+  // OpenAlex serves basic queries without a key from a small keyless budget;
+  // a free key raises that budget 10x. See R-045.
+  const apiKey = context.secrets.get('openalex', 'api-key') ?? undefined
   const data = await context.http.requestJson<Record<string, unknown>>(
     'openalex',
     {

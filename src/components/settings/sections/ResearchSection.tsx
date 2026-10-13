@@ -11,6 +11,10 @@ import { Notice } from 'obsidian'
 import { useEffect, useState } from 'react'
 
 import { useSettings } from '../../../contexts/settings-context'
+import {
+  describeKeylessMode,
+  getKeylessState,
+} from '../../../core/research/keylessNotice'
 import type { ResearchManager } from '../../../core/research/ResearchManager'
 import {
   RESEARCH_PACKS,
@@ -264,6 +268,14 @@ function ResearchSourceCard({
   const installed =
     definition.mcpPreset && manager?.isMcpPresetInstalled(sourceId)
 
+  const keylessNotice = describeKeylessMode(
+    getKeylessState(
+      definition,
+      sourceSettings.enabled,
+      (fieldId) => storedSecrets[fieldId] ?? false,
+    ),
+  )
+
   return (
     <article
       className="smtcmp-research-source"
@@ -282,6 +294,16 @@ function ResearchSourceCard({
               {definition.protocol === 'mcp' ? 'MCP' : 'Native API'} ·{' '}
               {definition.role}
             </small>
+            {keylessNotice && (
+              <span
+                className="smtcmp-research-keyless"
+                data-tone={keylessNotice.tone}
+                aria-label={keylessNotice.detail}
+                title={keylessNotice.detail}
+              >
+                {keylessNotice.label}
+              </span>
+            )}
           </span>
           <span className="smtcmp-research-source-description">
             {definition.description}
@@ -306,6 +328,15 @@ function ResearchSourceCard({
               Documentation <ExternalLink size={13} aria-hidden="true" />
             </a>
           </div>
+
+          {keylessNotice && (
+            <p
+              className="smtcmp-research-keyless-detail"
+              data-tone={keylessNotice.tone}
+            >
+              {keylessNotice.detail}
+            </p>
+          )}
 
           {sourceId === 'naver' && (
             <NaverUsageMeter sourceSettings={sourceSettings} />

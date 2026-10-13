@@ -752,7 +752,11 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
 
     if (!this.mcpManagerInitPromise) {
       this.mcpManagerInitPromise = (async () => {
-        const { McpManager } = await import('./core/mcp/mcpManager')
+        const [{ McpManager }, { isOptionalPresetSecretQueryParam }] =
+          await Promise.all([
+            import('./core/mcp/mcpManager'),
+            import('./core/research/ResearchSourceRegistry'),
+          ])
         const manager = new McpManager({
           app: this.app,
           settings: this.settings,
@@ -760,6 +764,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
           registerSettingsListener: (
             listener: (settings: SmartComposerSettings) => void,
           ) => this.addSettingsChangeListener(listener),
+          isOptionalSecretQueryParam: isOptionalPresetSecretQueryParam,
         })
         await manager.initialize()
         if (this.unloading) {

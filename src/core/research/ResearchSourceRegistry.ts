@@ -73,17 +73,18 @@ export const RESEARCH_SOURCES: Record<
     description:
       'Retrieve Korean statutes and provisions with a visible third-party operator boundary.',
     docsUrl: 'https://mcp.gomdori.app/',
-    lastVerifiedAt: '2026-07-27',
-    freeBoundary: 'Provider-specific access',
+    lastVerifiedAt: '2026-10-12',
+    freeBoundary:
+      'Without an OC the operator’s shared key and quota apply; your own OC bypasses that quota',
     defaultAutoPolicy: 'explicit-only',
     desktopOnly: true,
     thirdPartyOperator: true,
     secretFields: [
       {
         id: 'oc',
-        label: 'OC credential',
-        required: true,
-        placeholder: 'Stored only in Obsidian SecretStorage',
+        label: 'Optional OC credential',
+        required: false,
+        placeholder: 'Leave empty to use the shared quota',
       },
     ],
     optionFields: [],
@@ -153,12 +154,20 @@ export const RESEARCH_SOURCES: Record<
     protocol: 'native',
     description:
       'Discover papers, authors, institutions, citation links, and open-access locations.',
-    docsUrl: 'https://developers.openalex.org/guides/authentication',
+    docsUrl:
+      'https://help.openalex.org/how-to-use-the-api/rate-limits-and-authentication',
     endpoint: 'https://api.openalex.org/works',
-    lastVerifiedAt: '2026-07-27',
-    freeBoundary: 'Free API key with a daily free usage budget',
+    lastVerifiedAt: '2026-10-12',
+    freeBoundary: 'Keyless daily budget; a free API key raises it 10x',
     defaultAutoPolicy: 'allow',
-    secretFields: [{ id: 'api-key', label: 'API key', required: true }],
+    secretFields: [
+      {
+        id: 'api-key',
+        label: 'Optional API key',
+        required: false,
+        placeholder: 'Leave empty to use the keyless budget',
+      },
+    ],
     optionFields: [],
   },
   kci: {
@@ -476,6 +485,27 @@ export function getResearchSource(
   sourceId: ResearchSourceId,
 ): ResearchSourceDefinition {
   return RESEARCH_SOURCES[sourceId]
+}
+
+/**
+ * Whether a curated preset connection may connect without its stored query
+ * credential. Matching on the preset connection id keeps user-made
+ * connections strict. See R-045.
+ */
+export function isOptionalPresetSecretQueryParam(
+  connectionId: string,
+  paramName: string,
+): boolean {
+  return Object.values(RESEARCH_SOURCES).some((source) => {
+    const param = source.mcpPreset?.secretQueryParam
+    return (
+      source.mcpPreset?.connectionId === connectionId &&
+      param?.name === paramName &&
+      source.secretFields.some(
+        (field) => field.id === param.secretFieldId && !field.required,
+      )
+    )
+  })
 }
 
 export function getResearchPack(
