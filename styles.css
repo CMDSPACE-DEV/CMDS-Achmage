@@ -5657,3 +5657,19 @@ body:not(.theme-dark)
   box-shadow: 0 6px 18px color-mix(in srgb, var(--ach-shadow) 18%, transparent);
   backdrop-filter: blur(6px);
 }
+
+/* Model discovery modal (R-044) */
+.smtcmp-discover-models section {
+  margin-block: var(--size-4-3);
+}
+
+.smtcmp-discover-models-row {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  padding-block: var(--size-2-1);
+}
+
+.smtcmp-discover-models-row span {
+  color: var(--text-muted);
+}

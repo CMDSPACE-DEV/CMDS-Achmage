@@ -1,0 +1,45 @@
+name: Model catalog watch
+
+# Reports vendor model launches and retirements against the bundled catalog
+# (R-044). Opens or updates one "Model catalog drift" issue; closes it once the
+# catalog is back in sync. It never edits code: a catalog change also needs a
+# settings migration and a release, which a human reviews.
+#
+# Optional repository secrets (a missing one skips that vendor):
+#   ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY
+# Only the free model-list endpoints are called.
+
+on:
+  schedule:
+    # Every 6 hours, off the hour to avoid the top-of-hour runner spike.
+    - cron: '23 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: model-catalog-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+
+      - name: Compare catalog with vendors
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: node scripts/model-catalog-watch.mjs

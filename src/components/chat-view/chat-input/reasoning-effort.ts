@@ -45,15 +45,33 @@ export const CLAUDE_QUICK_REASONING_OPTIONS: readonly QuickReasoningOption[] = [
   { value: 'max', label: 'max', description: 'Deepest reasoning' },
 ]
 
-function isGpt56PlanModel(
+// GPT-6 variants reject `none` (Codex catalog `supported_reasoning_levels`,
+// see R-044), so they get the same list without it.
+const GPT_6_QUICK_REASONING_OPTIONS = GPT_QUICK_REASONING_OPTIONS.filter(
+  (option) => option.value !== 'none',
+)
+
+function isGpt56Model(model: string): boolean {
+  return /^gpt-5\.6-[a-z]+$/.test(model)
+}
+
+function isGpt6Model(model: string): boolean {
+  return /^gpt-6(?:\.\d+)?-[a-z]+$/.test(model)
+}
+
+function isGptPlanReasoningModel(
   model: ChatModel,
 ): model is Extract<ChatModel, { providerType: 'openai-plan' }> {
   return (
     model.providerType === 'openai-plan' &&
-    (model.model === 'gpt-5.6-sol' ||
-      model.model === 'gpt-5.6-terra' ||
-      model.model === 'gpt-5.6-luna')
+    (isGpt56Model(model.model) || isGpt6Model(model.model))
   )
+}
+
+function gptReasoningOptions(model: string): readonly QuickReasoningOption[] {
+  return isGpt6Model(model)
+    ? GPT_6_QUICK_REASONING_OPTIONS
+    : GPT_QUICK_REASONING_OPTIONS
 }
 
 function isClaudeAdaptivePlanModel(
@@ -82,15 +100,18 @@ export function getQuickReasoningControl(
     return null
   }
 
-  if (isGpt56PlanModel(model)) {
+  if (isGptPlanReasoningModel(model)) {
     const configuredEffort = model.reasoning?.reasoning_effort
+    const options = gptReasoningOptions(model.model)
     return {
       kind: 'gpt',
       label: 'GPT reasoning effort',
-      value: isGpt56Effort(configuredEffort)
-        ? configuredEffort
-        : GPT_5_6_DEFAULT_EFFORTS[model.model],
-      options: GPT_QUICK_REASONING_OPTIONS,
+      value:
+        isGpt56Effort(configuredEffort) &&
+        options.some((option) => option.value === configuredEffort)
+          ? configuredEffort
+          : (GPT_5_6_DEFAULT_EFFORTS[model.model] ?? 'medium'),
+      options,
     }
   }
 
@@ -115,9 +136,14 @@ export function updateQuickReasoningEffort(
   model: ChatModel,
   value: string,
 ): ChatModel {
-  if (isGpt56PlanModel(model)) {
-    if (!isGpt56Effort(value)) {
-      throw new Error(`Unsupported GPT-5.6 reasoning effort: ${value}`)
+  if (isGptPlanReasoningModel(model)) {
+    if (
+      !isGpt56Effort(value) ||
+      !gptReasoningOptions(model.model).some((option) => option.value === value)
+    ) {
+      throw new Error(
+        `Unsupported reasoning effort "${value}" for ${model.model}`,
+      )
     }
 
     const reasoning = {

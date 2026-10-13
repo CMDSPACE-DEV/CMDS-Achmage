@@ -16,7 +16,7 @@ const GPT_MODELS = [
 ] as const
 
 function gptModel(
-  model: (typeof GPT_MODELS)[number][0] = 'gpt-5.6-sol',
+  model = 'gpt-5.6-sol',
 ): Extract<ChatModel, { providerType: 'openai-plan' }> {
   return {
     id: `${model} (plan)`,
@@ -192,9 +192,35 @@ describe('quick reasoning effort', () => {
     })
   })
 
+  it.each(['gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-luna'])(
+    'shows the control for GPT-6 Plan model %s without none',
+    (model) => {
+      const control = getQuickReasoningControl(gptModel(model))
+      expect(control?.kind).toBe('gpt')
+      expect(control?.value).toBe('medium')
+      expect(control?.options.map((option) => option.value)).not.toContain(
+        'none',
+      )
+    },
+  )
+
+  it('keeps a discovered GPT-6 default effort and rejects none', () => {
+    const discovered = {
+      ...gptModel('gpt-6.1-sol'),
+      reasoning: { reasoning_effort: 'low' as const },
+    }
+    expect(getQuickReasoningControl(discovered)?.value).toBe('low')
+    expect(updateQuickReasoningEffort(discovered, 'max')).toMatchObject({
+      reasoning: { reasoning_effort: 'max' },
+    })
+    expect(() => updateQuickReasoningEffort(discovered, 'none')).toThrow(
+      'Unsupported reasoning effort "none" for gpt-6.1-sol',
+    )
+  })
+
   it('rejects invalid and unsupported updates', () => {
     expect(() => updateQuickReasoningEffort(gptModel(), 'minimal')).toThrow(
-      'Unsupported GPT-5.6 reasoning effort: minimal',
+      'Unsupported reasoning effort "minimal" for gpt-5.6-sol',
     )
     expect(() => updateQuickReasoningEffort(claudeModel(), 'none')).toThrow(
       'Unsupported Claude reasoning effort: none',

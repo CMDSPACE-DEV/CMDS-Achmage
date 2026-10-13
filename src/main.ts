@@ -366,6 +366,9 @@ export default class SmartComposerPlugin extends Plugin {
     this.addSettingTab(new SmartComposerSettingTab(this.app, this))
 
     void this.migrateToJsonStorage()
+    this.app.workspace.onLayoutReady(() => {
+      void this.syncPlanModelsInBackground()
+    })
     markPerformance('smart-composer:onload:end')
     measurePerformance(
       'smart-composer:onload',
@@ -421,6 +424,32 @@ export default class SmartComposerPlugin extends Plugin {
     this.settings = researchSecretMigration.settings
     await this.saveData(this.settings) // Save updated settings
     this.settingsSaveQueue = new SettingsSaveQueue(this.settings)
+  }
+
+  /**
+   * New OpenAI Plan models appear in the picker on the next launch instead of
+   * the next plugin release. Silent on failure: an offline start or an expired
+   * login must not raise a Notice. See R-044.
+   */
+  private async syncPlanModelsInBackground(): Promise<void> {
+    try {
+      const { syncOpenAIPlanModels } = await import('./core/llm/planModelSync')
+      const result = await syncOpenAIPlanModels({
+        getSettings: () => this.settings,
+        setSettings: (settings) => this.setSettings(settings),
+      })
+      if (this.unloading || result.status !== 'synced') return
+      if (result.added.length > 0) {
+        new Notice(
+          `OpenAI Plan 새 모델 추가: ${result.added.map((model) => model.model).join(', ')}`,
+        )
+      }
+    } catch (error) {
+      console.warn(
+        'CMDS Achmage: OpenAI Plan model discovery skipped.',
+        error instanceof Error ? error.message : error,
+      )
+    }
   }
 
   async setSettings(newSettings: SmartComposerSettings) {

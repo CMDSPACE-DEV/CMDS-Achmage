@@ -7,6 +7,7 @@ import { useSettings } from '../../../../contexts/settings-context'
 import SmartComposerPlugin from '../../../../main'
 import { ConfirmModal } from '../../../modals/ConfirmModal'
 import { AddChatModelModal } from '../../modals/AddChatModelModal'
+import { DiscoverModelsModal } from '../../modals/DiscoverModelsModal'
 
 import {
   ChatModelSettingsModal,
@@ -157,6 +158,13 @@ export function ChatModelsSubSection({
                   }}
                 >
                   Add custom model
+                </button>{' '}
+                <button
+                  onClick={() => {
+                    new DiscoverModelsModal(app, plugin).open()
+                  }}
+                >
+                  새 모델 확인
                 </button>
               </td>
             </tr>
