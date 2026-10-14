@@ -2,8 +2,8 @@
 Obsidian의 노트를 AI 채팅, 검토 가능한 편집, 자료 조사, 이미지 제작의 작업 맥락으로 사용합니다.
 
 ## 배포 상태, 준비물, 비용
-**2026-09-15**에 갱신한 **CMDS Achmage 1.2.0** 기준입니다. 릴리스 파일은 `main.js`, `manifest.json`, `styles.css` 3종입니다. 커뮤니티 등재·심사 상태는 [Obsidian 포털](https://community.obsidian.md/plugins/cmds-achmage)에서 확인하며, 자동 검사는 직원의 수동 검토와 다릅니다. 연구 보고서의 과거 2.x 번호는 계승한 개발 계보의 버전이지 더 최신 CMDS 릴리스가 아닙니다.
-- **Obsidian 데스크톱 1.11.4 이상**. 네이티브 프로세스, 클립보드, MCP 연결을 사용하며 모바일은 지원하지 않습니다.
+**2026-10-14**에 갱신한 **CMDS Achmage 1.3.1** 기준입니다. 릴리스 파일은 `main.js`, `manifest.json`, `styles.css` 3종입니다. 커뮤니티 등재·심사 상태는 [Obsidian 포털](https://community.obsidian.md/plugins/cmds-achmage)에서 확인하며, 자동 검사는 직원의 수동 검토와 다릅니다. 연구 보고서의 과거 2.x 번호는 계승한 개발 계보의 버전이지 더 최신 CMDS 릴리스가 아닙니다.
+- **Obsidian 데스크톱 1.13.0 이상**. 네이티브 프로세스, 클립보드, MCP 연결을 사용하며 모바일은 지원하지 않습니다.
 - 첫 사용에는 API 제공업체의 계정/키와 사용 가능한 크레딧을 권장합니다. 채팅 서비스 구독료와 API 잔액은 다릅니다.
 - 벡터 검색에는 선택적 임베딩 제공업체가 필요합니다. 노트/폴더 참조는 읽기/재순위화 경로로 임베딩 키 없이도 가능하지만 모델 사용량까지 없어지는 것은 아닙니다.
 - Eagle/CMDS Eagle, 외부 MCP, 리서치 서비스 계정, 이미지 모델 인증은 각 기능을 사용할 때만 준비합니다.
@@ -11,7 +11,7 @@ Obsidian의 노트를 AI 채팅, 검토 가능한 편집, 자료 조사, 이미�
 
 ## 설치와 안전한 준비
 1. **설정 → 커뮤니티 플러그인 → 탐색**에서 **CMDS Achmage**를 찾아 설치하고 활성화합니다.
-2. 수동 설치는 [1.2.0 릴리스](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.2.0)의 `main.js`, `manifest.json`, `styles.css`를 `<vault>/.obsidian/plugins/cmds-achmage/`에 넣고 Obsidian을 다시 로드합니다. 설정과 채팅 데이터를 백업하고 타인의 `data.json`은 가져오지 않습니다.
+2. 수동 설치는 [1.3.1 릴리스](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.3.1)의 `main.js`, `manifest.json`, `styles.css`를 `<vault>/.obsidian/plugins/cmds-achmage/`에 넣고 Obsidian을 다시 로드합니다. 설정과 채팅 데이터를 백업하고 타인의 `data.json`은 가져오지 않습니다.
 3. 선택한 제공업체에 보내도 되는 테스트 볼트 또는 비민감 노트를 엽니다.
 4. **설정 → CMDS Achmage → Advanced → Providers**에서 API 제공업체와 키를 추가/편집합니다. [API 키 안내](https://github.com/CMDSPACE-DEV/CMDS-Achmage/blob/main/docs/getting-api-keys.md)와 제공업체의 현재 공식 콘솔을 참고합니다.
 5. **Advanced → Models**에서 해당 제공업체의 활성 채팅 모델을 설정하고 **Plan → Chat model** 또는 컴포저에서 선택합니다. 탭 이름이 Plan이지만 채팅 모델 선택 자체가 구독 모델 전용은 아닙니다.
@@ -31,7 +31,7 @@ Obsidian의 노트를 AI 채팅, 검토 가능한 편집, 자료 조사, 이미�
 대상 노트를 열고 컴포저의 펜 아이콘 **Edit note**를 켠 다음 작은 변경을 요청합니다. 기존 문장에 연결된 편집 카드가 나타납니다. 각 카드를 검토해 **Apply**, 여러 카드에는 **Apply all**을 사용할 수 있습니다. 전체 문서 제안에는 바뀐 문단을 적용하는 **Apply changes**가 제공될 수 있습니다.
 이 경로는 두 번째 모델 호출 없이 텍스트를 일치시켜 적용합니다. 원문이 바뀌거나 기준 문장이 모호하면 무리하게 덮어쓰지 말고 작은 변경으로 다시 생성합니다. 원치 않는 적용은 편집기의 실행취소로 즉시 되돌리고 큰 변경에는 백업을 유지합니다.
 ### 인라인 편집
-텍스트를 선택하고 **Inline edit selection**을 실행합니다. 기본 단축키는 Mod+Shift+K이며 macOS에서는 Cmd+Shift+K입니다. 패널의 **Output: Text edit**이 선택 영역을 고칩니다. 제안을 검토한 뒤 적용합니다. 다른 노트/폴더를 참고 맥락으로 주는 것은 그 노트의 수정 권한까지 주는 것과 다릅니다.
+텍스트를 선택하고 **Inline edit selection**을 실행합니다. 기본 단축키는 없습니다. 설정 → 단축키에서 명령에 원하는 키를 지정하세요. 패널의 **Output: Text edit**이 선택 영역을 고칩니다. 제안을 검토한 뒤 적용합니다. 다른 노트/폴더를 참고 맥락으로 주는 것은 그 노트의 수정 권한까지 주는 것과 다릅니다.
 ### 긴 문서
 큰 편집은 체크포인트와 가시적 초안이 있는 문서 작업으로 전환될 수 있습니다. **Review document edit jobs**에서 검토/재개합니다. 원본, 대상, 성공/실패 구간, 생성 초안을 확인한 뒤 작업 문서로 채택합니다. 취소는 남은 작업을 멈출 수 있지만 이미 쓴 사용량이나 생성 파일을 모두 되돌리지는 않습니다.
 초안 기본 위치는 `CMDS Achmage/Document Drafts`입니다. `achmage-source`, `achmage-generated`, `achmage-model`로 출처를 기록하되 사용자의 저자 스키마를 덮어쓰지 않습니다. 이 설명서가 과거 작업 스냅샷을 자동 정리하지는 않습니다.
@@ -151,7 +151,7 @@ MCP와 리서치 인증은 일반 설정과 별도로 Obsidian secretStorage를 
 [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer)에서 출발한 포크입니다. [LINEAGE.md](https://github.com/CMDSPACE-DEV/CMDS-Achmage/blob/main/LINEAGE.md), [LICENSE](https://github.com/CMDSPACE-DEV/CMDS-Achmage/blob/main/LICENSE)를 보존합니다. MIT 라이선스의 **Copyright (c) 2024 Heesu Suh**는 유지되며 리브랜딩으로 원저자 표기를 대체하지 않습니다.
 
 ## 검증 범위
-1.2.0에는 모델 선택창 잘림, 템플릿 저장·슬래시 삽입, 한글 IME 선택 오인 수정과 설정 그룹화가 포함됩니다. 로컬 테스트 766개, 타입·린트·빌드·최소 앱 버전·커뮤니티 심사 Error 게이트를 통과했습니다. 실행 중인 데스크톱 앱에서 모델 목록 배치와 템플릿 저장·삽입을 확인했으며, 실제 OS 한글 입력기 타이핑은 별도 수동 확인 범위입니다. [1.2.0 릴리스 노트](releases/RELEASE_NOTES_1.2.0.md)를 참고합니다.
+1.3.1은 Claude 조직 계정 로그인, MCP 호환성, 설정 검색, 팝아웃 창, 저장 실패 알림을 개선하고 플러그인 번들을 5MB 미만으로 줄입니다. 변경 사항과 검증 범위는 [1.3.1 릴리스 노트](releases/RELEASE_NOTES_1.3.1.md)를 참고하세요. macOS Team 로그인은 확인했으며 Windows Team·Enterprise 로그인은 미검증입니다. 압축 적용 후 실제 Obsidian 로드 시간과 토큰 표시는 수동 확인이 남아 있습니다.
 
 기존 문서 검증 기준: 1.1.0의 `manifest.json`, 명령 등록, `SettingsTabRoot.tsx`, `ChatSection.tsx`, `RAGSection.tsx`, `McpSection.tsx`, 설정 스키마, 연구 등록부, 관련 런타임/출처 보고서를 확인했습니다. 소스 근거는 모든 제공업체/도구/OS의 새 실기 시험을 뜻하지 않습니다. 현재 UI 스크린샷을 꾸며내지 않았고 런타임 코드를 수정하거나 인증/개인 노트를 외부 검증에 보내지 않았습니다.
 
