@@ -3833,7 +3833,7 @@ body:not(.theme-dark)
   align-self: flex-end;
   width: fit-content;
   max-width: 100%;
-  padding: 8px 34px 8px 11px;
+  padding: 8px 60px 8px 11px;
   overflow: hidden;
   color: var(--ach-on-action);
   background: var(--ach-action);
@@ -3882,6 +3882,10 @@ body:not(.theme-dark)
   border: 0;
   border-radius: 50%;
   opacity: 0.55;
+}
+
+.smtcmp-user-message-bubble__copy {
+  right: 31px;
 }
 
 .smtcmp-user-message-bubble__edit:hover,
