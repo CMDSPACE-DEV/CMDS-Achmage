@@ -93,6 +93,6 @@ describe('ResearchManager NAVER usage tracking', () => {
 
 async function waitForQueuedUsageWrite(): Promise<void> {
   await new Promise<void>((resolve) => {
-    setTimeout(resolve, 0)
+    window.setTimeout(resolve, 0)
   })
 }

@@ -18,7 +18,7 @@ jest.mock('./SettingTabRenderer', () => ({
   createSettingTabRenderer: jest.fn(() => renderer),
 }))
 
-const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
+const flush = () => new Promise((resolve) => window.setTimeout(resolve, 0))
 
 function renderDefinition() {
   const tab = new SmartComposerSettingTab({} as App, {} as SmartComposerPlugin)

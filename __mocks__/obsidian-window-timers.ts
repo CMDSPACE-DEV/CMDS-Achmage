@@ -1,15 +1,9 @@
-// Node tests have no Obsidian window. Forward timer lookups so Jest fake timers
-// still control them; jsdom tests retain their real window object.
+// Node tests have no Obsidian window. Alias it to the global object so window
+// timers stay under Jest fake timers and tests can reach Node globals (fetch,
+// DOMParser) through window; jsdom tests retain their real window object.
 if (typeof window === 'undefined') {
   Object.defineProperty(globalThis, 'window', {
     configurable: true,
-    value: {
-      get setTimeout() {
-        return globalThis.setTimeout
-      },
-      get clearTimeout() {
-        return globalThis.clearTimeout
-      },
-    },
+    value: globalThis,
   })
 }

@@ -9,9 +9,10 @@ let rawStore: Map<string, string>
 
 function useRawStorage(raw: Record<string, string>) {
   rawStore = new Map(Object.entries(raw))
-  ;(globalThis as { window?: unknown }).window = {
-    localStorage: { getItem: (key: string) => rawStore.get(key) ?? null },
-  }
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    value: { getItem: (key: string) => rawStore.get(key) ?? null },
+  })
 }
 
 // One vault's App local storage; a new store instance stands in for a reload.
@@ -28,7 +29,7 @@ function vault(initial: Record<string, unknown> = {}) {
 }
 
 afterEach(() => {
-  delete (globalThis as { window?: unknown }).window
+  Reflect.deleteProperty(window, 'localStorage')
 })
 
 describe('NativeRuntimePathStore', () => {

@@ -46,14 +46,14 @@ function waitForTask(
   if (existing) return Promise.resolve(existing)
   return new Promise((resolve, reject) => {
     let unsubscribe = () => {}
-    const timeout = setTimeout(() => {
+    const timeout = window.setTimeout(() => {
       unsubscribe()
       reject(new Error('Timed out waiting for task state.'))
     }, 2000)
     unsubscribe = manager.subscribe((tasks) => {
       const task = tasks.find(predicate)
       if (!task) return
-      clearTimeout(timeout)
+      window.clearTimeout(timeout)
       unsubscribe()
       resolve(task)
     })
@@ -104,7 +104,7 @@ describe('BackgroundTaskManager', () => {
           context.signal.addEventListener('abort', () => {
             reject(new DOMException('Aborted', 'AbortError'))
           })
-          setTimeout(() => resolve({ status: 'succeeded' }), 100)
+          window.setTimeout(() => resolve({ status: 'succeeded' }), 100)
         }),
     }
     manager.registerAdapter(adapter)
@@ -502,7 +502,7 @@ describe('BackgroundTaskManager', () => {
     )
 
     await manager.cleanup()
-    await new Promise((resolve) => setTimeout(resolve, 0))
+    await new Promise((resolve) => window.setTimeout(resolve, 0))
 
     expect(manager.getTask(task.id)?.status).toBe('interrupted')
   })

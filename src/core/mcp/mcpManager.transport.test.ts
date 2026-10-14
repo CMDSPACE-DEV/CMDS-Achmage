@@ -88,7 +88,7 @@ describe('McpManager remote transport compatibility', () => {
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
     url = `http://127.0.0.1:${(server.address() as AddressInfo).port}/mcp`
     jest
-      .spyOn(globalThis, 'fetch')
+      .spyOn(window, 'fetch')
       .mockRejectedValue(new Error('Browser fetch must not be used'))
   })
 
@@ -140,7 +140,7 @@ describe('McpManager remote transport compatibility', () => {
       path: '/mcp',
       authorization: 'Bearer fixture-only-token',
     })
-    expect(globalThis.fetch).not.toHaveBeenCalled()
+    expect(window.fetch).not.toHaveBeenCalled()
   })
 
   it.each([400, 404, 405])(
@@ -158,7 +158,7 @@ describe('McpManager remote transport compatibility', () => {
           ({ authorization }) => authorization === 'Bearer fixture-only-token',
         ),
       ).toBe(true)
-      expect(globalThis.fetch).not.toHaveBeenCalled()
+      expect(window.fetch).not.toHaveBeenCalled()
     },
   )
 

@@ -66,18 +66,6 @@ function createProvider({
 }
 
 describe('McpOAuthProvider', () => {
-  // The provider uses window timers (popout-safe); this suite runs in node.
-  beforeAll(() => {
-    Object.defineProperty(globalThis, 'window', {
-      configurable: true,
-      value: globalThis,
-    })
-  })
-
-  afterAll(() => {
-    Reflect.deleteProperty(globalThis, 'window')
-  })
-
   it('stores tokens and registered client secrets only in SecretStorage', async () => {
     const { provider, secrets, getConnection } = createProvider()
 

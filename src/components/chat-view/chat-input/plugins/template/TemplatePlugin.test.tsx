@@ -46,7 +46,7 @@ beforeAll(() => {
     Object.assign(this.style, styles)
   }
   HTMLElement.prototype.scrollIntoView = jest.fn()
-  global.ResizeObserver = class {
+  window.ResizeObserver = class {
     observe() {}
     unobserve() {}
     disconnect() {}
