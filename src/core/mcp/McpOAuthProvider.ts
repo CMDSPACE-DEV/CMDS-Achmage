@@ -235,7 +235,7 @@ export async function startMcpOAuthCallbackSession(
     rejectCode = reject
   })
 
-  const timeout = setTimeout(() => {
+  const timeout = window.setTimeout(() => {
     if (settled) return
     settled = true
     rejectCode(new Error('MCP OAuth authorization timed out.'))
@@ -308,14 +308,14 @@ export async function startMcpOAuthCallbackSession(
   function finish(error?: Error, code?: string): void {
     if (settled) return
     settled = true
-    clearTimeout(timeout)
+    window.clearTimeout(timeout)
     if (error) rejectCode(error)
     else if (code) resolveCode(code)
     void close()
   }
 
   async function close(): Promise<void> {
-    clearTimeout(timeout)
+    window.clearTimeout(timeout)
     if (closing) return closing
     const current = server
     server = null
