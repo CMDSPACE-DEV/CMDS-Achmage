@@ -165,8 +165,8 @@ export function ImageDestinationSettings({ app }: { app: App }) {
               IMAGE_DESTINATION_LABELS[value],
             ]),
           )}
-          onChange={async (value) => {
-            await setSettings({
+          onChange={(value) => {
+            void setSettings({
               ...settings,
               imageGeneration: {
                 ...settings.imageGeneration,

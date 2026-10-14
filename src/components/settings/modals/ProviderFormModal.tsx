@@ -249,7 +249,9 @@ function ProviderFormComponent({
       <ObsidianSetting>
         <ObsidianButton
           text={provider ? 'Save' : 'Add'}
-          onClick={handleSubmit}
+          onClick={() => {
+            void handleSubmit()
+          }}
           cta
         />
         <ObsidianButton text="Cancel" onClick={onClose} />

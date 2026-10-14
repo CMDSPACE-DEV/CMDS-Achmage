@@ -208,7 +208,13 @@ function AddEmbeddingModelModalComponent({
       </ObsidianSetting>
 
       <ObsidianSetting>
-        <ObsidianButton text="Add" onClick={handleSubmit} cta />
+        <ObsidianButton
+          text="Add"
+          onClick={() => {
+            void handleSubmit()
+          }}
+          cta
+        />
         <ObsidianButton text="Cancel" onClick={onClose} />
       </ObsidianSetting>
     </>
