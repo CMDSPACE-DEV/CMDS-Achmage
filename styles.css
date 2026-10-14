@@ -1364,6 +1364,13 @@ button.smtcmp-chat-input-effort-select {
   min-width: 0;
 }
 
+/* Obsidian 1.13+ declarative row hosting the React settings UI. */
+.setting-item.smtcmp-settings-declarative-host {
+  display: block;
+  padding: 0;
+  border: none;
+}
+
 /*
  * Obsidian's settings scroller carries a top padding (48px in 1.14). A sticky
  * offset resolves against the scrollport's PADDING box, so a bar pinned at
