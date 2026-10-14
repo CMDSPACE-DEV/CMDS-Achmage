@@ -25,9 +25,8 @@ export function withClaudeShellConfigDir(
 ): NodeJS.ProcessEnv {
   const platform = options.platform ?? process.platform
   if (platform === 'win32' || source.CLAUDE_CONFIG_DIR?.trim()) return source
-  // An empty SHELL must fall back too, so `||` rather than `??`.
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-  const shell = source.SHELL?.trim() || '/bin/zsh'
+  const configuredShell = source.SHELL?.trim()
+  const shell = configuredShell ? configuredShell : '/bin/zsh'
 
   if (!options.readShell) {
     cached ??= { value: readFromShell(shell, readLoginShell, options.exists) }
