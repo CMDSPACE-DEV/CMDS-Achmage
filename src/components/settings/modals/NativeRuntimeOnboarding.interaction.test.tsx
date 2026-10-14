@@ -170,6 +170,8 @@ function createSharedService(
     }),
     getCustomPath: () => '',
     setCustomPath: jest.fn(),
+    allowsClaudeOrganizationPlans: () => false,
+    setClaudeOrganizationPlans: jest.fn(),
     openSetupTerminal: jest.fn(),
     openLoginTerminal: jest.fn(),
     openUpdateTerminal: jest.fn(),
