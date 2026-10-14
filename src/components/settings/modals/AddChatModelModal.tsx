@@ -140,7 +140,7 @@ function AddChatModelModalComponent({
           onChange={(value: string) =>
             setFormData((prev) => ({
               ...prev,
-              promptLevel: Number(value) as PromptLevel,
+              promptLevel: Number(value),
             }))
           }
         />

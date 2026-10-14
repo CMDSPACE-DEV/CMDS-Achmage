@@ -19,7 +19,7 @@ export default function CreateTemplatePopoverPlugin({
   app: App
   anchorElement: HTMLElement | null
   contentEditableElement: HTMLElement | null
-}): JSX.Element | null {
+}): React.JSX.Element | null {
   const [editor] = useLexicalComposerContext()
 
   const [popoverStyle, setPopoverStyle] = useState<CSSProperties | null>(null)

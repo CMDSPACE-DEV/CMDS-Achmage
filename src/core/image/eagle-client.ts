@@ -76,7 +76,7 @@ export class EagleClient {
     private readonly baseUrl: string,
     private readonly transport: EagleTransport = obsidianTransport,
     private readonly sleep: (ms: number) => Promise<void> = (ms) =>
-      new Promise((resolve) => setTimeout(resolve, ms)),
+      new Promise((resolve) => window.setTimeout(resolve, ms)),
     private readonly now: () => number = () => Date.now(),
   ) {}
 

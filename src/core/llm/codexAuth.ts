@@ -116,7 +116,7 @@ export async function startCodexCallbackServer(params: {
   const http = require('http') as typeof import('http')
 
   return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
+    const timeout = window.setTimeout(() => {
       finalize(
         new Error('OAuth callback timeout - authorization took too long'),
       )
@@ -176,7 +176,7 @@ export async function startCodexCallbackServer(params: {
     const finalize = (error?: Error, code?: string) => {
       if (isCodexCallbackStopping) return
       isCodexCallbackStopping = true
-      clearTimeout(timeout)
+      window.clearTimeout(timeout)
       server.close(() => {
         codexCallbackServer = undefined
         isCodexCallbackStopping = false

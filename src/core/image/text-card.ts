@@ -120,7 +120,7 @@ export async function renderTextCard(
   const fontSize = pickFontSize(body.length)
   const lineHeight = Math.round(fontSize * 1.5)
 
-  const measureCanvas = doc.createElement('canvas')
+  const measureCanvas = doc.win.createEl('canvas')
   const measureCtx = measureCanvas.getContext('2d')
   if (!measureCtx) throw new Error('Canvas 2D context is unavailable.')
   measureCtx.font = `500 ${fontSize}px ${fontFamily}`
@@ -137,7 +137,7 @@ export async function renderTextCard(
   const height =
     padding * 2 + Math.max(1, lines.length) * lineHeight + footerHeight
 
-  const canvas = doc.createElement('canvas')
+  const canvas = doc.win.createEl('canvas')
   canvas.width = width
   canvas.height = height
   const ctx = canvas.getContext('2d')

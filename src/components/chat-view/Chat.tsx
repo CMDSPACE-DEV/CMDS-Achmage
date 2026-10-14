@@ -231,7 +231,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
         chatMessages: updatedMessages,
         conversationId: currentConversationId,
       })
-      requestAnimationFrame(forceScrollToBottom)
+      window.requestAnimationFrame(forceScrollToBottom)
       return true
     },
     [
@@ -348,7 +348,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
 
       // Update the chat history to show the new user message
       setChatMessages(inputChatMessages)
-      requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
         forceScrollToBottom()
       })
 
@@ -483,7 +483,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
           chatMessages: updatedMessages,
           conversationId: currentConversationId,
         })
-        requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
           forceScrollToBottom()
         })
       }

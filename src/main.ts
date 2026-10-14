@@ -72,7 +72,7 @@ export default class SmartComposerPlugin extends Plugin {
     null
   private settingsSaveQueue: SettingsSaveQueue<SmartComposerSettings> | null =
     null
-  private timeoutIds: ReturnType<typeof setTimeout>[] = [] // Use ReturnType instead of number
+  private timeoutIds: number[] = []
   private unloading = false
 
   async onload() {
@@ -387,7 +387,7 @@ export default class SmartComposerPlugin extends Plugin {
     this.inlineEditController = null
     this.conversationRunManager = null
     // clear all timers
-    this.timeoutIds.forEach((id) => clearTimeout(id))
+    this.timeoutIds.forEach((id) => window.clearTimeout(id))
     this.timeoutIds = []
 
     // RagEngine cleanup
@@ -818,7 +818,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
   }
 
   private registerTimeout(callback: () => void, timeout: number): void {
-    const timeoutId = setTimeout(callback, timeout)
+    const timeoutId = window.setTimeout(callback, timeout)
     this.timeoutIds.push(timeoutId)
   }
 
@@ -898,7 +898,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
 
 function markPerformance(name: string): void {
   try {
-    globalThis.performance?.mark(name)
+    window.performance?.mark(name)
   } catch {
     // Performance Timeline instrumentation must never affect plugin behavior.
   }
@@ -910,7 +910,7 @@ function measurePerformance(
   endMark: string,
 ): void {
   try {
-    globalThis.performance?.measure(name, startMark, endMark)
+    window.performance?.measure(name, startMark, endMark)
   } catch {
     // Performance Timeline instrumentation must never affect plugin behavior.
   }
