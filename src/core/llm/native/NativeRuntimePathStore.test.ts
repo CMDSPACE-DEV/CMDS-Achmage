@@ -5,23 +5,26 @@ import { NativeRuntimePathStore } from './NativeRuntimePathStore'
 const LEGACY_KEY = 'smart-composer:native-runtime-path:claude'
 const KEY = 'native-runtime-path:claude'
 
-function setup(raw: Record<string, string>, vault: Record<string, unknown>) {
-  const rawStore = new Map(Object.entries(raw))
-  const vaultStore = new Map(Object.entries(vault))
+let rawStore: Map<string, string>
+
+function useRawStorage(raw: Record<string, string>) {
+  rawStore = new Map(Object.entries(raw))
   ;(globalThis as { window?: unknown }).window = {
-    localStorage: {
-      getItem: (key: string) => rawStore.get(key) ?? null,
-      removeItem: (key: string) => rawStore.delete(key),
-    },
+    localStorage: { getItem: (key: string) => rawStore.get(key) ?? null },
   }
+}
+
+// One vault's App local storage; a new store instance stands in for a reload.
+function vault(initial: Record<string, unknown> = {}) {
+  const data = new Map(Object.entries(initial))
   const app = {
-    loadLocalStorage: (key: string) => vaultStore.get(key) ?? null,
-    saveLocalStorage: (key: string, data: unknown) => {
-      if (data === null) vaultStore.delete(key)
-      else vaultStore.set(key, data)
+    loadLocalStorage: (key: string) => data.get(key) ?? null,
+    saveLocalStorage: (key: string, value: unknown) => {
+      if (value === null) data.delete(key)
+      else data.set(key, value)
     },
   } as unknown as App
-  return { store: new NativeRuntimePathStore(app), rawStore, vaultStore }
+  return { data, open: () => new NativeRuntimePathStore(app) }
 }
 
 afterEach(() => {
@@ -29,37 +32,54 @@ afterEach(() => {
 })
 
 describe('NativeRuntimePathStore', () => {
-  it('moves a legacy raw path into vault local storage once', () => {
-    const { store, rawStore, vaultStore } = setup(
-      { [LEGACY_KEY]: '/opt/claude' },
-      {},
-    )
+  it('migrates the legacy path into every vault and keeps the legacy key', () => {
+    useRawStorage({ [LEGACY_KEY]: '/opt/claude' })
+    const a = vault()
+    const b = vault()
 
-    expect(store.get('claude')).toBe('/opt/claude')
-    expect(vaultStore.get(KEY)).toBe('/opt/claude')
-    expect(rawStore.has(LEGACY_KEY)).toBe(false)
-    expect(store.get('claude')).toBe('/opt/claude')
+    expect(a.open().get('claude')).toBe('/opt/claude')
+    expect(b.open().get('claude')).toBe('/opt/claude')
+    expect(a.data.get(KEY)).toBe('/opt/claude')
+    expect(b.data.get(KEY)).toBe('/opt/claude')
+    expect(rawStore.get(LEGACY_KEY)).toBe('/opt/claude')
   })
 
-  it('keeps the vault value when both keys exist and drops the legacy key', () => {
-    const { store, rawStore, vaultStore } = setup(
-      { [LEGACY_KEY]: '/old/claude' },
-      { [KEY]: '/new/claude' },
-    )
+  it('keeps a path cleared in one vault cleared after reload', () => {
+    useRawStorage({ [LEGACY_KEY]: '/opt/claude' })
+    const a = vault()
+    const b = vault()
+    a.open().get('claude')
 
-    expect(store.get('claude')).toBe('/new/claude')
-    expect(vaultStore.get(KEY)).toBe('/new/claude')
-    expect(rawStore.has(LEGACY_KEY)).toBe(false)
+    a.open().set('claude', '')
+
+    expect(a.open().get('claude')).toBeUndefined()
+    expect(b.open().get('claude')).toBe('/opt/claude')
   })
 
-  it('stores and clears the path through App local storage', () => {
-    const { store, vaultStore } = setup({}, {})
+  it('does not import the legacy path after clearing before the first read', () => {
+    useRawStorage({ [LEGACY_KEY]: '/opt/claude' })
+    const a = vault()
 
-    store.set('claude', '  /usr/local/bin/claude  ')
-    expect(vaultStore.get(KEY)).toBe('/usr/local/bin/claude')
+    a.open().set('claude', '')
 
-    store.set('claude', '   ')
-    expect(vaultStore.has(KEY)).toBe(false)
-    expect(store.get('claude')).toBeUndefined()
+    expect(a.open().get('claude')).toBeUndefined()
+  })
+
+  it('keeps the vault value when both keys exist', () => {
+    useRawStorage({ [LEGACY_KEY]: '/old/claude' })
+    const a = vault({ [KEY]: '/new/claude' })
+
+    expect(a.open().get('claude')).toBe('/new/claude')
+    expect(a.data.get(KEY)).toBe('/new/claude')
+  })
+
+  it('stores a trimmed path through App local storage', () => {
+    useRawStorage({})
+    const a = vault()
+
+    a.open().set('claude', '  /usr/local/bin/claude  ')
+
+    expect(a.data.get(KEY)).toBe('/usr/local/bin/claude')
+    expect(a.open().get('claude')).toBe('/usr/local/bin/claude')
   })
 })

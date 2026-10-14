@@ -25,9 +25,10 @@ decisions rather than mechanical edits.
    labels, so settings search finds the tab. `display()` stays as the fallback
    for Obsidian < 1.13 (minAppVersion is still 1.11.4).
 2. **Executable path storage.** `NativeRuntimePathStore` now uses
-   `App#loadLocalStorage` / `App#saveLocalStorage`. A value stored under the
-   legacy raw key `smart-composer:native-runtime-path:<provider>` is read once,
-   copied when no new value exists, and the raw key is removed.
+   `App#loadLocalStorage` / `App#saveLocalStorage`. Each vault copies the
+   legacy raw key `smart-composer:native-runtime-path:<provider>` once (when it
+   has no value of its own) and records a per-vault marker. The legacy key is
+   never deleted, so every vault on the device keeps the saved path.
 
 ## Research Question
 
@@ -72,7 +73,7 @@ losing a saved custom executable path?
 | E-03 | The React UI looks identical inside the declarative row | Not verified | Needs Obsidian 1.13 live check | Not applicable |
 | E-04 | `render()` mounts once and cleanup unmounts | Verified: test | `src/settings/SettingTab.test.ts` | High |
 | E-05 | `App#*LocalStorage` is per vault; raw `localStorage` is shared by all vaults on the device | Verified: source (docs "for this vault") | obsidian.d.ts | High |
-| E-06 | Legacy path migrates once, new key wins, legacy key removed | Verified: test | `NativeRuntimePathStore.test.ts` | High |
+| E-06 | Two vaults both migrate the same legacy path; a path cleared in one vault stays cleared after reload; new key wins; legacy key kept | Verified: test | `NativeRuntimePathStore.test.ts` | High |
 
 ## Decisions
 
@@ -90,13 +91,18 @@ losing a saved custom executable path?
 - An `App` binding is set once in `onload` (`bindNativeRuntimePathStore`),
   because the resolvers are default-constructed in files owned by another
   lane (PR #43).
-- The one-time legacy read uses `window.localStorage` deliberately: the App
-  API prefixes keys per vault and cannot read the old raw key.
-- **Behaviour change (known):** the path is now per vault. A device with
-  several vaults migrates the old value into the first vault that reads it.
-  The other vaults then fall back to automatic executable discovery until the
-  user sets the path there. This is the owner-chosen "remove the old key"
-  behaviour; keeping the legacy key would make every vault migrate it.
+- The legacy read uses `window.localStorage` deliberately: the App API
+  prefixes keys per vault and cannot read the old raw key. The bare
+  `localStorage` global (what `no-restricted-globals` flags) is not used.
+- Per-vault migration: on the first read in a vault without the
+  `native-runtime-path-migrated:<provider>` marker, copy the legacy value if
+  the vault has none, then set the marker. `set()` also sets the marker, so
+  a path cleared in a vault does not come back from the legacy key.
+- The legacy raw key is never deleted, so all vaults keep the saved path
+  (owner decision "users keep their saved path"; superseded the first draft,
+  which removed it after the first vault read it).
+- **Behaviour change (known):** after migration the path is per vault, so a
+  change made in one vault no longer applies to the others.
 
 ## Release Gates
 
@@ -113,3 +119,5 @@ machine, or vault content were recorded.
 ## Change Log
 
 - 2026-10-14: Initial report and implementation for issue #20.
+- 2026-10-14: Review fix: migration is per vault with a marker and keeps the
+  legacy raw key instead of removing it.
