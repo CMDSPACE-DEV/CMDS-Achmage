@@ -1,5 +1,6 @@
 import { Platform } from 'obsidian'
 
+import { claudeEnvironmentSource } from './claudeShellConfigDir'
 import { NativeCliResolver } from './NativeCliResolver'
 import {
   NativeProcessOptions,
@@ -15,12 +16,18 @@ import type {
   RuntimeDiscovery,
 } from './nativeRuntime.types'
 import {
+  ClaudeManagedSettingsInspector,
+  ClaudePlanAuthPolicy,
   classifyAntigravityBlockingSignals,
   classifyAntigravityQuotaProvenance,
   classifyAntigravityTextCatalog,
   prepareNativePlanEnvironment,
   verifyClaudePlanAuth,
 } from './NativeRuntimeAuth'
+import {
+  NativeRuntimeConsentStore,
+  sharedNativeRuntimeConsentStore,
+} from './NativeRuntimeConsentStore'
 import {
   NativeRuntimeStore,
   sharedNativeRuntimeStore,
@@ -75,10 +82,21 @@ export class NativeRuntimeService {
     private readonly environmentSource: NodeJS.ProcessEnv = process.env,
     private readonly terminalLauncher: NativeTerminalLauncher = launchVisibleTerminal,
     private readonly updateWorkingDirectoryFactory: UpdateWorkingDirectoryFactory = createAntigravityUpdateWorkingDirectory,
+    private readonly consentStore: NativeRuntimeConsentStore = sharedNativeRuntimeConsentStore,
+    private readonly managedSettingsInspector?: ClaudeManagedSettingsInspector,
   ) {}
 
   getSnapshot(provider: NativeRuntimeProvider): NativeRuntimeSnapshot {
     return this.store.getSnapshot(provider)
+  }
+
+  /** Whether this computer allows Team/Enterprise Claude logins (R-049). */
+  allowsClaudeOrganizationPlans(): boolean {
+    return this.consentStore.allowsClaudeOrganizationPlans()
+  }
+
+  setClaudeOrganizationPlans(allowed: boolean): void {
+    this.consentStore.setClaudeOrganizationPlans(allowed)
   }
 
   subscribe(
@@ -130,6 +148,11 @@ export class NativeRuntimeService {
               this.runner,
               signal,
               this.environmentSource,
+              {
+                allowOrganizationPlans:
+                  this.consentStore.allowsClaudeOrganizationPlans(),
+              },
+              this.managedSettingsInspector,
             )
           : await diagnoseAntigravity(
               executablePath,
@@ -218,8 +241,13 @@ async function diagnoseClaude(
   runner: NativeProcessRunner,
   signal?: AbortSignal,
   environmentSource: NodeJS.ProcessEnv = process.env,
+  policy: ClaudePlanAuthPolicy = {},
+  managedSettingsInspector?: ClaudeManagedSettingsInspector,
 ): Promise<NativeRuntimeSnapshot> {
-  const environment = prepareNativePlanEnvironment('claude', environmentSource)
+  const environment = prepareNativePlanEnvironment(
+    'claude',
+    claudeEnvironmentSource(environmentSource),
+  )
   const versionResult = await runWithTimeout(runner, {
     executable: executablePath,
     args: ['--version'],
@@ -234,6 +262,8 @@ async function diagnoseClaude(
     environment,
     runner: (options) => runWithTimeout(runner, options),
     signal,
+    managedSettingsInspector,
+    allowOrganizationPlans: policy.allowOrganizationPlans,
   })
   const common = {
     executablePath,

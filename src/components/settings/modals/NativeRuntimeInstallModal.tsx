@@ -26,6 +26,10 @@ import {
   getNativeRuntimeInstallGuide,
 } from '../../../core/llm/native/NativeRuntimeService'
 import { ReactModal } from '../../common/ReactModal'
+import {
+  hasAuthenticatedPolicyBlock,
+  policyBlockMessage,
+} from '../nativeRuntimePolicy'
 
 import {
   NativeRuntimeGuidePlatform,
@@ -695,41 +699,6 @@ function initialStatusMessage(
     return policyBlockMessage(provider, snapshot)
   }
   return '아래 1번부터 차례대로 진행하세요.'
-}
-
-function policyBlockMessage(
-  provider: NativeRuntimeProvider,
-  snapshot: NativeRuntimeSnapshot,
-): string {
-  const detail = snapshot.error ?? snapshot.warning
-  const loginState = hasAuthenticatedPolicyBlock(snapshot)
-    ? `${provider === 'claude' ? 'Claude' : 'Antigravity'} 로그인은 확인했습니다. `
-    : ''
-  const boundary =
-    snapshot.status === 'quota-unverified'
-      ? '개인 Plan 할당량 출처를 확인할 수 없어 요청을 차단했습니다.'
-      : 'API, Cloud 또는 다른 과금 정책이 우선할 수 있어 요청을 차단했습니다.'
-  const resolution =
-    ' 재로그인만으로 해제되는 상태가 아닙니다. 표시된 과금 경로나 환경 설정을 먼저 확인하세요.'
-  return `${loginState}${boundary}${detail ? ` ${detail}` : ''}${resolution}`
-}
-
-function hasAuthenticatedPolicyBlock(snapshot: NativeRuntimeSnapshot): boolean {
-  if (
-    snapshot.status !== 'billing-blocked' &&
-    snapshot.status !== 'quota-unverified'
-  ) {
-    return false
-  }
-  const evidence = snapshot.authDecision?.evidence ?? []
-  if (snapshot.provider === 'gemini') {
-    return snapshot.catalog === 'ready' && evidence.length > 0
-  }
-  return evidence.some(
-    (item) =>
-      item === 'auth metadata contains a non-subscription billing marker' ||
-      item === 'subscription provenance is incomplete or unknown',
-  )
 }
 
 function openOfficialDocumentation(url: string): void {

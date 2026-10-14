@@ -18,14 +18,20 @@ import { parseImageDataUrl } from '../../../utils/llm/image'
 import { BaseLLMProvider } from '../base'
 import { LLMAPIKeyNotSetException } from '../exception'
 
+import { claudeEnvironmentSource } from './claudeShellConfigDir'
 import { NativeCliResolver } from './NativeCliResolver'
 import { runNativeProcess } from './NativeProcess'
 import { buildNativePrompt } from './nativePrompt'
 import {
+  ClaudeManagedSettingsInspector,
   assertRuntimeAuthAllowed,
   prepareNativePlanEnvironment,
   verifyClaudePlanAuth,
 } from './NativeRuntimeAuth'
+import {
+  NativeRuntimeConsentReader,
+  sharedNativeRuntimeConsentStore,
+} from './NativeRuntimeConsentStore'
 import { nativeToolResultToText } from './nativeToolResult'
 import { requireNode } from './nodeRuntime'
 
@@ -51,6 +57,24 @@ type ClaudeIterationResult = {
   usage?: ResponseUsage
 }
 
+export type ClaudeSessionGuard = {
+  /** A Team/Enterprise login this computer opted in to (R-049). */
+  organization: boolean
+  allowImageRead: boolean
+}
+
+export class ClaudePlanRequestBlockedError extends Error {
+  constructor(reason: string) {
+    super(`Claude Plan request blocked: ${reason}`)
+    this.name = 'ClaudePlanRequestBlockedError'
+  }
+}
+
+export type ClaudeAgentProviderOptions = {
+  consent?: NativeRuntimeConsentReader
+  managedSettingsInspector?: ClaudeManagedSettingsInspector
+}
+
 export class ClaudeAgentProvider extends BaseLLMProvider<
   Extract<LLMProvider, { type: 'anthropic-plan' }>
 > {
@@ -58,6 +82,7 @@ export class ClaudeAgentProvider extends BaseLLMProvider<
     provider: Extract<LLMProvider, { type: 'anthropic-plan' }>,
     private readonly resolver = new NativeCliResolver(),
     private readonly environmentSource: NodeJS.ProcessEnv = process.env,
+    private readonly options: ClaudeAgentProviderOptions = {},
   ) {
     super(provider)
   }
@@ -117,15 +142,25 @@ export class ClaudeAgentProvider extends BaseLLMProvider<
     }
     const environment = prepareNativePlanEnvironment(
       'claude',
-      this.environmentSource,
+      claudeEnvironmentSource(this.environmentSource),
     )
     environment.env.CLAUDE_CODE_DISABLE_AUTO_MEMORY = '1'
+    const consent = this.options.consent ?? sharedNativeRuntimeConsentStore
     const verification = await verifyClaudePlanAuth(executablePath, {
       environment,
       signal: options?.signal,
+      managedSettingsInspector: this.options.managedSettingsInspector,
+      allowOrganizationPlans: consent.allowsClaudeOrganizationPlans(),
     })
     assertRuntimeAuthAllowed('claude', verification.decision)
-    return this.run(executablePath, model, request, environment.env, options)
+    return this.run(
+      executablePath,
+      model,
+      request,
+      environment.env,
+      verification.decision.code === 'organization-subscription',
+      options,
+    )
   }
 
   async getEmbedding(): Promise<number[]> {
@@ -137,6 +172,7 @@ export class ClaudeAgentProvider extends BaseLLMProvider<
     model: Extract<ChatModel, { providerType: 'anthropic-plan' }>,
     request: LLMRequestStreaming,
     environment: NodeJS.ProcessEnv,
+    organization: boolean,
     options?: LLMOptions,
   ): AsyncGenerator<LLMResponseStreaming> {
     const nativePrompt = buildNativePrompt(request.messages)
@@ -151,6 +187,10 @@ export class ClaudeAgentProvider extends BaseLLMProvider<
         nativePrompt.prompt,
         attachments,
       )
+      const guard: ClaudeSessionGuard = {
+        organization,
+        allowImageRead: attachments.length > 0,
+      }
 
       if (tools.length === 0) {
         const iteration = startClaudeIteration({
@@ -160,6 +200,7 @@ export class ClaudeAgentProvider extends BaseLLMProvider<
           prompt: promptWithAttachments,
           structured: false,
           allowImageRead: attachments.length > 0,
+          guard,
           cwd,
           environment,
           signal: options?.signal,
@@ -192,6 +233,7 @@ export class ClaudeAgentProvider extends BaseLLMProvider<
           prompt,
           structured: true,
           allowImageRead: attachments.length > 0,
+          guard,
           cwd,
           environment,
           signal: options?.signal,
@@ -259,6 +301,9 @@ export function buildClaudeCliArgs(params: {
     'dontAsk',
     '--no-chrome',
     '--disable-slash-commands',
+    // No MCP server reaches the session unless CMDS Achmage passes one; this
+    // also keeps claude.ai connectors out of Plan requests.
+    '--strict-mcp-config',
     '--model',
     normalizeClaudeModel(params.model.model),
     '--system-prompt',
@@ -280,6 +325,7 @@ function startClaudeIteration(params: {
   prompt: string
   structured: boolean
   allowImageRead: boolean
+  guard: ClaudeSessionGuard
   cwd: string
   environment: NodeJS.ProcessEnv
   signal?: AbortSignal
@@ -292,17 +338,40 @@ function startClaudeIteration(params: {
   let emittedText = ''
   let usage: ResponseUsage | undefined
   let requestError: Error | undefined
+  let sawInit = false
+  let guardViolation: string | undefined
+
+  // A separate controller lets the session guard stop the process without the
+  // stop being reported as a user cancellation.
+  const processController = new AbortController()
+  const forwardCallerAbort = () => processController.abort()
+  if (params.signal?.aborted) {
+    processController.abort()
+  } else {
+    params.signal?.addEventListener('abort', forwardCallerAbort, {
+      once: true,
+    })
+  }
 
   const result = runNativeProcess({
     executable: params.executablePath,
     args: buildClaudeCliArgs(params),
     cwd: params.cwd,
     stdin: params.prompt,
-    signal: params.signal,
+    signal: processController.signal,
     env: params.environment,
     onStdoutLine: (line) => {
+      if (guardViolation) return
       const event = parseJsonLine(line)
       if (!event) return
+      if (event.type === 'system' && event.subtype === 'init') {
+        sawInit = true
+        guardViolation = evaluateClaudeInitEvent(event, params.guard)
+        if (guardViolation) {
+          processController.abort()
+          return
+        }
+      }
       const parsed = parseClaudeStreamEvent(event)
       if (parsed.content) {
         emittedText += parsed.content
@@ -318,7 +387,22 @@ function startClaudeIteration(params: {
       requestError = parsed.error ?? requestError
     },
   })
+    .catch((error: unknown) => {
+      if (guardViolation)
+        throw new ClaudePlanRequestBlockedError(guardViolation)
+      throw error
+    })
     .then((processResult) => {
+      if (guardViolation)
+        throw new ClaudePlanRequestBlockedError(guardViolation)
+      // Organization sessions must show their configuration before CMDS
+      // Achmage accepts an answer. Pro/Max keeps working if a future CLI
+      // changes the event, to avoid repeating the R-027 false block.
+      if (params.guard.organization && !sawInit) {
+        throw new ClaudePlanRequestBlockedError(
+          'Claude Code did not report its session settings, so the organization request was discarded.',
+        )
+      }
       if (processResult.exitCode !== 0) {
         const detail =
           processResult.stderr.trim() || processResult.stdout.trim()
@@ -337,9 +421,48 @@ function startClaudeIteration(params: {
       }
       return { finalValue, emittedText, usage }
     })
-    .finally(() => queue.close())
+    .finally(() => {
+      params.signal?.removeEventListener('abort', forwardCallerAbort)
+      queue.close()
+    })
 
   return { deltas: queue, result }
+}
+
+/**
+ * Checks the `system/init` event that Claude Code prints before it works on
+ * the prompt. It cannot prevent a request already sent; it stops the process
+ * as soon as the session shows a route the Plan guard would have blocked.
+ * Returns the reason to block, or undefined when the session is acceptable.
+ */
+export function evaluateClaudeInitEvent(
+  event: Record<string, unknown>,
+  guard: ClaudeSessionGuard,
+): string | undefined {
+  const apiKeySource = event.apiKeySource
+  if (
+    apiKeySource !== undefined &&
+    apiKeySource !== null &&
+    String(apiKeySource).trim().toLowerCase() !== 'none'
+  ) {
+    return 'Claude Code selected an API key source instead of the subscription login.'
+  }
+  if (!guard.organization) return undefined
+
+  // Organization policy can attach MCP servers that --strict-mcp-config does
+  // not exclude. Their tools would run with vault context, so stop instead.
+  const mcpServers = event.mcp_servers
+  const tools = event.tools
+  if (
+    (Array.isArray(mcpServers) && mcpServers.length > 0) ||
+    (Array.isArray(tools) &&
+      tools.some(
+        (tool) => typeof tool === 'string' && tool.startsWith('mcp__'),
+      ))
+  ) {
+    return 'Organization-managed MCP servers were attached to the Claude Code session.'
+  }
+  return undefined
 }
 
 export function parseClaudeStreamEvent(event: Record<string, unknown>): {
