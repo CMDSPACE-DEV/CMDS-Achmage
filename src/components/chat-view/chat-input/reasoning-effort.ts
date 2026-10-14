@@ -1,8 +1,11 @@
 import {
+  OpenAIPlanModelSpec,
+  getOpenAIPlanModelSpec,
+} from '../../../core/llm/openaiPlanModels'
+import {
   CLAUDE_ADAPTIVE_EFFORTS,
   ChatModel,
   ClaudeEffort,
-  GPT_5_6_EFFORTS,
   Gpt56Effort,
 } from '../../../types/chat-model.types'
 
@@ -19,12 +22,6 @@ export type QuickReasoningControl = {
   label: string
   value: QuickReasoningEffort
   options: readonly QuickReasoningOption[]
-}
-
-const GPT_5_6_DEFAULT_EFFORTS: Record<string, Gpt56Effort> = {
-  'gpt-5.6-sol': 'medium',
-  'gpt-5.6-terra': 'low',
-  'gpt-5.6-luna': 'none',
 }
 
 export const GPT_QUICK_REASONING_OPTIONS: readonly QuickReasoningOption[] = [
@@ -45,48 +42,29 @@ export const CLAUDE_QUICK_REASONING_OPTIONS: readonly QuickReasoningOption[] = [
   { value: 'max', label: 'max', description: 'Deepest reasoning' },
 ]
 
-// GPT-6 variants reject `none` (Codex catalog `supported_reasoning_levels`,
-// see R-044), so they get the same list without it.
-const GPT_6_QUICK_REASONING_OPTIONS = GPT_QUICK_REASONING_OPTIONS.filter(
-  (option) => option.value !== 'none',
-)
-
-function isGpt56Model(model: string): boolean {
-  return /^gpt-5\.6-[a-z]+$/.test(model)
+function getGptPlanSpec(model: ChatModel): OpenAIPlanModelSpec | undefined {
+  return model.providerType === 'openai-plan'
+    ? getOpenAIPlanModelSpec(model.model)
+    : undefined
 }
 
-function isGpt6Model(model: string): boolean {
-  return /^gpt-6(?:\.\d+)?-[a-z]+$/.test(model)
-}
-
-function isGptPlanReasoningModel(
-  model: ChatModel,
-): model is Extract<ChatModel, { providerType: 'openai-plan' }> {
-  return (
-    model.providerType === 'openai-plan' &&
-    (isGpt56Model(model.model) || isGpt6Model(model.model))
-  )
-}
-
-function gptReasoningOptions(model: string): readonly QuickReasoningOption[] {
-  return isGpt6Model(model)
-    ? GPT_6_QUICK_REASONING_OPTIONS
-    : GPT_QUICK_REASONING_OPTIONS
-}
-
+// Haiku takes no effort level; Fable always thinks, so "off" lowers effort.
 function isClaudeAdaptivePlanModel(
   model: ChatModel,
 ): model is Extract<ChatModel, { providerType: 'anthropic-plan' }> {
   return (
     model.providerType === 'anthropic-plan' &&
     (model.thinking?.mode === 'adaptive' ||
-      ['default', 'opus', 'sonnet'].includes(model.model) ||
-      /^claude-(opus|sonnet)-/i.test(model.model))
+      ['default', 'opus', 'sonnet', 'fable'].includes(model.model) ||
+      /^claude-(opus|sonnet|fable)-/i.test(model.model))
   )
 }
 
-function isGpt56Effort(value: string | undefined): value is Gpt56Effort {
-  return GPT_5_6_EFFORTS.includes(value as Gpt56Effort)
+function isSupportedGptEffort(
+  spec: OpenAIPlanModelSpec,
+  value: string | undefined,
+): value is Gpt56Effort {
+  return spec.efforts.includes(value as Gpt56Effort)
 }
 
 function isClaudeEffort(value: string): value is ClaudeEffort {
@@ -100,18 +78,18 @@ export function getQuickReasoningControl(
     return null
   }
 
-  if (isGptPlanReasoningModel(model)) {
+  const gptSpec = getGptPlanSpec(model)
+  if (model.providerType === 'openai-plan' && gptSpec) {
     const configuredEffort = model.reasoning?.reasoning_effort
-    const options = gptReasoningOptions(model.model)
     return {
       kind: 'gpt',
       label: 'GPT reasoning effort',
-      value:
-        isGpt56Effort(configuredEffort) &&
-        options.some((option) => option.value === configuredEffort)
-          ? configuredEffort
-          : (GPT_5_6_DEFAULT_EFFORTS[model.model] ?? 'medium'),
-      options,
+      value: isSupportedGptEffort(gptSpec, configuredEffort)
+        ? configuredEffort
+        : gptSpec.defaultEffort,
+      options: GPT_QUICK_REASONING_OPTIONS.filter((option) =>
+        isSupportedGptEffort(gptSpec, option.value),
+      ),
     }
   }
 
@@ -136,13 +114,11 @@ export function updateQuickReasoningEffort(
   model: ChatModel,
   value: string,
 ): ChatModel {
-  if (isGptPlanReasoningModel(model)) {
-    if (
-      !isGpt56Effort(value) ||
-      !gptReasoningOptions(model.model).some((option) => option.value === value)
-    ) {
+  const gptSpec = getGptPlanSpec(model)
+  if (model.providerType === 'openai-plan' && gptSpec) {
+    if (!isSupportedGptEffort(gptSpec, value)) {
       throw new Error(
-        `Unsupported reasoning effort "${value}" for ${model.model}`,
+        `Unsupported reasoning effort for ${model.model}: ${value}`,
       )
     }
 

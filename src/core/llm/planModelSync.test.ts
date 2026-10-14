@@ -54,8 +54,8 @@ describe('syncOpenAIPlanModels', () => {
         models: [
           { slug: 'gpt-5.6-sol', visibility: 'list' },
           {
-            slug: 'gpt-6.1-sol',
-            display_name: 'GPT-6.1-Sol',
+            slug: 'gpt-6.2-nova',
+            display_name: 'GPT-6.2-Nova',
             visibility: 'list',
             default_reasoning_level: 'low',
           },
@@ -72,15 +72,16 @@ describe('syncOpenAIPlanModels', () => {
     })
     expect(result).toMatchObject({
       status: 'synced',
-      available: ['gpt-5.6-sol', 'gpt-6.1-sol'],
+      available: ['gpt-5.6-sol', 'gpt-6.2-nova'],
     })
     expect(setSettings).toHaveBeenCalledTimes(1)
     expect(
       current().chatModels.find(
         (model) =>
-          model.providerType === 'openai-plan' && model.model === 'gpt-6.1-sol',
+          model.providerType === 'openai-plan' &&
+          model.model === 'gpt-6.2-nova',
       ),
-    ).toMatchObject({ id: 'gpt-6.1-sol (plan)', enable: true })
+    ).toMatchObject({ id: 'gpt-6.2-nova (plan)', enable: true })
   })
 
   it('does not write settings when the catalog has nothing new', async () => {

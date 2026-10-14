@@ -12,7 +12,8 @@ publishing the 2.6.2 release. R-027 is mandatory for Claude Plan authentication
 classification and the 2.6.3 Pro/Max hotfix or release. R-028 is mandatory for
 Gemini Plan authentication and the 2.6.4 compatibility hotfix or release.
 R-029 is mandatory for Antigravity updater, ready-state UX, and the 2.6.5
-patch or release.
+patch or release. R-045 is mandatory for the chat model catalog, Plan model
+handling, and the Anthropic API request shape.
 
 ## Purpose
 
@@ -68,6 +69,7 @@ premature synthesis.
 | R-031 | Community-release vault safety: product-named default folders with Obsidian attachment-folder resolution, setting-owned artifact folder, namespaced draft provenance keys, Obsidian excluded-files respected, rebrand of 40 user-facing strings | **Verified + Implemented** | **Mandatory for vault write paths, RAG scope, and naming** | [R-031 report](R-031-community-safe-vault-defaults.md) |
 | R-044 | Model catalog refresh (Opus/Sonnet 5.5, GPT-6.1 Sol / 6 Luna, Gemini 3.1 Pro / 3.8 Flash, shut-down `gemini-3-pro-preview`), OpenAI Plan runtime model discovery from the account Codex catalog, API-key "새 모델 확인", and the scheduled catalog-drift watch | **Partially verified; first-party docs, Codex source, live OpenAI/Gemini model lists, and local gates verified; live ChatGPT-account `/models` call and GPT-6 Plan chat turn pending** | **Mandatory for chat model catalog, Plan model selection, and model discovery** | [R-044 report](R-044-model-catalog-refresh-and-discovery.md) |
 | R-045 | Optional research credentials (Korean Law OC, OpenAlex key), device-local SecretStorage vs synced settings, Codex catalog client 0.162.1, Claude Haiku 5.5, and the 2026-10-12 Plan lineup check | **Verified for research connections; model items partially verified (no Anthropic key)** | **Mandatory for Research Connections credential handling**; read with R-044 for model catalog work | [R-045 report](R-045-optional-research-credentials-and-device-local-secrets.md) |
+| R-050 | Model catalog refresh 2026-10 (issue #39): Claude Plan pinned models and effort fix, GPT Plan capability table (GPT-6), Antigravity 1.2 catalog and endpoint guard, Anthropic API request shape and thinking replay, retired models, prices, schema 32 | **Partially verified; first-party sources, local Claude Code 2.1.285 and Antigravity 1.2.14 probes, and 838 local tests complete; GPT-6 on the Codex OAuth path and live API-key requests pending** | **Mandatory for chat model catalog and Plan model work** | [R-050 report](R-050-model-catalog-refresh-2026-10.md) |
 
 ## Mandatory Synthesis Rule
 

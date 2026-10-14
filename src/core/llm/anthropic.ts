@@ -32,6 +32,10 @@ import {
 import { LLMProvider } from '../../types/provider.types'
 import { parseImageDataUrl } from '../../utils/llm/image'
 
+import {
+  buildAnthropicReasoningParams,
+  currentToolLoopStart,
+} from './anthropicRequestShape'
 import { BaseLLMProvider } from './base'
 import {
   LLMAPIKeyInvalidException,
@@ -40,12 +44,13 @@ import {
 
 type MutableThinkingBlock = AnthropicThinkingBlock
 
+const ANTHROPIC_REFUSAL_MESSAGE =
+  'Claude declined this request (stop_reason: refusal). Rephrase it or choose another model.'
+
 export class AnthropicProvider extends BaseLLMProvider<
   Extract<LLMProvider, { type: 'anthropic' }>
 > {
   private client: Anthropic
-
-  private static readonly DEFAULT_MAX_TOKENS = 8192
 
   constructor(provider: Extract<LLMProvider, { type: 'anthropic' }>) {
     super(provider)
@@ -81,30 +86,21 @@ export class AnthropicProvider extends BaseLLMProvider<
       const response = await this.client.messages.create(
         {
           model: request.model,
-          messages: request.messages
-            .map((m) => AnthropicProvider.parseRequestMessage(m))
-            .filter((m) => m !== null),
+          messages: AnthropicProvider.parseRequestMessages(request.messages),
           system: systemMessage,
-          thinking: model.thinking?.enabled
-            ? {
-                type: 'enabled',
-                budget_tokens: model.thinking.budget_tokens,
-              }
-            : undefined,
           tools: request.tools?.map((t) =>
             AnthropicProvider.parseRequestTool(t),
           ),
           tool_choice: request.tool_choice
             ? AnthropicProvider.parseRequestToolChoice(request.tool_choice)
             : undefined,
-          max_tokens:
-            request.max_tokens ??
-            (model.thinking?.enabled
-              ? model.thinking?.budget_tokens +
-                AnthropicProvider.DEFAULT_MAX_TOKENS
-              : AnthropicProvider.DEFAULT_MAX_TOKENS),
-          temperature: request.temperature,
-          top_p: request.top_p,
+          ...buildAnthropicReasoningParams({
+            model: request.model,
+            thinking: model.thinking,
+            maxTokens: request.max_tokens,
+            temperature: request.temperature,
+            topP: request.top_p,
+          }),
         },
         {
           signal: options?.signal,
@@ -175,30 +171,21 @@ https://github.com/glowingjade/obsidian-smart-composer/issues/286`,
       const stream = await this.client.messages.create(
         {
           model: request.model,
-          messages: request.messages
-            .map((m) => AnthropicProvider.parseRequestMessage(m))
-            .filter((m) => m !== null),
+          messages: AnthropicProvider.parseRequestMessages(request.messages),
           system: systemMessage,
-          thinking: model.thinking?.enabled
-            ? {
-                type: 'enabled',
-                budget_tokens: model.thinking.budget_tokens,
-              }
-            : undefined,
           tools: request.tools?.map((t) =>
             AnthropicProvider.parseRequestTool(t),
           ),
           tool_choice: request.tool_choice
             ? AnthropicProvider.parseRequestToolChoice(request.tool_choice)
             : undefined,
-          max_tokens:
-            request.max_tokens ??
-            (model.thinking?.enabled
-              ? model.thinking?.budget_tokens +
-                AnthropicProvider.DEFAULT_MAX_TOKENS
-              : AnthropicProvider.DEFAULT_MAX_TOKENS),
-          temperature: request.temperature,
-          top_p: request.top_p,
+          ...buildAnthropicReasoningParams({
+            model: request.model,
+            thinking: model.thinking,
+            maxTokens: request.max_tokens,
+            temperature: request.temperature,
+            topP: request.top_p,
+          }),
           stream: true,
         },
         {
@@ -290,6 +277,9 @@ https://github.com/glowingjade/obsidian-smart-composer/issues/286`,
           yield parsedChunk
         }
       } else if (chunk.type === 'message_delta') {
+        if (chunk.delta.stop_reason === 'refusal') {
+          throw new Error(ANTHROPIC_REFUSAL_MESSAGE)
+        }
         // message_delta usage is the cumulative output token count, not a
         // delta. Adding it repeatedly over-counts long streamed responses.
         usage = {
@@ -405,6 +395,32 @@ https://github.com/glowingjade/obsidian-smart-composer/issues/286`,
     }
   }
 
+  /** Drops thinking blocks outside the tool loop in progress (R-050). */
+  static parseRequestMessages(messages: RequestMessage[]): MessageParam[] {
+    const loopStart = currentToolLoopStart(messages)
+    return messages
+      .map((message, index) =>
+        AnthropicProvider.parseRequestMessage(
+          index < loopStart && message.role === 'assistant'
+            ? AnthropicProvider.withoutThinkingBlocks(message)
+            : message,
+        ),
+      )
+      .filter((message) => message !== null)
+  }
+
+  private static withoutThinkingBlocks(
+    message: Extract<RequestMessage, { role: 'assistant' }>,
+  ): Extract<RequestMessage, { role: 'assistant' }> {
+    if (!message.providerMetadata?.anthropic?.thinkingBlocks) return message
+    const { thinkingBlocks: _dropped, ...anthropic } =
+      message.providerMetadata.anthropic
+    return {
+      ...message,
+      providerMetadata: { ...message.providerMetadata, anthropic },
+    }
+  }
+
   static parseRequestMessage(message: RequestMessage): MessageParam | null {
     switch (message.role) {
       case 'user': {
@@ -508,6 +524,9 @@ https://github.com/glowingjade/obsidian-smart-composer/issues/286`,
   static parseNonStreamingResponse(
     response: Anthropic.Message,
   ): LLMResponseNonStreaming {
+    if (response.stop_reason === 'refusal') {
+      throw new Error(ANTHROPIC_REFUSAL_MESSAGE)
+    }
     const textContent = response.content
       .filter((c) => c.type === 'text')
       .map((c) => c.text)

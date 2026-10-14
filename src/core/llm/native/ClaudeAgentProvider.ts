@@ -18,6 +18,7 @@ import { parseImageDataUrl } from '../../../utils/llm/image'
 import { BaseLLMProvider } from '../base'
 import { LLMAPIKeyNotSetException } from '../exception'
 
+import { checkClaudeCodeSupportsModel } from './claudeModelRequirements'
 import { NativeCliResolver } from './NativeCliResolver'
 import { runNativeProcess } from './NativeProcess'
 import { buildNativePrompt } from './nativePrompt'
@@ -143,6 +144,14 @@ export class ClaudeAgentProvider extends BaseLLMProvider<
     const tools =
       request.tools?.length && options?.nativeToolExecutor ? request.tools : []
     const toolTranscript: string[] = []
+    // Pinned models need a Claude Code release that knows them (R-050).
+    await checkClaudeCodeSupportsModel({
+      executablePath,
+      model: normalizeClaudeModel(model.model),
+      env: environment,
+      signal: options?.signal,
+      runner: runNativeProcess,
+    })
     const cwd = createEphemeralRuntimeDirectory()
 
     try {
@@ -488,21 +497,28 @@ function parseClaudeUsage(value: unknown): ResponseUsage | undefined {
   }
 }
 
-function normalizeClaudeModel(model: string): string {
-  if (/fable/i.test(model)) return 'fable'
-  if (/opus/i.test(model)) return 'opus'
-  if (/sonnet/i.test(model)) return 'sonnet'
-  if (/haiku/i.test(model)) return 'haiku'
-  return model
+/**
+ * Full model IDs are pinned versions (`claude-opus-5-5`); other names fold to
+ * the Claude Code alias for their family, which follows the newest model.
+ */
+export function normalizeClaudeModel(model: string): string {
+  const trimmed = model.trim()
+  if (/^claude-[a-z0-9.-]+$/i.test(trimmed)) return trimmed
+  if (/fable/i.test(trimmed)) return 'fable'
+  if (/opus/i.test(trimmed)) return 'opus'
+  if (/sonnet/i.test(trimmed)) return 'sonnet'
+  if (/haiku/i.test(trimmed)) return 'haiku'
+  return trimmed
 }
 
-function claudeEffort(
+/** Disabled thinking means the lowest effort, even with adaptive settings saved. */
+export function claudeEffort(
   model: Extract<ChatModel, { providerType: 'anthropic-plan' }>,
 ): ClaudeEffort {
+  if (model.thinking?.enabled === false) return 'low'
   if (model.thinking?.mode === 'adaptive') {
     return model.thinking.effort
   }
-  if (model.thinking?.enabled === false) return 'low'
   return 'high'
 }
 

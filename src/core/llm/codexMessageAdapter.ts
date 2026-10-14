@@ -34,6 +34,8 @@ import {
 } from '../../utils/llm/httpTransport'
 import { parseJsonSseStream } from '../../utils/llm/sse'
 
+import { getOpenAIPlanModelSpec } from './openaiPlanModels'
+
 type CodexAdapterConfig = {
   endpoint?: string
   fetchFn?: typeof fetch
@@ -884,7 +886,7 @@ function getCodexReasoningEffort(
     effort !== 'max'
   ) {
     throw new CodexRequestError({
-      message: `Unsupported GPT-5.6 reasoning effort: ${String(effort)}`,
+      message: `Unsupported Codex reasoning effort: ${String(effort)}`,
       model: request.model,
       reasoningEffort: String(effort),
     })
@@ -919,9 +921,11 @@ function responseFailureToError(
 }
 
 function assertRequestedCodexModel(request: LLMRequest, actualModel: string) {
+  // Codex may report a dated snapshot of the requested model, never another one.
   if (
-    /^gpt-5\.6-(?:sol|terra|luna)$/.test(request.model) &&
-    actualModel !== request.model
+    getOpenAIPlanModelSpec(request.model) &&
+    actualModel !== request.model &&
+    !actualModel.startsWith(`${request.model}-`)
   ) {
     throw new CodexRequestError({
       message: `Codex returned ${actualModel} instead of requested ${request.model}`,
