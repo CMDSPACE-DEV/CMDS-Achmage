@@ -172,7 +172,6 @@ settings:
   }
 
   code {
-    font-size: var(--font-ui-small);
     border-radius: var(--code-radius);
     padding: 0.1em 0.25em;
     color: var(--code-normal);
@@ -258,8 +257,6 @@ settings:
   background: var(--background-modifier-form-field);
   color: var(--text-normal);
   font-family: inherit;
-  padding: 0;
-  font-size: var(--font-ui-small);
   outline: none;
   min-height: 80px;
   max-height: 200px;
@@ -461,10 +458,6 @@ settings:
 .smtcmp-lexical-content-editable-root .mention {
   background-color: var(--tag-background);
   color: var(--tag-color);
-  padding: var(--size-2-1) calc(var(--size-2-1));
-  border-radius: var(--radius-s);
-  background-color: var(--tag-background);
-  color: var(--tag-color);
   padding: 0 calc(var(--size-2-1));
   border-radius: var(--radius-s);
   word-break: break-all;
@@ -513,8 +506,6 @@ settings:
   z-index: 1000;
   max-height: 300px;
   overflow-y: auto;
-  background-color: var(--background-primary);
-  border: 1px solid var(--background-modifier-border);
   margin: 0 8px 0 8px;
   padding: var(--size-2-3) var(--size-4-2);
   color: var(--text-normal);
@@ -529,7 +520,6 @@ settings:
   border-radius: 8px;
   border: 0;
   min-height: 20px;
-  align-items: center;
   gap: var(--size-4-1);
   align-items: start;
 }
