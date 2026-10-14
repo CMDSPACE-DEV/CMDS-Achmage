@@ -1,5 +1,3 @@
-import { Reasoning } from 'openai/resources/shared'
-
 import {
   ChatModel,
   GPT_5_6_EFFORTS,
@@ -365,10 +363,10 @@ export class OpenAICodexProvider extends BaseLLMProvider<
       reasoning_effort: reasoningEffort,
       reasoning_summary:
         reasoningEffort !== 'none' && reasoningSummary
-          ? (reasoningSummary as Reasoning['summary'])
+          ? reasoningSummary
           : undefined,
       // The installed SDK type predates GPT-5.6's `max` effort. The adapter
       // narrows a local wire type without requiring a broad SDK upgrade.
-    } as T
+    }
   }
 }
