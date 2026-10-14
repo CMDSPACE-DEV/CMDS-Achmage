@@ -534,17 +534,10 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
   }, [])
 
   useEffect(() => {
-    const updateConversationAsync = async () => {
-      try {
-        if (chatMessages.length > 0) {
-          void createOrUpdateConversation(currentConversationId, chatMessages)
-        }
-      } catch (error) {
-        new Notice('Failed to save chat history')
-        console.error('Failed to save chat history', error)
-      }
+    // Save failures are reported inside the debounced save (useChatHistory).
+    if (chatMessages.length > 0) {
+      void createOrUpdateConversation(currentConversationId, chatMessages)
     }
-    void updateConversationAsync()
   }, [currentConversationId, chatMessages, createOrUpdateConversation])
 
   // Updates the currentFile of the focused message (input or chat history)
