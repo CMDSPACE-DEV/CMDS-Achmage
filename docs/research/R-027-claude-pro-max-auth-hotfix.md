@@ -458,3 +458,12 @@ Claude.ai login or route personal-plan credentials for users. Consequently:
   fail-closed future-provenance coverage, passed 582 local tests and the bundle
   budget, and recorded only the non-sensitive shape of one authorized live
   request. Real-Obsidian, exact-SHA CI, and publication evidence remain pending.
+- 2026-10-01: [R-049](R-049-claude-organization-plan-opt-in.md) (written as R-044) partially
+  supersedes the Team/Enterprise row of the classification matrix: a clean
+  first-party Team/Enterprise login is now explained as an organization login
+  and allowed after device-local opt-in. Two further changes: `claude auth
+  status` now runs on computers with managed settings (it reads no secrets and
+  is the only way to tell an organization login from a personal one), and an
+  opted-in organization login is no longer blocked by managed settings that
+  were found. A managed-settings inspection that fails still blocks every login,
+  including an opted-in organization (2026-10-14 integration review).

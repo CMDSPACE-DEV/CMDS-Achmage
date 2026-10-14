@@ -12,7 +12,8 @@ publishing the 2.6.2 release. R-027 is mandatory for Claude Plan authentication
 classification and the 2.6.3 Pro/Max hotfix or release. R-028 is mandatory for
 Gemini Plan authentication and the 2.6.4 compatibility hotfix or release.
 R-029 is mandatory for Antigravity updater, ready-state UX, and the 2.6.5
-patch or release.
+patch or release. R-049 is mandatory for Claude Plan authentication
+classification and partially supersedes R-027's Team/Enterprise row.
 
 ## Purpose
 
@@ -68,6 +69,7 @@ premature synthesis.
 | R-031 | Community-release vault safety: product-named default folders with Obsidian attachment-folder resolution, setting-owned artifact folder, namespaced draft provenance keys, Obsidian excluded-files respected, rebrand of 40 user-facing strings | **Verified + Implemented** | **Mandatory for vault write paths, RAG scope, and naming** | [R-031 report](R-031-community-safe-vault-defaults.md) |
 | R-044 | Model catalog refresh (Opus/Sonnet 5.5, GPT-6.1 Sol / 6 Luna, Gemini 3.1 Pro / 3.8 Flash, shut-down `gemini-3-pro-preview`), OpenAI Plan runtime model discovery from the account Codex catalog, API-key "새 모델 확인", and the scheduled catalog-drift watch | **Partially verified; first-party docs, Codex source, live OpenAI/Gemini model lists, and local gates verified; live ChatGPT-account `/models` call and GPT-6 Plan chat turn pending** | **Mandatory for chat model catalog, Plan model selection, and model discovery** | [R-044 report](R-044-model-catalog-refresh-and-discovery.md) |
 | R-045 | Optional research credentials (Korean Law OC, OpenAlex key), device-local SecretStorage vs synced settings, Codex catalog client 0.162.1, Claude Haiku 5.5, and the 2026-10-12 Plan lineup check | **Verified for research connections; model items partially verified (no Anthropic key)** | **Mandatory for Research Connections credential handling**; read with R-044 for model catalog work | [R-045 report](R-045-optional-research-credentials-and-device-local-secrets.md) |
+| R-049 | Claude Team/Enterprise organization login opt-in: corrected classification (issue #38), device-local consent, managed settings for organization logins, `system/init` session guard; partially supersedes R-027's Team/Enterprise row | **Partially verified; source, 2.1.285 executable inspection, first-party documentation, and fixture tests complete; live Team/Enterprise validation pending** | **Mandatory for Claude Plan auth** | [R-049 report](R-049-claude-organization-plan-opt-in.md) |
 | R-053 | MCP Streamable HTTP negotiation with legacy SSE fallback and desktop transport preservation | **Verified for source and local integration; Obsidian smoke pending** | **Mandatory for MCP transport negotiation** | [R-053 report](R-053-mcp-streamable-http-sse-fallback.md) |
 | R-054 | Obsidian 1.13 declarative settings search via one `render` row hosting the existing React settings UI (display() kept for < 1.13), and native runtime executable path moved to `App#saveLocalStorage` with one-time legacy raw-key migration | **Partially verified; typings, reviewer rules, and unit tests verified; live Obsidian 1.13 rendering pending** | **Mandatory for the settings tab entry point and the native runtime path store** | [R-054 report](R-054-declarative-settings-and-runtime-path-storage.md) |
 
