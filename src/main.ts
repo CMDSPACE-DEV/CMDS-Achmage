@@ -17,6 +17,7 @@ import { resolveImageOutputFolder } from './core/image/output-folder'
 import { saveImageToVault } from './core/image/save-image'
 import { renderTextCard } from './core/image/text-card'
 import type { InlineEditController } from './core/inline/InlineEditController'
+import { bindNativeRuntimePathStore } from './core/llm/native/NativeRuntimePathStore'
 import type { McpManager } from './core/mcp/mcpManager'
 import {
   McpSecretStore,
@@ -76,6 +77,7 @@ export default class SmartComposerPlugin extends Plugin {
 
   async onload() {
     markPerformance('smart-composer:onload:start')
+    bindNativeRuntimePathStore(this.app)
     this.unloading = false
     await this.loadSettings()
     const taskManager = new BackgroundTaskManager(this.app)
@@ -167,7 +169,6 @@ export default class SmartComposerPlugin extends Plugin {
     this.addCommand({
       id: 'inline-edit',
       name: 'Inline edit selection',
-      hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'k' }],
       editorCallback: (editor: Editor, view: MarkdownView) => {
         void this.openInlineEdit(editor, view)
       },
@@ -831,7 +832,6 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
         () => this.getDbManager(),
         async () => {
           await this.reloadChatView()
-          console.log('Migration to JSON storage completed successfully')
         },
       )
     } catch (error) {
