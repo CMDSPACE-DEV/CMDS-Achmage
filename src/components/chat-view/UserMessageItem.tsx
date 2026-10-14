@@ -1,6 +1,6 @@
 import { SerializedEditorState } from 'lexical'
-import { Paperclip, Pencil, X } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { Check, CopyIcon, Paperclip, Pencil, X } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { ChatUserMessage } from '../../types/chat'
 import { Mentionable } from '../../types/mentionable'
@@ -44,6 +44,17 @@ export default function UserMessageItem({
   const [draftMentionables, setDraftMentionables] = useState(
     message.mentionables,
   )
+  const [copied, setCopied] = useState(false)
+  const copiedTimerRef = useRef<number | null>(null)
+
+  useEffect(
+    () => () => {
+      if (copiedTimerRef.current !== null) {
+        window.clearTimeout(copiedTimerRef.current)
+      }
+    },
+    [],
+  )
 
   useEffect(() => {
     if (isEditing) return
@@ -59,6 +70,18 @@ export default function UserMessageItem({
     () => summarizeMentionables(message.mentionables),
     [message.mentionables],
   )
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(plainText)
+    setCopied(true)
+    if (copiedTimerRef.current !== null) {
+      window.clearTimeout(copiedTimerRef.current)
+    }
+    copiedTimerRef.current = window.setTimeout(() => {
+      copiedTimerRef.current = null
+      setCopied(false)
+    }, 1500)
+  }
 
   const cancelEditing = () => {
     setDraftContent(message.content)
@@ -106,6 +129,17 @@ export default function UserMessageItem({
             </div>
           )}
           <div className="smtcmp-user-message-bubble__text">{plainText}</div>
+          <button
+            type="button"
+            className="smtcmp-user-message-bubble__edit smtcmp-user-message-bubble__copy"
+            aria-label={copied ? 'Message copied' : 'Copy message'}
+            title={copied ? 'Copied' : 'Copy message'}
+            onClick={() => {
+              void handleCopy()
+            }}
+          >
+            {copied ? <Check size={13} /> : <CopyIcon size={13} />}
+          </button>
           <button
             type="button"
             className="smtcmp-user-message-bubble__edit"
