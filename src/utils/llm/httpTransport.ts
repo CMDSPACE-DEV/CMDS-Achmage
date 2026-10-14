@@ -240,7 +240,7 @@ async function readStreamToString(
     if (typeof chunk === 'string') {
       chunks.push(Buffer.from(chunk))
     } else {
-      chunks.push(chunk as Uint8Array)
+      chunks.push(chunk)
     }
   }
   return Buffer.concat(chunks).toString('utf8')

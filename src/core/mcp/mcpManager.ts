@@ -337,7 +337,12 @@ export class McpManager {
       )
       .sort((a, b) => b.score - a.score)
       .slice(0, limit)
-      .map(({ score: _score, ...result }) => result)
+      .map(({ connectionId, connectionName, toolName, description }) => ({
+        connectionId,
+        connectionName,
+        toolName,
+        description,
+      }))
   }
 
   public allowToolForConversation(
@@ -525,7 +530,7 @@ export class McpManager {
               `Remote MCP task: ${message.task.status}`,
           )
         } else if (message.type === 'result') {
-          finalResult = message.result as McpToolCallResult
+          finalResult = message.result
         } else if (message.type === 'error') {
           throw new Error(message.error.message)
         }
@@ -714,11 +719,11 @@ export class McpManager {
           task.statusMessage ?? `Remote MCP task: ${task.status}`,
         )
         if (task.status === 'completed') {
-          const result = (await server.client.experimental.tasks.getTaskResult(
+          const result = await server.client.experimental.tasks.getTaskResult(
             taskId,
             CallToolResultSchema,
             { signal },
-          )) as McpToolCallResult
+          )
           if (result.isError) throw new Error(serializeToolResult(result))
           return {
             text: serializeToolResult(result),
@@ -770,10 +775,12 @@ export class McpManager {
       status: McpServerStatus.Connecting,
     })
     const { Client } = await import('@modelcontextprotocol/sdk/client/index.js')
-    const client = new Client(
-      { name: CLIENT_ID, version: CLIENT_VERSION },
-      { capabilities: { tasks: { list: {}, cancel: {} } } },
-    )
+    const createClient = () =>
+      new Client(
+        { name: CLIENT_ID, version: CLIENT_VERSION },
+        { capabilities: { tasks: { list: {}, cancel: {} } } },
+      )
+    let client = createClient()
 
     try {
       if (config.transport.type === 'stdio') {
@@ -847,9 +854,9 @@ export class McpManager {
               },
             )
           : undefined
+        let legacySse = config.transport.legacySse
         const createTransport = async () =>
-          config.transport.type === 'streamable-http' &&
-          config.transport.legacySse
+          legacySse
             ? new (
                 await import('@modelcontextprotocol/sdk/client/sse.js')
               ).SSEClientTransport(url, {
@@ -869,35 +876,69 @@ export class McpManager {
                 fetch: remoteFetch,
               })
         let transport = await createTransport()
+        const connectWithAuth = async (): Promise<boolean> => {
+          try {
+            await client.connect(transport)
+            return true
+          } catch (error) {
+            const { UnauthorizedError } = await import(
+              '@modelcontextprotocol/sdk/client/auth.js'
+            )
+            if (!(error instanceof UnauthorizedError)) throw error
+            if (!provider || !interactive || !callback) return false
+            const code = await callback.waitForCode
+            await transport.finishAuth(code)
+            await transport.close().catch(() => undefined)
+            await client.close().catch(() => undefined)
+            client = createClient()
+            transport = await createTransport()
+            await client.connect(transport)
+            return true
+          }
+        }
         try {
-          await client.connect(transport)
-        } catch (error) {
-          const { UnauthorizedError } = await import(
-            '@modelcontextprotocol/sdk/client/auth.js'
-          )
-          if (!(error instanceof UnauthorizedError)) throw error
-          if (!provider || !interactive || !callback) {
-            await callback?.close()
+          let connected: boolean
+          try {
+            connected = await connectWithAuth()
+          } catch (error) {
+            const { StreamableHTTPError } = await import(
+              '@modelcontextprotocol/sdk/client/streamableHttp.js'
+            )
+            // SDK 1.29's backwards-compatibility pattern: retry legacy SSE
+            // after a protocol 4xx. Auth and rate limits are not negotiation.
+            if (
+              legacySse ||
+              !(error instanceof StreamableHTTPError) ||
+              error.code === undefined ||
+              error.code < 400 ||
+              error.code >= 500 ||
+              [401, 403, 429].includes(error.code)
+            ) {
+              throw error
+            }
+            await transport.close().catch(() => undefined)
+            await client.close().catch(() => undefined)
+            client = createClient()
+            legacySse = true
+            transport = await createTransport()
+            connected = await connectWithAuth()
+          }
+          if (!connected) {
+            await transport.close().catch(() => undefined)
+            await client.close().catch(() => undefined)
             return {
               name: connectionToolPrefix(config),
               config,
               status: McpServerStatus.AuthenticationRequired,
             }
           }
-          const code = await callback.waitForCode
-          await transport.finishAuth(code)
-          await transport.close().catch(() => undefined)
-          transport = await createTransport()
-          await client.connect(transport)
         } finally {
           await callback?.close()
         }
       }
 
       const tools = scanTools ? await listAllMcpTools(client) : []
-      const serverCapabilities = client.getServerCapabilities() as
-        | Record<string, unknown>
-        | undefined
+      const serverCapabilities = client.getServerCapabilities()
       const latestConfig = this.getConnection(config.id) ?? config
       const scannedConfig = scanTools
         ? await this.persistToolSnapshot(latestConfig, tools)
