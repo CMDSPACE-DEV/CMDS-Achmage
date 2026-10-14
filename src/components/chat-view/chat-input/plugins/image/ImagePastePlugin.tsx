@@ -23,11 +23,11 @@ export default function ImagePastePlugin({
       )
       if (images.length === 0) return false
 
-      Promise.all(images.map((image) => fileToMentionableImage(image))).then(
-        (mentionableImages) => {
-          onCreateImageMentionables?.(mentionableImages)
-        },
-      )
+      void Promise.all(
+        images.map((image) => fileToMentionableImage(image)),
+      ).then((mentionableImages) => {
+        onCreateImageMentionables?.(mentionableImages)
+      })
       return true
     }
 

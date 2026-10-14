@@ -1,6 +1,6 @@
 import debounce from 'lodash.debounce'
 import isEqual from 'lodash.isequal'
-import { App } from 'obsidian'
+import { App, Notice } from 'obsidian'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { editorStateToPlainText } from '../components/chat-view/chat-input/utils/editor-state-to-plain-text'
@@ -45,29 +45,37 @@ export function useChatHistory(): UseChatHistory {
     () =>
       debounce(
         async (id: string, messages: ChatMessage[]): Promise<void> => {
-          const serializedMessages = messages.map(serializeChatMessage)
-          const existingConversation = await chatManager.findById(id)
+          // Saves run on lodash's trailing timer, so callers cannot await
+          // this run; report failures here, where they happen.
+          try {
+            const serializedMessages = messages.map(serializeChatMessage)
+            const existingConversation = await chatManager.findById(id)
 
-          if (existingConversation) {
-            if (isEqual(existingConversation.messages, serializedMessages)) {
-              return
+            if (existingConversation) {
+              if (isEqual(existingConversation.messages, serializedMessages)) {
+                return
+              }
+              await chatManager.updateChat(existingConversation.id, {
+                messages: serializedMessages,
+              })
+            } else {
+              const firstUserMessage = messages.find((v) => v.role === 'user')
+
+              await chatManager.createChat({
+                id,
+                title: firstUserMessage?.content
+                  ? editorStateToPlainText(firstUserMessage.content).substring(
+                      0,
+                      50,
+                    )
+                  : 'New chat',
+                messages: serializedMessages,
+              })
             }
-            await chatManager.updateChat(existingConversation.id, {
-              messages: serializedMessages,
-            })
-          } else {
-            const firstUserMessage = messages.find((v) => v.role === 'user')
-
-            await chatManager.createChat({
-              id,
-              title: firstUserMessage?.content
-                ? editorStateToPlainText(firstUserMessage.content).substring(
-                    0,
-                    50,
-                  )
-                : 'New chat',
-              messages: serializedMessages,
-            })
+          } catch (error) {
+            new Notice('Failed to save chat history')
+            console.error('Failed to save chat history', error)
+            return
           }
 
           await fetchChatList()
