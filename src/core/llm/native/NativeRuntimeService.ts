@@ -847,14 +847,14 @@ async function runWithTimeout(
   const timeoutController = new AbortController()
   const abort = () => timeoutController.abort()
   options.signal?.addEventListener('abort', abort, { once: true })
-  const timeout = setTimeout(
+  const timeout = window.setTimeout(
     () => timeoutController.abort(),
     DIAGNOSTIC_TIMEOUT_MS,
   )
   try {
     return await runner({ ...options, signal: timeoutController.signal })
   } finally {
-    clearTimeout(timeout)
+    window.clearTimeout(timeout)
     options.signal?.removeEventListener('abort', abort)
   }
 }

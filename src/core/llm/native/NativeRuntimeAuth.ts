@@ -488,7 +488,7 @@ async function runAntigravityAuthCheck(
   else {
     externalSignal?.addEventListener('abort', abortFromCaller, { once: true })
   }
-  const timeout = setTimeout(() => {
+  const timeout = window.setTimeout(() => {
     timedOut = true
     controller.abort()
   }, ANTIGRAVITY_AUTH_TIMEOUT_MS)
@@ -500,7 +500,7 @@ async function runAntigravityAuthCheck(
     if (externalSignal?.aborted) throw createAbortError()
     return null
   } finally {
-    clearTimeout(timeout)
+    window.clearTimeout(timeout)
     externalSignal?.removeEventListener('abort', abortFromCaller)
   }
 }
