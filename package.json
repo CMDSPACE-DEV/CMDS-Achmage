@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
-    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && node scripts/check-bundle-budget.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && node scripts/check-bundle-budget.mjs && node scripts/check-tokenizer-bundle.mjs",
     "bundle:check": "node scripts/check-bundle-budget.mjs",
     "version": "node scripts/version-bump.mjs",
     "lint:check": "(prettier --check --end-of-line auto --cache --cache-strategy content --cache-location node_modules/.cache/.prettiercache .) && (eslint .)",
