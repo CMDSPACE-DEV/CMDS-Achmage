@@ -16,7 +16,7 @@ patch or release. R-044 and R-050 are mandatory for the chat model catalog,
 Plan model selection, model discovery, and the Anthropic API request shape.
 R-049 is mandatory for Claude Plan authentication classification and partially
 supersedes R-027's Team/Enterprise row. R-051 records how contributor work was
-integrated into 1.3.1 and the release-process safeguard added after 1.3.0.
+integrated into 1.4.0 and the release-process safeguard added after 1.3.0.
 
 ## Purpose
 
@@ -76,6 +76,7 @@ premature synthesis.
 | R-048 | Plan/model catalog/Eagle integration for a proposed 1.3 update | **Locally verified; hosted CI and live release checks remain separate** | **Mandatory for this integration PR** | [R-048 report](R-048-plan-models-eagle-integration.md) |
 | R-049 | Claude Team/Enterprise organization login opt-in: corrected classification (issue #38), device-local consent, managed settings for organization logins, `system/init` session guard; partially supersedes R-027's Team/Enterprise row | **Partially verified; source, 2.1.285 executable inspection, first-party documentation, and fixture tests complete; live Team/Enterprise validation pending** | **Mandatory for Claude Plan auth** | [R-049 report](R-049-claude-organization-plan-opt-in.md) |
 | R-050 | Model catalog refresh 2026-10 (issue #39): Claude Plan pinned models and effort fix, GPT Plan capability table (GPT-6), Antigravity 1.2 catalog and endpoint guard, Anthropic API request shape and thinking replay, retired models, prices, schema 32 | **Partially verified; first-party sources, local Claude Code 2.1.285 and Antigravity 1.2.14 probes, and 838 local tests complete; GPT-6 on the Codex OAuth path and live API-key requests pending** | **Mandatory for chat model catalog and Plan model work** | [R-050 report](R-050-model-catalog-refresh-2026-10.md) |
+| R-051 | Integrating PR #41 (R-049, R-050, R-046) onto 1.3.0, research ID renumbering, Codex-catalog effort decision, and the release preflight that checks open PRs, unmerged branches, and research ID collisions | **Partially verified; local gates, live Claude Plan init check, and offline real-vault migration done; live Team/Enterprise and Eagle 1.8.4 pending** | **Mandatory for 1.4.0 release review** | [R-051 report](R-051-contributor-integration-and-release-preflight.md) |
 
 ## Mandatory Synthesis Rule
 
