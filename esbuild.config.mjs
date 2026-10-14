@@ -1,7 +1,7 @@
 import path from 'path'
 import esbuild from 'esbuild'
 import process from 'process'
-import builtins from 'builtin-modules'
+import { builtinModules as builtins } from 'node:module'
 import fs from 'fs'
 
 const nodeBuiltins = [...builtins, ...builtins.map((mod) => `node:${mod}`)]
