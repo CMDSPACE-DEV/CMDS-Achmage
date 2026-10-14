@@ -48,38 +48,40 @@ export function ProvidersSection({ app, plugin }: ProvidersSectionProps) {
       title: 'Delete Provider',
       message: message,
       ctaText: 'Delete',
-      onConfirm: async () => {
-        const vectorManager = (await plugin.getDbManager()).getVectorManager()
-        const embeddingStats = await vectorManager.getEmbeddingStats()
+      onConfirm: () => {
+        void (async () => {
+          const vectorManager = (await plugin.getDbManager()).getVectorManager()
+          const embeddingStats = await vectorManager.getEmbeddingStats()
 
-        // Clear embeddings for each associated embedding model
-        for (const embeddingModel of associatedEmbeddingModels) {
-          const embeddingStat = embeddingStats.find(
-            (v) => v.model === embeddingModel.id,
-          )
+          // Clear embeddings for each associated embedding model
+          for (const embeddingModel of associatedEmbeddingModels) {
+            const embeddingStat = embeddingStats.find(
+              (v) => v.model === embeddingModel.id,
+            )
 
-          if (embeddingStat?.rowCount && embeddingStat.rowCount > 0) {
-            // only clear when there's data
-            const embeddingModelClient = getEmbeddingModelClient({
-              settings,
-              embeddingModelId: embeddingModel.id,
-            })
-            await vectorManager.clearAllVectors(embeddingModelClient)
+            if (embeddingStat?.rowCount && embeddingStat.rowCount > 0) {
+              // only clear when there's data
+              const embeddingModelClient = getEmbeddingModelClient({
+                settings,
+                embeddingModelId: embeddingModel.id,
+              })
+              await vectorManager.clearAllVectors(embeddingModelClient)
+            }
           }
-        }
 
-        await setSettings({
-          ...settings,
-          providers: [...settings.providers].filter(
-            (v) => v.id !== provider.id,
-          ),
-          chatModels: [...settings.chatModels].filter(
-            (v) => v.providerId !== provider.id,
-          ),
-          embeddingModels: [...settings.embeddingModels].filter(
-            (v) => v.providerId !== provider.id,
-          ),
-        })
+          await setSettings({
+            ...settings,
+            providers: [...settings.providers].filter(
+              (v) => v.id !== provider.id,
+            ),
+            chatModels: [...settings.chatModels].filter(
+              (v) => v.providerId !== provider.id,
+            ),
+            embeddingModels: [...settings.embeddingModels].filter(
+              (v) => v.providerId !== provider.id,
+            ),
+          })
+        })()
       },
     }).open()
   }
@@ -139,7 +141,9 @@ export function ProvidersSection({ app, plugin }: ProvidersSectionProps) {
                     </button>
                     {!DEFAULT_PROVIDERS.some((v) => v.id === provider.id) && (
                       <button
-                        onClick={() => handleDeleteProvider(provider)}
+                        onClick={() => {
+                          void handleDeleteProvider(provider)
+                        }}
                         className="clickable-icon"
                       >
                         <Trash2 />

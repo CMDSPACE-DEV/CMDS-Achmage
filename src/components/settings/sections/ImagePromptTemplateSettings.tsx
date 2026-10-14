@@ -50,8 +50,8 @@ export function ImagePromptTemplateSettings() {
           placeholder={
             'No Korean words or any text inside the image.\nNo watermark, no logo.'
           }
-          onChange={async (value) => {
-            await setSettings({
+          onChange={(value) => {
+            void setSettings({
               ...settings,
               imageGeneration: {
                 ...settings.imageGeneration,
@@ -124,8 +124,8 @@ export function ImagePromptTemplateSettings() {
               '': 'No template',
               ...Object.fromEntries(templates.map((t) => [t.id, t.name])),
             }}
-            onChange={async (value) => {
-              await setSettings({
+            onChange={(value) => {
+              void setSettings({
                 ...settings,
                 imageGeneration: {
                   ...settings.imageGeneration,
@@ -146,8 +146,8 @@ export function ImagePromptTemplateSettings() {
       >
         <ObsidianToggle
           value={settings.imageGeneration.copyToClipboard}
-          onChange={async (value) => {
-            await setSettings({
+          onChange={(value) => {
+            void setSettings({
               ...settings,
               imageGeneration: {
                 ...settings.imageGeneration,
@@ -167,8 +167,8 @@ export function ImagePromptTemplateSettings() {
           options={Object.fromEntries(
             TEXT_CARD_STYLES.map((s) => [s, TEXT_CARD_STYLE_LABELS[s]]),
           )}
-          onChange={async (value) => {
-            await setSettings({
+          onChange={(value) => {
+            void setSettings({
               ...settings,
               imageGeneration: {
                 ...settings.imageGeneration,
@@ -188,10 +188,10 @@ export function ImagePromptTemplateSettings() {
         <ObsidianTextInput
           value={String(settings.imageGeneration.textCard.width)}
           type="number"
-          onChange={async (value) => {
+          onChange={(value) => {
             const width = Number.parseInt(value, 10)
             if (!Number.isFinite(width) || width < 600 || width > 4000) return
-            await setSettings({
+            void setSettings({
               ...settings,
               imageGeneration: {
                 ...settings.imageGeneration,
@@ -203,8 +203,8 @@ export function ImagePromptTemplateSettings() {
         <ObsidianTextInput
           value={settings.imageGeneration.textCard.brand}
           placeholder="CMDSPACE"
-          onChange={async (value) => {
-            await setSettings({
+          onChange={(value) => {
+            void setSettings({
               ...settings,
               imageGeneration: {
                 ...settings.imageGeneration,
@@ -223,8 +223,8 @@ export function ImagePromptTemplateSettings() {
       >
         <ObsidianToggle
           value={settings.imageGeneration.textCard.insertEmbed}
-          onChange={async (value) => {
-            await setSettings({
+          onChange={(value) => {
+            void setSettings({
               ...settings,
               imageGeneration: {
                 ...settings.imageGeneration,
@@ -253,8 +253,8 @@ export function ImagePromptTemplateSettings() {
                 .map((model) => [model.id, model.id]),
             ),
           }}
-          onChange={async (value) => {
-            await setSettings({
+          onChange={(value) => {
+            void setSettings({
               ...settings,
               imageAnalysis: { modelId: value || null },
             })

@@ -21,10 +21,12 @@ export function EtcSection({ app }: EtcSectionProps) {
       message:
         'Are you sure you want to reset all settings to default values? This cannot be undone.',
       ctaText: 'Reset',
-      onConfirm: async () => {
-        const defaultSettings = smartComposerSettingsSchema.parse({})
-        await setSettings(defaultSettings)
-        new Notice('Settings have been reset to defaults')
+      onConfirm: () => {
+        void (async () => {
+          const defaultSettings = smartComposerSettingsSchema.parse({})
+          await setSettings(defaultSettings)
+          new Notice('Settings have been reset to defaults')
+        })()
       },
     }).open()
   }
