@@ -1284,8 +1284,7 @@ button.smtcmp-chat-input-effort-select {
 .smtcmp-llm-info-tokens-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  column-gap: var(--size-4-5);
-  row-gap: var(--size-4-2);
+  gap: var(--size-4-2) var(--size-4-5);
   font-size: var(--font-ui-small);
 }
 
@@ -3383,7 +3382,6 @@ button.smtcmp-research-source-main:focus-visible {
   background: var(--ach-canvas);
   font-family:
     Inter,
-    ui-sans-serif,
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
@@ -3581,7 +3579,7 @@ body:not(.theme-dark)
   );
   --blockquote-border-color: var(--ach-action);
   color-scheme: dark;
-  font-family: 'IBM Plex Sans', Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: 'IBM Plex Sans', Inter, system-ui, sans-serif;
 }
 
 /*
