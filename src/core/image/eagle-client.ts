@@ -220,7 +220,7 @@ export class EagleClient {
       url: `${this.baseUrl}${endpoint}`,
       method: 'GET',
     })
-    return (json ?? {}) as EagleResponse<T>
+    return json ?? {}
   }
 
   private async post<T>(
@@ -232,6 +232,6 @@ export class EagleClient {
       method: 'POST',
       body,
     })
-    return (json ?? {}) as EagleResponse<T>
+    return json ?? {}
   }
 }

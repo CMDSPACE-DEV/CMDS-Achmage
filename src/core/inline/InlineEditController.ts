@@ -2317,7 +2317,7 @@ export function rebaseInlineEditSessions<T extends InlineEditRange>(
         mapInlineEditRange(range as InlineEditRange, changes),
       )
     }
-    next.set(id, rebased as T)
+    next.set(id, rebased)
   }
   return next
 }
