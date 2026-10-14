@@ -177,7 +177,32 @@ environment value, or managed-setting content was read, printed, or stored.
 | E-06 | `claude -p` applies approval-requiring delivered settings without a dialog | Verified: first-party docs | Server-managed settings page, approval section | High |
 | E-07 | `system/init` reports `apiKeySource`, `tools`, `mcp_servers`, `model` | Verified: binary inspection | Init event builder in 2.1.285 | High for 2.1.285 |
 | E-08 | `system/init` is printed before the first model request is sent | Inference | Event order in R-024 captures; not proven as a precondition | Medium |
-| E-09 | A real Team login reaches Ready and answers after opt-in | Not verified | No Team account available to this investigation | Not applicable |
+| E-09 | A real Team login reaches Ready and answers after opt-in | Partially verified: live (owner, macOS only) | Owner's live test on 2026-10-14, see "Live validation (E-09)" below; Windows Team and any Enterprise login unverified | High for macOS Team; not applicable for Windows/Enterprise |
+
+### Live validation (E-09), 2026-10-14
+
+The product owner ran a sanitized live test, reported here without account
+data:
+
+- Device: MacBook (Apple M1), macOS.
+- Build: CMDS Achmage built from the PR #45 head `b6b03b6` (1.4.0 candidate).
+- Claude Team account:
+  1. Signed out → card shows **Login required**.
+  2. Team login → card shows **조직 계정 · 허용 필요** (organization account,
+     consent required); requests stay blocked.
+  3. Allow (device-local opt-in) → **Ready**, with
+     **Team/Enterprise 계정으로 연결됨** (connected with a Team/Enterprise
+     account).
+  4. One chat request was sent and answered.
+  5. Revoke the opt-in → blocked again.
+- Personal Claude Max account on the same build: **Ready** (unchanged path).
+
+Evidence: the owner's local screenshots `team-0-logged-out.png`,
+`team-before-consent.png` and `team-final.png`. They are referenced by name
+only and deliberately not committed, because they may show account details.
+
+Scope: macOS only. A Windows Team login and any Enterprise login remain
+unverified, so the Windows half of the release gate below is still open.
 
 ## Verified Findings
 
@@ -211,7 +236,8 @@ organization hooks may already have run.
 ## Inferences Requiring Validation
 
 1. A real Team or Enterprise login reaches Ready after opt-in and answers.
-   Validate with a sanitized Team account on Windows and macOS.
+   **macOS Team: verified live by the owner on 2026-10-14 (E-09).** Windows
+   Team and Enterprise logins remain to be validated.
 2. `allowedProviders: ["anthropic"]` and `forcedLoginMethod: "claudeai"`
    appear in `auth status` for organizations that set them. Validate with an
    organization that uses those policies.
@@ -291,8 +317,9 @@ No settings schema, migration, or runtime protocol change.
 
 ## Known Unknowns And Deferred Decisions
 
-1. No Team or Enterprise account was available; organization behavior is
-   verified by fixtures derived from the 2.1.285 executable, not live.
+1. Organization behavior is verified by fixtures derived from the 2.1.285
+   executable, plus one live macOS Team run by the owner (E-09). Windows Team
+   and Enterprise logins have not been run live.
 2. `claude doctor` reports remote-settings state as text only. Parsing it was
    rejected as fuzzy matching; a machine-readable field would allow showing
    whether an organization actually delivers settings.
@@ -313,3 +340,7 @@ marker, not account data.
 - 2026-10-01: Initial report and implementation for issue #38. Partially
   supersedes the R-027 Team/Enterprise row; live Team/Enterprise validation
   pending.
+- 2026-10-14: Recorded the owner's live macOS Team validation as E-09
+  (logged out → Login required → consent required → Ready after opt-in → one
+  answered chat → blocked after revoke; personal Max Ready). Windows Team and
+  Enterprise remain unverified.
