@@ -1,5 +1,6 @@
 import { Platform } from 'obsidian'
 
+import { claudeEnvironmentSource } from './claudeShellConfigDir'
 import { NativeCliResolver } from './NativeCliResolver'
 import {
   NativeProcessOptions,
@@ -243,7 +244,10 @@ async function diagnoseClaude(
   policy: ClaudePlanAuthPolicy = {},
   managedSettingsInspector?: ClaudeManagedSettingsInspector,
 ): Promise<NativeRuntimeSnapshot> {
-  const environment = prepareNativePlanEnvironment('claude', environmentSource)
+  const environment = prepareNativePlanEnvironment(
+    'claude',
+    claudeEnvironmentSource(environmentSource),
+  )
   const versionResult = await runWithTimeout(runner, {
     executable: executablePath,
     args: ['--version'],

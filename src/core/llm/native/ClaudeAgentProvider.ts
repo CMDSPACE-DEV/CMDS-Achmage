@@ -18,6 +18,7 @@ import { parseImageDataUrl } from '../../../utils/llm/image'
 import { BaseLLMProvider } from '../base'
 import { LLMAPIKeyNotSetException } from '../exception'
 
+import { claudeEnvironmentSource } from './claudeShellConfigDir'
 import { NativeCliResolver } from './NativeCliResolver'
 import { runNativeProcess } from './NativeProcess'
 import { buildNativePrompt } from './nativePrompt'
@@ -141,7 +142,7 @@ export class ClaudeAgentProvider extends BaseLLMProvider<
     }
     const environment = prepareNativePlanEnvironment(
       'claude',
-      this.environmentSource,
+      claudeEnvironmentSource(this.environmentSource),
     )
     environment.env.CLAUDE_CODE_DISABLE_AUTO_MEMORY = '1'
     const consent = this.options.consent ?? sharedNativeRuntimeConsentStore
