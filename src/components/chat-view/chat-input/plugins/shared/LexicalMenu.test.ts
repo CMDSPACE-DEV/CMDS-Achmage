@@ -1,7 +1,17 @@
 import { getFullMatchOffset } from './LexicalMenu'
 
 // The pre-#21 implementation, kept here to pin that slice() preserves the
-// exact semantics of the deprecated substr() calls it replaced.
+// exact semantics of the deprecated substr() calls it replaced. substr() is
+// spelled out per its spec (a negative start counts from the end, clamped at
+// 0; -0 is not negative, so substr(-0) is the whole string) so the reference
+// stays independent of slice().
+function legacySubstr(text: string, start: number, length?: number): string {
+  const from = start < 0 ? Math.max(text.length + start, 0) : start
+  return length === undefined
+    ? text.substring(from)
+    : text.substring(from, from + length)
+}
+
 function legacyGetFullMatchOffset(
   documentText: string,
   entryText: string,
@@ -9,8 +19,7 @@ function legacyGetFullMatchOffset(
 ): number {
   let triggerOffset = offset
   for (let i = triggerOffset; i <= entryText.length; i++) {
-    // Deliberately the deprecated API: this is the reference behavior.
-    if (documentText.substr(-i) === entryText.substr(0, i)) {
+    if (legacySubstr(documentText, -i) === legacySubstr(entryText, 0, i)) {
       triggerOffset = i
     }
   }

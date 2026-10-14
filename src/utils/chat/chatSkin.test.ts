@@ -4,7 +4,6 @@ import {
   GLOW_BODY_ATTR,
   SKIN_MODE_BODY_ATTR,
   applyAppearanceToBody,
-  applySkinModeToBody,
   clearSkinModeFromBody,
   matchAppearancePreset,
   normalizeAppearance,
@@ -131,13 +130,6 @@ describe('appearance body mirror', () => {
       accentPreset: 'skin',
       glow: 'skin',
     })
-  })
-
-  it('keeps the mode-only writer working for old callers', () => {
-    const body = makeBody()
-    applySkinModeToBody(body, 'studio-console')
-    expect(readSkinModeFromBody(body)).toBe('studio-console')
-    expect(body.getAttribute(GLOW_BODY_ATTR)).toBe('skin')
   })
 
   it('ignores unknown values and clears every attribute', () => {

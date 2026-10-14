@@ -187,14 +187,6 @@ export function applyAppearanceToBody(
   body.setAttribute(GLOW_BODY_ATTR, a.glow)
 }
 
-/** @deprecated use applyAppearanceToBody; kept for callers that only know the mode */
-export function applySkinModeToBody(
-  body: AttrWriter,
-  skinMode: ChatSkinMode | undefined,
-): void {
-  applyAppearanceToBody(body, { skinMode })
-}
-
 export function clearSkinModeFromBody(body: AttrRemover): void {
   for (const attr of APPEARANCE_BODY_ATTRS) body.removeAttribute(attr)
 }

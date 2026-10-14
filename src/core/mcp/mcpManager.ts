@@ -1408,10 +1408,10 @@ function delay(milliseconds: number, signal: AbortSignal): Promise<void> {
       return
     }
     const onAbort = () => {
-      clearTimeout(timeout)
+      window.clearTimeout(timeout)
       reject(new DOMException('Aborted', 'AbortError'))
     }
-    const timeout = setTimeout(() => {
+    const timeout = window.setTimeout(() => {
       signal.removeEventListener('abort', onAbort)
       resolve()
     }, milliseconds)
