@@ -4,7 +4,7 @@
  * callers can fall back to a notice instead of failing the job (R-037).
  */
 export function copyImageToClipboard(bytes: ArrayBuffer): boolean {
-  const req = (globalThis as { require?: (id: string) => unknown }).require
+  const req = (window as { require?: (id: string) => unknown }).require
   if (typeof req !== 'function') return false
   try {
     const electron = req('electron') as {
@@ -13,7 +13,7 @@ export function copyImageToClipboard(bytes: ArrayBuffer): boolean {
     }
     if (!electron.clipboard || !electron.nativeImage) return false
     const BufferCtor = (
-      globalThis as { Buffer?: { from: (b: Uint8Array) => Uint8Array } }
+      window as { Buffer?: { from: (b: Uint8Array) => Uint8Array } }
     ).Buffer
     const view = new Uint8Array(bytes)
     const image = electron.nativeImage.createFromBuffer(
