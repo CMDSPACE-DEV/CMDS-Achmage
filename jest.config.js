@@ -2,6 +2,7 @@
 module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
+  setupFiles: ['<rootDir>/__mocks__/obsidian-dom-globals.ts'],
   moduleNameMapper: {
     '^obsidian$': '<rootDir>/__mocks__/obsidian.ts',
   },
