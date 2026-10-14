@@ -1,5 +1,6 @@
 import { Platform } from 'obsidian'
 
+import { claudeEnvironmentSource } from './claudeShellConfigDir'
 import { NativeCliResolver } from './NativeCliResolver'
 import {
   NativeProcessOptions,
@@ -15,12 +16,17 @@ import type {
   RuntimeDiscovery,
 } from './nativeRuntime.types'
 import {
+  ClaudeManagedSettingsInspector,
+  ClaudePlanAuthPolicy,
   classifyAntigravityBlockingSignals,
-  classifyAntigravityQuotaProvenance,
   classifyAntigravityTextCatalog,
   prepareNativePlanEnvironment,
   verifyClaudePlanAuth,
 } from './NativeRuntimeAuth'
+import {
+  NativeRuntimeConsentStore,
+  sharedNativeRuntimeConsentStore,
+} from './NativeRuntimeConsentStore'
 import {
   NativeRuntimeStore,
   sharedNativeRuntimeStore,
@@ -75,10 +81,21 @@ export class NativeRuntimeService {
     private readonly environmentSource: NodeJS.ProcessEnv = process.env,
     private readonly terminalLauncher: NativeTerminalLauncher = launchVisibleTerminal,
     private readonly updateWorkingDirectoryFactory: UpdateWorkingDirectoryFactory = createAntigravityUpdateWorkingDirectory,
+    private readonly consentStore: NativeRuntimeConsentStore = sharedNativeRuntimeConsentStore,
+    private readonly managedSettingsInspector?: ClaudeManagedSettingsInspector,
   ) {}
 
   getSnapshot(provider: NativeRuntimeProvider): NativeRuntimeSnapshot {
     return this.store.getSnapshot(provider)
+  }
+
+  /** Whether this computer allows Team/Enterprise Claude logins (R-049). */
+  allowsClaudeOrganizationPlans(): boolean {
+    return this.consentStore.allowsClaudeOrganizationPlans()
+  }
+
+  setClaudeOrganizationPlans(allowed: boolean): void {
+    this.consentStore.setClaudeOrganizationPlans(allowed)
   }
 
   subscribe(
@@ -130,6 +147,11 @@ export class NativeRuntimeService {
               this.runner,
               signal,
               this.environmentSource,
+              {
+                allowOrganizationPlans:
+                  this.consentStore.allowsClaudeOrganizationPlans(),
+              },
+              this.managedSettingsInspector,
             )
           : await diagnoseAntigravity(
               executablePath,
@@ -218,8 +240,13 @@ async function diagnoseClaude(
   runner: NativeProcessRunner,
   signal?: AbortSignal,
   environmentSource: NodeJS.ProcessEnv = process.env,
+  policy: ClaudePlanAuthPolicy = {},
+  managedSettingsInspector?: ClaudeManagedSettingsInspector,
 ): Promise<NativeRuntimeSnapshot> {
-  const environment = prepareNativePlanEnvironment('claude', environmentSource)
+  const environment = prepareNativePlanEnvironment(
+    'claude',
+    claudeEnvironmentSource(environmentSource),
+  )
   const versionResult = await runWithTimeout(runner, {
     executable: executablePath,
     args: ['--version'],
@@ -234,6 +261,8 @@ async function diagnoseClaude(
     environment,
     runner: (options) => runWithTimeout(runner, options),
     signal,
+    managedSettingsInspector,
+    allowOrganizationPlans: policy.allowOrganizationPlans,
   })
   const common = {
     executablePath,
@@ -319,43 +348,21 @@ async function diagnoseAntigravity(
     })
   }
 
-  let modelsResult = await runWithTimeout(runner, {
+  // `models --json` was removed in Antigravity 1.2 (R-050).
+  const modelsResult = await runWithTimeout(runner, {
     executable: executablePath,
-    args: ['models', '--json'],
+    args: ['models'],
     env: environment.env,
     signal,
   })
-  let hasJsonCatalog = modelsResult.exitCode === 0
-  let authDecision: RuntimeAuthDecision | undefined =
+  const authDecision: RuntimeAuthDecision | undefined =
     classifyAntigravityBlockingSignals(
       [modelsResult.stdout, modelsResult.stderr],
       environment,
     ) ??
-    (hasJsonCatalog
-      ? classifyAntigravityQuotaProvenance(modelsResult.stdout, environment)
+    (modelsResult.exitCode === 0
+      ? classifyAntigravityTextCatalog(modelsResult.stdout, environment)
       : undefined)
-  if (
-    (modelsResult.exitCode !== 0 &&
-      authDecision === undefined &&
-      !isLoginText(`${modelsResult.stderr}\n${modelsResult.stdout}`)) ||
-    authDecision?.status === 'quota-unverified'
-  ) {
-    modelsResult = await runWithTimeout(runner, {
-      executable: executablePath,
-      args: ['models'],
-      env: environment.env,
-      signal,
-    })
-    hasJsonCatalog = false
-    authDecision =
-      classifyAntigravityBlockingSignals(
-        [modelsResult.stdout, modelsResult.stderr],
-        environment,
-      ) ??
-      (modelsResult.exitCode === 0
-        ? classifyAntigravityTextCatalog(modelsResult.stdout, environment)
-        : undefined)
-  }
   if (modelsResult.exitCode !== 0) {
     if (authDecision) {
       const billingBlocked = authDecision.status === 'billing-blocked'
@@ -424,14 +431,14 @@ async function diagnoseAntigravity(
     })
   }
 
-  authDecision ??= hasJsonCatalog
-    ? classifyAntigravityQuotaProvenance(modelsResult.stdout, environment)
-    : classifyAntigravityTextCatalog(modelsResult.stdout, environment)
-  const billingBlocked = authDecision.status === 'billing-blocked'
-  const loginRequired = authDecision.status === 'login-required'
+  const decision =
+    authDecision ??
+    classifyAntigravityTextCatalog(modelsResult.stdout, environment)
+  const billingBlocked = decision.status === 'billing-blocked'
+  const loginRequired = decision.status === 'login-required'
   return settledSnapshot('gemini', {
     ...common,
-    status: authDecision.allowed
+    status: decision.allowed
       ? 'ready'
       : billingBlocked
         ? 'billing-blocked'
@@ -439,7 +446,7 @@ async function diagnoseAntigravity(
           ? 'login-required'
           : 'quota-unverified',
     installation: 'installed',
-    authentication: authDecision.allowed
+    authentication: decision.allowed
       ? 'subscription'
       : billingBlocked
         ? 'billing-blocked'
@@ -448,8 +455,8 @@ async function diagnoseAntigravity(
           : 'quota-unverified',
     catalog: models.length > 0 ? 'ready' : 'error',
     models,
-    authDecision,
-    ...(authDecision.allowed ? {} : { error: authDecision.reason }),
+    authDecision: decision,
+    ...(decision.allowed ? {} : { error: decision.reason }),
   })
 }
 
@@ -612,10 +619,15 @@ function selectedCandidate(discovery: RuntimeDiscovery) {
   )
 }
 
+/**
+ * Reads the Gemini models from an Antigravity catalog. Antigravity 1.2 prints
+ * `id<TAB>label`; older builds printed `label  id` or JSON. Its Claude and
+ * GPT-OSS models are not Gemini Plan models and are left out (R-050).
+ */
 export function parseAntigravityModels(output: string): NativeRuntimeModel[] {
   const parsed = parseJson(output)
   const fromJson = collectModelRecords(parsed)
-  if (fromJson.length > 0) return dedupeModels(fromJson)
+  if (fromJson.length > 0) return dedupeModels(fromJson.filter(isGeminiModel))
 
   const plainText = stripAnsi(output)
   const rows = plainText
@@ -629,20 +641,28 @@ export function parseAntigravityModels(output: string): NativeRuntimeModel[] {
     .filter(Boolean)
     .filter(
       (line) =>
-        !/^(available\s+models?|models?|name\s+slug|loading|current)/i.test(
+        !/^(available\s+models?|models?|name\s+slug|loading|current|fetching)/i.test(
           line,
         ),
     )
     .map((line) => {
-      const tabParts = line.split(/\t+|\s{2,}/).filter(Boolean)
-      const label = tabParts[0]?.trim() ?? ''
-      const slug =
-        tabParts.find((part) => /^[a-z0-9][a-z0-9._-]+$/i.test(part)) ?? label
-      return label ? { id: slug, label } : null
+      const parts = line.split(/\t+|\s{2,}/).filter(Boolean)
+      const first = parts[0]?.trim() ?? ''
+      if (MODEL_SLUG.test(first)) {
+        return { id: first, label: parts[1]?.trim() || first }
+      }
+      const slug = parts.find((part) => MODEL_SLUG.test(part))
+      return first ? { id: slug ?? first, label: first } : null
     })
     .filter((model): model is NativeRuntimeModel => model !== null)
 
-  return dedupeModels(rows)
+  return dedupeModels(rows.filter(isGeminiModel))
+}
+
+const MODEL_SLUG = /^[a-z0-9][a-z0-9._-]+$/i
+
+function isGeminiModel(model: NativeRuntimeModel): boolean {
+  return /^gemini-/i.test(model.id)
 }
 
 function collectModelRecords(value: unknown): NativeRuntimeModel[] {
@@ -680,6 +700,7 @@ function defaultModels(provider: NativeRuntimeProvider): NativeRuntimeModel[] {
         { id: 'opus', label: 'Claude Opus (latest)' },
         { id: 'sonnet', label: 'Claude Sonnet (latest)' },
         { id: 'haiku', label: 'Claude Haiku (latest)' },
+        { id: 'fable', label: 'Claude Fable (latest)' },
       ]
     : []
 }

@@ -24,20 +24,22 @@ describe('getInternalRagModel', () => {
     },
   )
 
-  it.each(['gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-luna'])(
-    'uses low effort for %s, which has no none level',
-    (model) => {
-      expect(
-        getInternalRagModel({
-          providerType: 'openai-plan',
-          providerId: 'openai-plan',
-          id: `${model} (plan)`,
-          model,
-          reasoning: { reasoning_effort: 'max' },
-        }),
-      ).toMatchObject({ reasoning: { reasoning_effort: 'low' } })
-    },
-  )
+  it.each([
+    ['gpt-6.1-sol', 'low'],
+    ['gpt-6-astra', 'low'],
+    ['gpt-6-sol', 'low'],
+    ['gpt-6-luna', 'low'],
+  ])('uses the cheapest supported effort for %s: %s', (model, effort) => {
+    expect(
+      getInternalRagModel({
+        providerType: 'openai-plan',
+        providerId: 'openai-plan',
+        id: `${model} (plan)`,
+        model,
+        reasoning: { reasoning_effort: 'max' },
+      }),
+    ).toMatchObject({ reasoning: { reasoning_effort: effort } })
+  })
 
   it.each(['default', 'opus', 'claude-sonnet-5'])(
     'explicitly disables Claude Plan adaptive thinking for %s',
@@ -66,16 +68,18 @@ describe('getInternalRagModel', () => {
     },
   )
 
-  it('keeps legacy behavior for manual thinking models', () => {
-    expect(
-      getInternalRagModel({
-        providerType: 'anthropic',
-        providerId: 'anthropic',
-        id: 'legacy',
-        model: 'legacy',
-        thinking: { enabled: true, budget_tokens: 8192 },
-      }),
-    ).toMatchObject({ thinking: undefined })
+  it('turns Claude API thinking off explicitly, since unset means the model default', () => {
+    for (const model of ['claude-haiku-4-5', 'claude-fable-5-1']) {
+      expect(
+        getInternalRagModel({
+          providerType: 'anthropic',
+          providerId: 'anthropic',
+          id: model,
+          model,
+          thinking: { enabled: true, budget_tokens: 8192, effort: 'max' },
+        }),
+      ).toMatchObject({ thinking: { enabled: false, budget_tokens: 8192 } })
+    }
   })
 })
 
