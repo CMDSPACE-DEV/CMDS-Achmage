@@ -356,7 +356,9 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
             <ReasoningEffortSelect />
           </div>
           <div className="smtcmp-chat-user-input-controls__buttons">
-            <ImageUploadButton onUpload={handleUploadImages} />
+            <ImageUploadButton
+              onUpload={(images) => void handleUploadImages(images)}
+            />
             <ChatIconButton
               icon={LibraryBig}
               label="Vault search"
