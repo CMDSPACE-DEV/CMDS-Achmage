@@ -226,7 +226,7 @@ class InlineEditWidget extends WidgetType {
 
   toDOM(view: EditorView): HTMLElement {
     const doc = view.dom.ownerDocument
-    const host = doc.createElement('div')
+    const host = doc.win.createDiv()
     host.className = 'smtcmp-inline-host'
     const applySkin = () => {
       const { skin, accent, glow } = resolveInlineAppearance(doc.body)
@@ -244,11 +244,11 @@ class InlineEditWidget extends WidgetType {
       })
     }
     const shadow = host.attachShadow({ mode: 'open' })
-    const style = doc.createElement('style')
+    const style = doc.win.createEl('style')
     style.textContent = INLINE_STYLE
     shadow.appendChild(style)
 
-    const panel = doc.createElement('section')
+    const panel = doc.win.createEl('section')
     panel.className = 'panel'
     panel.dataset.status = this.session.status
     if (this.session.documentTask) {
@@ -273,13 +273,13 @@ class InlineEditWidget extends WidgetType {
     ) {
       const draft = this.session.getDraft()
       if (this.session.status === 'clarification') {
-        const question = doc.createElement('p')
+        const question = doc.win.createEl('p')
         question.className = 'question'
         question.textContent =
           this.session.clarification ?? 'Please clarify the requested edit.'
         panel.appendChild(question)
       }
-      const input = doc.createElement('textarea')
+      const input = doc.win.createEl('textarea')
       input.className = 'prompt'
       input.setAttribute('aria-label', 'Inline edit instruction')
       input.placeholder =
@@ -297,9 +297,9 @@ class InlineEditWidget extends WidgetType {
         this.session.status === 'clarification'
           ? this.session.referenceScope
           : draft.referenceScope
-      const promptSurface = doc.createElement('div')
+      const promptSurface = doc.win.createDiv()
       promptSurface.className = 'prompt-surface'
-      const promptReferenceEcho = doc.createElement('div')
+      const promptReferenceEcho = doc.win.createDiv()
       promptReferenceEcho.className = 'prompt-reference-echo'
       promptReferenceEcho.setAttribute('aria-hidden', 'true')
       const refreshPromptReferenceEcho = () => {
@@ -324,20 +324,20 @@ class InlineEditWidget extends WidgetType {
       // Output: text edit (default) or an image job (R-038).
       let outputMode: 'text' | 'image' = 'text'
       let selectedImageTemplate = this.session.defaultImageTemplateId ?? ''
-      const templateRow = doc.createElement('div')
+      const templateRow = doc.win.createDiv()
       templateRow.className = 'mode-row template-row'
-      const templateLabel = doc.createElement('span')
+      const templateLabel = doc.win.createSpan()
       templateLabel.className = 'mode-label'
       templateLabel.textContent = 'Guide template'
-      const templateSelect = doc.createElement('select')
+      const templateSelect = doc.win.createEl('select')
       templateSelect.className = 'template-select'
       templateSelect.setAttribute('aria-label', 'Image prompt template')
-      const noneOption = doc.createElement('option')
+      const noneOption = doc.win.createEl('option')
       noneOption.value = ''
       noneOption.textContent = 'No template'
       templateSelect.append(noneOption)
       for (const template of this.session.imageTemplates ?? []) {
-        const option = doc.createElement('option')
+        const option = doc.win.createEl('option')
         option.value = template.id
         option.textContent = template.name
         templateSelect.append(option)
@@ -379,7 +379,7 @@ class InlineEditWidget extends WidgetType {
       scopeControl.setEstimatedFiles(
         countReferencedMarkdownFiles(this.session.app, selectedReferences),
       )
-      const referenceRegion = doc.createElement('div')
+      const referenceRegion = doc.win.createDiv()
       referenceRegion.className = 'reference-region'
       let picker: ReturnType<typeof mountInlineReferencePicker> | null = null
       if (this.session.status === 'prompt') {
@@ -410,7 +410,7 @@ class InlineEditWidget extends WidgetType {
           referenceRegion.append(makeReferenceStatus(doc, this.session))
         }
       }
-      const actions = doc.createElement('div')
+      const actions = doc.win.createDiv()
       actions.className = 'actions'
       const cancel = makeButton(
         doc,
@@ -486,11 +486,11 @@ class InlineEditWidget extends WidgetType {
     } else if (this.session.status === 'image-task') {
       const task = this.session.imageTask
       const artifact = this.session.imageArtifact
-      const box = doc.createElement('div')
+      const box = doc.win.createDiv()
       box.className = 'image-progress'
-      const status = doc.createElement('div')
+      const status = doc.win.createDiv()
       status.className = 'document-progress__status'
-      const title = doc.createElement('strong')
+      const title = doc.win.createEl('strong')
       title.textContent = !task
         ? 'Preparing image brief'
         : task.status === 'awaiting-destination'
@@ -500,7 +500,7 @@ class InlineEditWidget extends WidgetType {
             : task.status === 'canceled'
               ? 'Canceled'
               : 'Generating image'
-      const detail = doc.createElement('small')
+      const detail = doc.win.createEl('small')
       detail.textContent =
         task?.progress?.message ??
         task?.error ??
@@ -510,7 +510,7 @@ class InlineEditWidget extends WidgetType {
       const busy =
         !task || task.status === 'queued' || task.status === 'running'
       if (busy) {
-        const meter = doc.createElement('progress')
+        const meter = doc.win.createEl('progress')
         meter.removeAttribute('value')
         meter.setAttribute('aria-label', 'Generating image')
         box.append(meter)
@@ -519,9 +519,9 @@ class InlineEditWidget extends WidgetType {
       if (artifactPath) {
         const file = this.session.app.vault.getAbstractFileByPath(artifactPath)
         if (file instanceof TFile) {
-          const preview = doc.createElement('div')
+          const preview = doc.win.createDiv()
           preview.className = 'image-preview'
-          const img = doc.createElement('img')
+          const img = doc.win.createEl('img')
           img.src = this.session.app.vault.getResourcePath(file)
           img.alt = 'Generated image preview'
           img.draggable = true
@@ -532,7 +532,7 @@ class InlineEditWidget extends WidgetType {
           box.append(preview)
         }
       }
-      const actions = doc.createElement('div')
+      const actions = doc.win.createDiv()
       actions.className = 'actions'
       const acts = this.session.imageActions
       if (
@@ -578,13 +578,13 @@ class InlineEditWidget extends WidgetType {
     } else if (this.session.status === 'large-confirm') {
       const analysis = this.session.documentAnalysis
       if (!analysis) throw new Error('Large-edit analysis is unavailable.')
-      const preflight = doc.createElement('div')
+      const preflight = doc.win.createDiv()
       preflight.className = 'document-preflight'
-      const message = doc.createElement('p')
+      const message = doc.win.createEl('p')
       message.className = 'document-preflight__message'
       message.textContent =
         'This selection is safer as a resumable document job. Every section is checkpointed and the original note stays unchanged until you approve a result.'
-      const metrics = doc.createElement('div')
+      const metrics = doc.win.createDiv()
       metrics.className = 'document-metrics'
       metrics.append(
         makeMetric(
@@ -605,7 +605,7 @@ class InlineEditWidget extends WidgetType {
             : 'Synthesis / insertion',
         ),
       )
-      const strategy = doc.createElement('div')
+      const strategy = doc.win.createDiv()
       strategy.className = 'document-strategy'
       strategy.setAttribute('role', 'group')
       strategy.setAttribute('aria-label', 'Document edit strategy')
@@ -622,11 +622,11 @@ class InlineEditWidget extends WidgetType {
         analysis.strategy === 'transform' ? 'primary' : 'secondary',
       )
       strategy.append(synthesis, transform)
-      const reason = doc.createElement('small')
+      const reason = doc.win.createEl('small')
       reason.className = 'document-preflight__reason'
       reason.textContent = analysis.reason
       preflight.append(message, metrics, strategy, reason)
-      const actions = doc.createElement('div')
+      const actions = doc.win.createDiv()
       actions.className = 'actions'
       actions.append(
         makeButton(
@@ -653,18 +653,18 @@ class InlineEditWidget extends WidgetType {
       panel.append(preflight, actions)
     } else if (this.session.status === 'document-task') {
       const task = this.session.documentTask
-      const progress = doc.createElement('div')
+      const progress = doc.win.createDiv()
       progress.className = 'document-progress'
-      const status = doc.createElement('div')
+      const status = doc.win.createDiv()
       status.className = 'document-progress__status'
-      const title = doc.createElement('strong')
+      const title = doc.win.createEl('strong')
       title.textContent = getDocumentTaskTitle(task)
-      const detail = doc.createElement('small')
+      const detail = doc.win.createEl('small')
       detail.textContent =
         task?.progress?.message ??
         (task ? task.status.replace(/-/g, ' ') : 'Preparing task')
       status.append(title, detail)
-      const meter = doc.createElement('progress')
+      const meter = doc.win.createEl('progress')
       meter.max = Math.max(1, task?.progress?.total ?? 1)
       meter.value = Math.max(0, task?.progress?.current ?? 0)
       meter.setAttribute(
@@ -673,12 +673,12 @@ class InlineEditWidget extends WidgetType {
       )
       progress.append(status, meter)
       if (this.session.referenceWarnings.length > 0) {
-        const warnings = doc.createElement('div')
+        const warnings = doc.win.createDiv()
         warnings.className = 'document-warnings'
         warnings.textContent = this.session.referenceWarnings.join(' · ')
         progress.append(warnings)
       }
-      const actions = doc.createElement('div')
+      const actions = doc.win.createDiv()
       actions.className = 'actions'
       if (task?.status === 'running' || task?.status === 'queued') {
         actions.append(
@@ -752,18 +752,18 @@ class InlineEditWidget extends WidgetType {
       )
       panel.append(progress, actions)
     } else if (this.session.status === 'document-review') {
-      const review = doc.createElement('div')
+      const review = doc.win.createDiv()
       review.className = 'document-ready'
-      const title = doc.createElement('strong')
+      const title = doc.win.createEl('strong')
       title.textContent = 'Document draft ready'
-      const detail = doc.createElement('p')
+      const detail = doc.win.createEl('p')
       detail.textContent =
         'The complete result was assembled from checkpointed sections. Review the draft before replacing the source selection.'
-      const path = doc.createElement('small')
+      const path = doc.win.createEl('small')
       path.textContent =
         this.session.documentDraftPath ?? 'Recoverable result saved'
       review.append(title, detail, path)
-      const actions = doc.createElement('div')
+      const actions = doc.win.createDiv()
       actions.className = 'actions'
       actions.append(
         makeButton(
@@ -793,21 +793,21 @@ class InlineEditWidget extends WidgetType {
       )
       panel.append(review, actions)
     } else if (this.session.status === 'loading') {
-      const loading = doc.createElement('div')
+      const loading = doc.win.createDiv()
       loading.className = 'loading'
-      const copy = doc.createElement('span')
+      const copy = doc.win.createSpan()
       copy.className = 'loading-copy'
       const loadingCopy = getInlineLoadingCopy(this.session)
       copy.append(
-        Object.assign(doc.createElement('strong'), {
+        Object.assign(doc.win.createEl('strong'), {
           textContent: loadingCopy.title,
         }),
-        Object.assign(doc.createElement('small'), {
+        Object.assign(doc.win.createEl('small'), {
           textContent: loadingCopy.detail,
         }),
       )
       loading.append(makeThinkingDots(doc), copy)
-      const actions = doc.createElement('div')
+      const actions = doc.win.createDiv()
       actions.className = 'actions'
       actions.append(
         makeButton(
@@ -828,16 +828,16 @@ class InlineEditWidget extends WidgetType {
         }
       })
     } else if (this.session.status === 'preview') {
-      const diff = doc.createElement('div')
+      const diff = doc.win.createDiv()
       const replacement = this.session.replacement ?? ''
       const isInsertion = this.session.placement === 'insert-after'
       if (isInsertion) {
         diff.className = 'insert-preview'
-        const source = doc.createElement('div')
+        const source = doc.win.createDiv()
         source.className = 'source-preserved'
-        const sourceTitle = doc.createElement('strong')
+        const sourceTitle = doc.win.createEl('strong')
         sourceTitle.textContent = 'Selection remains unchanged'
-        const sourceDetail = doc.createElement('small')
+        const sourceDetail = doc.win.createEl('small')
         sourceDetail.textContent = `${this.session.original.length.toLocaleString()} source characters`
         source.append(sourceTitle, sourceDetail)
         const after = makeRenderedDiffPane(doc, 'Insert below', 'after')
@@ -854,7 +854,7 @@ class InlineEditWidget extends WidgetType {
         void this.session.renderMarkdown(this.session.original, before.content)
         void this.session.renderMarkdown(replacement, after.content)
       }
-      const actions = doc.createElement('div')
+      const actions = doc.win.createDiv()
       actions.className = 'actions'
       actions.append(
         makeButton(
@@ -886,12 +886,12 @@ class InlineEditWidget extends WidgetType {
         }
       })
     } else {
-      const error = doc.createElement('p')
+      const error = doc.win.createEl('p')
       error.className = 'error'
       error.textContent = this.session.error ?? 'Inline edit failed.'
       panel.append(
         error,
-        Object.assign(doc.createElement('div'), { className: 'actions' }),
+        Object.assign(doc.win.createDiv(), { className: 'actions' }),
       )
       panel
         .querySelector('.actions')
@@ -2467,11 +2467,11 @@ function makeRenderedDiffPane(
   label: string,
   className: string,
 ): { pane: HTMLElement; content: HTMLElement } {
-  const pane = doc.createElement('section')
+  const pane = doc.win.createEl('section')
   pane.className = className
-  const heading = doc.createElement('strong')
+  const heading = doc.win.createEl('strong')
   heading.textContent = label
-  const content = doc.createElement('div')
+  const content = doc.win.createDiv()
   content.className = 'rendered'
   pane.append(heading, content)
   return { pane, content }
@@ -2558,7 +2558,7 @@ function appendDiffTokens(
   className: 'added' | 'removed',
 ): void {
   if (tokens.length === 0) return
-  const span = doc.createElement(className === 'added' ? 'ins' : 'del')
+  const span = doc.win.createEl(className === 'added' ? 'ins' : 'del')
   span.className = className
   span.textContent = tokens.join('')
   target.append(span)
@@ -2607,12 +2607,12 @@ function makeOutputControl(
   initial: 'text' | 'image',
   onChange: (mode: 'text' | 'image') => void,
 ): HTMLElement {
-  const row = doc.createElement('div')
+  const row = doc.win.createDiv()
   row.className = 'mode-row output-row'
-  const label = doc.createElement('span')
+  const label = doc.win.createSpan()
   label.className = 'mode-label'
   label.textContent = 'Output'
-  const group = doc.createElement('div')
+  const group = doc.win.createDiv()
   group.className = 'mode-control'
   group.setAttribute('role', 'radiogroup')
   group.setAttribute('aria-label', 'Inline edit output')
@@ -2634,7 +2634,7 @@ function makeOutputControl(
     onChange(mode)
   }
   for (const option of options) {
-    const button = doc.createElement('button')
+    const button = doc.win.createEl('button')
     button.type = 'button'
     button.className = 'mode-option'
     button.dataset.output = option.mode
@@ -2655,12 +2655,12 @@ function makeModeControl(
   initialMode: InlineEditMode,
   onChange: (mode: InlineEditMode) => void,
 ): HTMLElement {
-  const row = doc.createElement('div')
+  const row = doc.win.createDiv()
   row.className = 'mode-row'
-  const label = doc.createElement('span')
+  const label = doc.win.createSpan()
   label.className = 'mode-label'
   label.textContent = 'Result placement'
-  const group = doc.createElement('div')
+  const group = doc.win.createDiv()
   group.className = 'mode-control'
   group.setAttribute('role', 'radiogroup')
   group.setAttribute('aria-label', 'Inline edit result placement')
@@ -2679,7 +2679,7 @@ function makeModeControl(
     onChange(mode)
   }
   for (const option of options) {
-    const button = doc.createElement('button')
+    const button = doc.win.createEl('button')
     button.type = 'button'
     button.className = 'mode-option'
     button.dataset.mode = option.mode
@@ -2703,12 +2703,12 @@ function makeReferenceScopeControl(
   setVisible: (visible: boolean) => void
   setEstimatedFiles: (count: number) => void
 } {
-  const row = doc.createElement('div')
+  const row = doc.win.createDiv()
   row.className = 'mode-row reference-scope-row'
-  const label = doc.createElement('span')
+  const label = doc.win.createSpan()
   label.className = 'mode-label'
   label.textContent = 'Folder context'
-  const group = doc.createElement('div')
+  const group = doc.win.createDiv()
   group.className = 'mode-control'
   group.setAttribute('role', 'radiogroup')
   group.setAttribute('aria-label', 'Folder reference context scope')
@@ -2727,7 +2727,7 @@ function makeReferenceScopeControl(
     onChange(scope)
   }
   for (const option of options) {
-    const button = doc.createElement('button')
+    const button = doc.win.createEl('button')
     button.type = 'button'
     button.className = 'mode-option'
     button.dataset.scope = option.scope
@@ -2761,11 +2761,11 @@ function makeReadOnlyReferenceChips(
   doc: Document,
   references: readonly InlineVaultReference[],
 ): HTMLElement {
-  const row = doc.createElement('div')
+  const row = doc.win.createDiv()
   row.className = 'reference-chips reference-chips-readonly'
   row.hidden = references.length === 0
   for (const reference of references) {
-    const chip = doc.createElement('span')
+    const chip = doc.win.createSpan()
     chip.className = 'reference-chip'
     chip.title = getInlineReferenceDescription(reference)
     chip.textContent = `${getInlineReferenceKind(reference)} · ${getInlineReferenceName(reference)}`
@@ -2782,7 +2782,7 @@ function renderPromptReferenceEcho(
   region.replaceChildren()
   region.hidden = references.length === 0
   for (const reference of references) {
-    const token = doc.createElement('span')
+    const token = doc.win.createSpan()
     token.className = 'prompt-reference-token'
     token.title = getInlineReferenceDescription(reference)
     token.textContent = `@${getInlineReferenceName(reference)}`
@@ -2794,17 +2794,17 @@ function makeReferenceStatus(
   doc: Document,
   session: InlineSession,
 ): HTMLElement {
-  const region = doc.createElement('div')
+  const region = doc.win.createDiv()
   region.className = 'reference-status'
-  const summary = doc.createElement('span')
+  const summary = doc.win.createSpan()
   summary.className = 'reference-summary'
   summary.textContent = getRetrievalSummary(session)
   region.append(summary)
   if (session.referenceWarnings.length > 0) {
-    const warnings = doc.createElement('ul')
+    const warnings = doc.win.createEl('ul')
     warnings.className = 'reference-warnings'
     for (const warning of session.referenceWarnings) {
-      const item = doc.createElement('li')
+      const item = doc.win.createEl('li')
       item.textContent = warning
       warnings.append(item)
     }
@@ -2986,10 +2986,10 @@ function getInlineReferenceKind(reference: InlineVaultReference): string {
 }
 
 function makeMetric(doc: Document, label: string, value: string): HTMLElement {
-  const metric = doc.createElement('div')
-  const heading = doc.createElement('small')
+  const metric = doc.win.createDiv()
+  const heading = doc.win.createEl('small')
   heading.textContent = label
-  const content = doc.createElement('strong')
+  const content = doc.win.createEl('strong')
   content.textContent = value
   metric.append(heading, content)
   return metric
@@ -3043,14 +3043,14 @@ function makeButton(
   variant: 'primary' | 'secondary' = 'secondary',
   shortcut?: string,
 ): HTMLButtonElement {
-  const button = doc.createElement('button')
+  const button = doc.win.createEl('button')
   button.type = 'button'
   button.className = variant
-  const text = doc.createElement('span')
+  const text = doc.win.createSpan()
   text.textContent = label
   button.append(text)
   if (shortcut) {
-    const key = doc.createElement('kbd')
+    const key = doc.win.createEl('kbd')
     key.textContent = shortcut
     button.append(key)
   }
@@ -3059,13 +3059,13 @@ function makeButton(
 }
 
 function makeHeader(doc: Document, session: InlineSession): HTMLElement {
-  const header = doc.createElement('header')
-  const identity = doc.createElement('span')
+  const header = doc.win.createEl('header')
+  const identity = doc.win.createSpan()
   identity.className = 'identity'
-  const spark = doc.createElement('i')
+  const spark = doc.win.createEl('i')
   spark.className = 'spark'
   spark.setAttribute('aria-hidden', 'true')
-  const title = doc.createElement('strong')
+  const title = doc.win.createEl('strong')
   title.textContent =
     session.status === 'large-confirm'
       ? 'Large document edit'
@@ -3079,7 +3079,7 @@ function makeHeader(doc: Document, session: InlineSession): HTMLElement {
               : 'Review inline edit'
             : 'Inline edit'
   identity.append(spark, title)
-  const context = doc.createElement('span')
+  const context = doc.win.createSpan()
   context.className = 'context'
   context.textContent = [
     session.targetLabel,
@@ -3093,13 +3093,13 @@ function makeHeader(doc: Document, session: InlineSession): HTMLElement {
 }
 
 function makeThinkingDots(doc: Document): HTMLElement {
-  const dots = doc.createElement('span')
+  const dots = doc.win.createSpan()
   dots.className = 'thinking-dots'
   dots.setAttribute('aria-hidden', 'true')
   dots.append(
-    doc.createElement('i'),
-    doc.createElement('i'),
-    doc.createElement('i'),
+    doc.win.createEl('i'),
+    doc.win.createEl('i'),
+    doc.win.createEl('i'),
   )
   return dots
 }

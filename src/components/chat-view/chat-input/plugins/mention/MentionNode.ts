@@ -111,7 +111,7 @@ export class MentionNode extends TextNode {
   }
 
   exportDOM(): DOMExportOutput {
-    const element = document.createElement('span')
+    const element = createSpan()
     element.setAttribute(MENTION_NODE_ATTRIBUTE, 'true')
     element.setAttribute(
       MENTION_NODE_MENTION_NAME_ATTRIBUTE,

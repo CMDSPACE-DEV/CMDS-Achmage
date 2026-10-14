@@ -33,8 +33,8 @@ function selectText() {
 }
 
 function setup(text: string) {
-  const anchor = document.createElement('div')
-  mockInput = document.createElement('div')
+  const anchor = createDiv()
+  mockInput = createDiv()
   mockInput.contentEditable = 'true'
   mockInput.textContent = text
   anchor.append(mockInput)
