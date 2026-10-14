@@ -64,9 +64,9 @@ export function AppearanceSection() {
         <ObsidianDropdown
           value={presetId}
           options={PRESET_OPTIONS}
-          onChange={async (value: string) => {
+          onChange={(value: string) => {
             if (value === 'custom' || !(value in APPEARANCE_PRESETS)) return
-            await save(
+            void save(
               APPEARANCE_PRESETS[value as AppearancePresetId].appearance,
             )
           }}
@@ -80,9 +80,9 @@ export function AppearanceSection() {
         <ObsidianDropdown
           value={appearance.skinMode}
           options={SKIN_MODE_OPTIONS}
-          onChange={(value: string) =>
-            save({ skinMode: value as ChatSkinMode })
-          }
+          onChange={(value: string) => {
+            void save({ skinMode: value as ChatSkinMode })
+          }}
         />
       </ObsidianSetting>
 
@@ -93,9 +93,9 @@ export function AppearanceSection() {
         <ObsidianDropdown
           value={appearance.accentPreset}
           options={ACCENT_OPTIONS}
-          onChange={(value: string) =>
-            save({ accentPreset: value as AccentPreset })
-          }
+          onChange={(value: string) => {
+            void save({ accentPreset: value as AccentPreset })
+          }}
         />
       </ObsidianSetting>
 
@@ -106,7 +106,9 @@ export function AppearanceSection() {
         <ObsidianDropdown
           value={appearance.glow}
           options={GLOW_OPTIONS}
-          onChange={(value: string) => save({ glow: value as GlowLevel })}
+          onChange={(value: string) => {
+            void save({ glow: value as GlowLevel })
+          }}
         />
       </ObsidianSetting>
 

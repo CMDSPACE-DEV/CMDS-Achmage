@@ -246,17 +246,22 @@ function McpConnectionRow({
       title: 'Delete MCP connection',
       message: `Delete "${server.config.name}"? Stored credentials will no longer be used.`,
       ctaText: 'Delete',
-      onConfirm: async () => {
-        await setSettings({
-          ...settings,
-          mcp: {
-            ...settings.mcp,
-            connections: settings.mcp.connections.filter(
-              (connection) => connection.id !== server.config.id,
-            ),
-          },
-        })
-        clearUnusedMcpConnectionSecrets(new McpSecretStore(app), server.config)
+      onConfirm: () => {
+        void (async () => {
+          await setSettings({
+            ...settings,
+            mcp: {
+              ...settings.mcp,
+              connections: settings.mcp.connections.filter(
+                (connection) => connection.id !== server.config.id,
+              ),
+            },
+          })
+          clearUnusedMcpConnectionSecrets(
+            new McpSecretStore(app),
+            server.config,
+          )
+        })()
       },
     }).open()
   }
@@ -271,12 +276,13 @@ function McpConnectionRow({
       title: 'Disconnect MCP connection',
       message: `Disconnect "${server.config.name}" and remove its stored session credentials from this device?`,
       ctaText: 'Disconnect',
-      onConfirm: () =>
-        run(() =>
+      onConfirm: () => {
+        void run(() =>
           manager.disconnectConnection(server.config.id, {
             clearCredentials: true,
           }),
-        ),
+        )
+      },
     }).open()
   }
 

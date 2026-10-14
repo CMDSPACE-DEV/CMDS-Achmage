@@ -11,7 +11,7 @@ describe('prepareChatMountSurface', () => {
     const mountElement = createElementMock()
     const host = {
       ownerDocument: {
-        createElement: jest.fn(() => mountElement),
+        win: { createDiv: jest.fn(() => mountElement) },
       },
       replaceChildren: jest.fn(),
       attachShadow: jest.fn(),
@@ -36,10 +36,10 @@ describe('prepareChatMountSurface', () => {
     }
     const host = {
       ownerDocument: {
-        createElement: jest
-          .fn()
-          .mockReturnValueOnce(passthroughSlot)
-          .mockReturnValueOnce(mountElement),
+        win: {
+          createEl: jest.fn(() => passthroughSlot),
+          createDiv: jest.fn(() => mountElement),
+        },
       },
       replaceChildren: jest.fn(),
       shadowRoot,

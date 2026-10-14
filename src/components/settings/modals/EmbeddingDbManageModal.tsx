@@ -168,7 +168,9 @@ function EmbeddingDbManageModalComponent() {
         <button
           className="clickable-icon"
           aria-label="Refresh"
-          onClick={() => refetch()}
+          onClick={() => {
+            void refetch()
+          }}
           disabled={isFetching}
         >
           <RefreshCw size={16} className={clsx(isFetching && 'spinner')} />
@@ -211,14 +213,18 @@ function EmbeddingDbManageModalComponent() {
                   <button
                     className="clickable-icon"
                     aria-label="Rebuild index"
-                    onClick={() => handleRebuildIndex(stat.model)}
+                    onClick={() => {
+                      void handleRebuildIndex(stat.model)
+                    }}
                   >
                     <PickaxeIcon size={16} />
                   </button>
                   <button
                     className="clickable-icon"
                     aria-label="Remove index"
-                    onClick={() => handleRemoveIndex(stat.model)}
+                    onClick={() => {
+                      void handleRemoveIndex(stat.model)
+                    }}
                   >
                     <Trash2 size={16} />
                   </button>

@@ -33,7 +33,7 @@ function CopyButton({ messages }: { messages: AssistantToolMessageGroup }) {
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content)
     setCopied(true)
-    setTimeout(() => {
+    window.setTimeout(() => {
       setCopied(false)
     }, 1500)
   }

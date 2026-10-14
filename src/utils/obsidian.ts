@@ -61,7 +61,7 @@ export function getOpenFiles(app: App): TFile[] {
     const leaves = app.workspace.getLeavesOfType('markdown')
 
     return leaves.map((v) => (v.view as MarkdownView).file).filter((v) => !!v)
-  } catch (e) {
+  } catch {
     return []
   }
 }

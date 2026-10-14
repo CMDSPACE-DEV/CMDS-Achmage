@@ -51,8 +51,8 @@ export function ChatSection({
                   `${chatModel.id}${RECOMMENDED_MODELS_FOR_CHAT.includes(chatModel.id) ? ' (Recommended)' : ''}`,
                 ]),
             )}
-            onChange={async (value) => {
-              await setSettings({
+            onChange={(value) => {
+              void setSettings({
                 ...settings,
                 chatModelId: value,
               })
@@ -69,10 +69,10 @@ export function ChatSection({
           >
             <ObsidianTextInput
               value={settings.inlineEdit.contextCharacters.toString()}
-              onChange={async (value) => {
+              onChange={(value) => {
                 const parsed = Number.parseInt(value, 10)
                 if (!Number.isFinite(parsed) || parsed < 500) return
-                await setSettings({
+                void setSettings({
                   ...settings,
                   inlineEdit: {
                     ...settings.inlineEdit,
@@ -94,8 +94,8 @@ export function ChatSection({
                 'always-job': 'Always use a document job',
                 'single-response': 'Always generate one response',
               }}
-              onChange={async (value) => {
-                await setSettings({
+              onChange={(value) => {
+                void setSettings({
                   ...settings,
                   documentEditing: {
                     ...settings.documentEditing,
@@ -120,8 +120,8 @@ export function ChatSection({
             <ObsidianTextInput
               folderSuggest={app}
               value={settings.documentEditing.destinationFolder}
-              onChange={async (value) => {
-                await setSettings({
+              onChange={(value) => {
+                void setSettings({
                   ...settings,
                   documentEditing: {
                     ...settings.documentEditing,
@@ -138,8 +138,8 @@ export function ChatSection({
           >
             <ObsidianToggle
               value={settings.documentEditing.preserveFrontmatter}
-              onChange={async (value) => {
-                await setSettings({
+              onChange={(value) => {
+                void setSettings({
                   ...settings,
                   documentEditing: {
                     ...settings.documentEditing,
@@ -160,8 +160,8 @@ export function ChatSection({
                 '1': '1 (Recommended)',
                 '2': '2 parallel jobs (Higher rate-limit usage)',
               }}
-              onChange={async (value) => {
-                await setSettings({
+              onChange={(value) => {
+                void setSettings({
                   ...settings,
                   documentEditing: {
                     ...settings.documentEditing,
@@ -178,10 +178,10 @@ export function ChatSection({
           >
             <ObsidianTextInput
               value={settings.documentEditing.retryLimit.toString()}
-              onChange={async (value) => {
+              onChange={(value) => {
                 const parsed = Number.parseInt(value, 10)
                 if (!Number.isFinite(parsed) || parsed < 0 || parsed > 5) return
-                await setSettings({
+                void setSettings({
                   ...settings,
                   documentEditing: {
                     ...settings.documentEditing,
@@ -224,8 +224,8 @@ export function ChatSection({
                     ]),
                 ),
               }}
-              onChange={async (value) => {
-                await setSettings({
+              onChange={(value) => {
+                void setSettings({
                   ...settings,
                   imageGeneration: {
                     ...settings.imageGeneration,
@@ -243,8 +243,8 @@ export function ChatSection({
             <ObsidianTextInput
               folderSuggest={app}
               value={settings.imageGeneration.outputFolder}
-              onChange={async (value) => {
-                await setSettings({
+              onChange={(value) => {
+                void setSettings({
                   ...settings,
                   imageGeneration: {
                     ...settings.imageGeneration,
@@ -261,8 +261,8 @@ export function ChatSection({
           >
             <ObsidianTextInput
               value={settings.artifacts.outputFolder}
-              onChange={async (value) => {
-                await setSettings({
+              onChange={(value) => {
+                void setSettings({
                   ...settings,
                   artifacts: { ...settings.artifacts, outputFolder: value },
                 })
@@ -281,8 +281,8 @@ export function ChatSection({
                 medium: 'Medium',
                 high: 'High',
               }}
-              onChange={async (value) => {
-                await setSettings({
+              onChange={(value) => {
+                void setSettings({
                   ...settings,
                   imageGeneration: {
                     ...settings.imageGeneration,
@@ -315,8 +315,8 @@ export function ChatSection({
                   .map((chatModel) => [chatModel.id, chatModel.id]),
               ),
             }}
-            onChange={async (value) => {
-              await setSettings({
+            onChange={(value) => {
+              void setSettings({
                 ...settings,
                 inlineEdit: {
                   ...settings.inlineEdit,
@@ -339,8 +339,8 @@ export function ChatSection({
           <ObsidianSetting className="smtcmp-settings-textarea">
             <ObsidianTextArea
               value={settings.systemPrompt}
-              onChange={async (value: string) => {
-                await setSettings({
+              onChange={(value: string) => {
+                void setSettings({
                   ...settings,
                   systemPrompt: value,
                 })
@@ -354,8 +354,8 @@ export function ChatSection({
           >
             <ObsidianToggle
               value={settings.applyObsidianEditingRules}
-              onChange={async (value) => {
-                await setSettings({
+              onChange={(value) => {
+                void setSettings({
                   ...settings,
                   applyObsidianEditingRules: value,
                 })
@@ -379,8 +379,8 @@ export function ChatSection({
           >
             <ObsidianToggle
               value={settings.chatOptions.includeCurrentFileContent}
-              onChange={async (value) => {
-                await setSettings({
+              onChange={(value) => {
+                void setSettings({
                   ...settings,
                   chatOptions: {
                     ...settings.chatOptions,
@@ -397,8 +397,8 @@ export function ChatSection({
           >
             <ObsidianToggle
               value={settings.chatOptions.enableTools}
-              onChange={async (value) => {
-                await setSettings({
+              onChange={(value) => {
+                void setSettings({
                   ...settings,
                   chatOptions: {
                     ...settings.chatOptions,
@@ -415,12 +415,12 @@ export function ChatSection({
           >
             <ObsidianTextInput
               value={settings.chatOptions.maxAutoIterations.toString()}
-              onChange={async (value) => {
+              onChange={(value) => {
                 const parsedValue = parseInt(value)
                 if (isNaN(parsedValue) || parsedValue < 1 || parsedValue > 50) {
                   return
                 }
-                await setSettings({
+                void setSettings({
                   ...settings,
                   chatOptions: {
                     ...settings.chatOptions,
