@@ -41,7 +41,7 @@ export function ModelSelect() {
                 <DropdownMenu.Item
                   key={chatModelOption.id}
                   onSelect={() => {
-                    setSettings({
+                    void setSettings({
                       ...settings,
                       chatModelId: chatModelOption.id,
                     })

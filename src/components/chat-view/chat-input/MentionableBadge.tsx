@@ -146,7 +146,7 @@ function CurrentFileBadge({
   const handleCurrentFileToggle = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       e.stopPropagation()
-      setSettings({
+      void setSettings({
         ...settings,
         chatOptions: {
           ...settings.chatOptions,
