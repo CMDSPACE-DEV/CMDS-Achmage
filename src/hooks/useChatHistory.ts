@@ -1,5 +1,5 @@
-import debounce from 'lodash.debounce'
-import isEqual from 'lodash.isequal'
+import { isDeepStrictEqual as isEqual } from 'util'
+
 import { App, Notice } from 'obsidian'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
@@ -12,6 +12,7 @@ import {
   deserializeMentionable,
   serializeMentionable,
 } from '../utils/chat/mentionable'
+import { debounce } from '../utils/debounce'
 
 import { useChatManager } from './useJsonManagers'
 
@@ -45,7 +46,7 @@ export function useChatHistory(): UseChatHistory {
     () =>
       debounce(
         async (id: string, messages: ChatMessage[]): Promise<void> => {
-          // Saves run on lodash's trailing timer, so callers cannot await
+          // Saves run on the trailing timer, so callers cannot await
           // this run; report failures here, where they happen.
           try {
             const serializedMessages = messages.map(serializeChatMessage)
