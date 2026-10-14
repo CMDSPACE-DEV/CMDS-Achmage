@@ -162,7 +162,7 @@ export default class SmartComposerPlugin extends Plugin {
       id: 'add-selection-to-chat',
       name: 'Add selection to chat',
       editorCallback: (editor: Editor, view: MarkdownView) => {
-        this.addSelectionToChat(editor, view)
+        void this.addSelectionToChat(editor, view)
       },
     })
 
@@ -402,7 +402,7 @@ export default class SmartComposerPlugin extends Plugin {
     this.inlineEditControllerInitPromise = null
 
     // DatabaseManager cleanup
-    this.dbManager?.cleanup()
+    void this.dbManager?.cleanup()
     this.dbManager = null
 
     // McpManager cleanup
@@ -504,11 +504,11 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
     const view = this.app.workspace.getActiveViewOfType(MarkdownView)
     const editor = view?.editor
     if (!view || !editor) {
-      this.activateChatView(undefined, openNewChat)
+      void this.activateChatView(undefined, openNewChat)
       return
     }
     const selectedBlockData = await getMentionableBlockData(editor, view)
-    this.activateChatView(
+    void this.activateChatView(
       {
         selectedBlock: selectedBlockData ?? undefined,
       },
@@ -531,7 +531,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
       leaf.view.openNewChat(chatProps?.selectedBlock)
     }
 
-    this.app.workspace.revealLeaf(
+    void this.app.workspace.revealLeaf(
       this.app.workspace.getLeavesOfType(CHAT_VIEW_TYPE)[0],
     )
   }
@@ -830,8 +830,8 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
       await migrateToJsonDatabaseIfNeeded(
         this.app,
         () => this.getDbManager(),
-        async () => {
-          await this.reloadChatView()
+        () => {
+          void this.reloadChatView()
         },
       )
     } catch (error) {
