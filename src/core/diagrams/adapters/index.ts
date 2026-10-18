@@ -26,6 +26,7 @@ import adapter8 from './timeline'
 import adapter15 from './treemap'
 import adapter23 from './treeview'
 import adapter24 from './usecase'
+import adapter27 from './venn'
 import adapter10 from './xychart'
 export const diagramAdapters: Adapter[] = [
   adapter0,
@@ -55,4 +56,5 @@ export const diagramAdapters: Adapter[] = [
   adapter24,
   adapter25,
   adapter26,
+  adapter27,
 ]
