@@ -7,6 +7,7 @@ import adapter4 from './class'
 import adapter5 from './er'
 import adapter0 from './flowchart'
 import adapter3 from './gantt'
+import adapter20 from './git'
 import adapter9 from './journey'
 import adapter7 from './kanban'
 import adapter2 from './mindmap'
@@ -41,4 +42,5 @@ export const diagramAdapters: Adapter[] = [
   adapter17,
   adapter18,
   adapter19,
+  adapter20,
 ]
