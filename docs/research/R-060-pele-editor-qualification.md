@@ -57,3 +57,5 @@ No private vault data, credentials or account identifiers recorded.
 - Actual Pele 1.6.0 parser/render/edit contracts: 32/32 passed.
 - Typecheck passed; lint: 0 errors, 22 warnings. Changed-surface Obsidian lint passed.
 - Production build and tokenizer verification passed. Bundle budget FAILED: 5,635,233 bytes / 4,940,000 allowed. Publication proceeds as Draft under explicit user instruction; merge/release readiness is separate.
+
+Publication experiment: the first publisher wrapped Invoke-RestMethod's empty JSON array as one PowerShell object, incorrectly treating it as an existing PR and yielding null numbers. No PR creation was confirmed by that run. Changed hypothesis/implementation: flatten the response pipeline, filter real numeric PR entries, and require a returned PR number before saving progress. Retry only after the first run exits; reconcile GitHub heads before POST.
