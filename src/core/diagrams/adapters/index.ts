@@ -23,6 +23,7 @@ import adapter21 from './swimlane'
 import adapter8 from './timeline'
 import adapter15 from './treemap'
 import adapter23 from './treeview'
+import adapter24 from './usecase'
 import adapter10 from './xychart'
 export const diagramAdapters: Adapter[] = [
   adapter0,
@@ -49,4 +50,5 @@ export const diagramAdapters: Adapter[] = [
   adapter21,
   adapter22,
   adapter23,
+  adapter24,
 ]
