@@ -190,6 +190,39 @@ export default class SmartComposerPlugin extends Plugin {
     })
 
     this.addCommand({
+      id: 'edit-pele-diagram',
+      name: 'Open diagram editor',
+      callback: () => {
+        void import('./core/diagrams/DiagramWorkspaceModal')
+          .then(({ DiagramWorkspaceModal }) => {
+            if (this.unloading) return
+            const modal = new DiagramWorkspaceModal(
+              this,
+              this.app.workspace.getActiveFile() ?? undefined,
+            )
+            this.register(() => modal.close())
+            modal.open()
+          })
+          .catch(() => new Notice('Unable to open the diagram editor.'))
+      },
+    })
+
+    this.addCommand({
+      id: 'new-pele-diagram',
+      name: 'New diagram',
+      callback: () => {
+        void import('./core/diagrams/DiagramWorkspaceModal')
+          .then(({ DiagramWorkspaceModal }) => {
+            if (this.unloading) return
+            const modal = new DiagramWorkspaceModal(this)
+            this.register(() => modal.close())
+            modal.open()
+          })
+          .catch(() => new Notice('Unable to open the diagram editor.'))
+      },
+    })
+
+    this.addCommand({
       id: 'generate-image',
       name: 'Generate image (text to image)…',
       callback: () => new GenerateImageModal(this).open(),
