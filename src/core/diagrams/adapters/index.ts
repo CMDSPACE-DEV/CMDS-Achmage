@@ -18,6 +18,7 @@ import adapter19 from './requirement'
 import adapter14 from './sankey'
 import adapter1 from './sequence'
 import adapter6 from './state'
+import adapter21 from './swimlane'
 import adapter8 from './timeline'
 import adapter15 from './treemap'
 import adapter10 from './xychart'
@@ -43,4 +44,5 @@ export const diagramAdapters: Adapter[] = [
   adapter18,
   adapter19,
   adapter20,
+  adapter21,
 ]
