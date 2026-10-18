@@ -10,6 +10,7 @@ import adapter25 from './eventmodeling'
 import adapter0 from './flowchart'
 import adapter3 from './gantt'
 import adapter20 from './git'
+import adapter26 from './ishikawa'
 import adapter9 from './journey'
 import adapter7 from './kanban'
 import adapter2 from './mindmap'
@@ -53,4 +54,5 @@ export const diagramAdapters: Adapter[] = [
   adapter23,
   adapter24,
   adapter25,
+  adapter26,
 ]
