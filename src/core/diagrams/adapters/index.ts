@@ -8,6 +8,7 @@ import adapter7 from './kanban'
 import adapter2 from './mindmap'
 import adapter1 from './sequence'
 import adapter6 from './state'
+import adapter8 from './timeline'
 export const diagramAdapters: Adapter[] = [
   adapter0,
   adapter1,
@@ -17,4 +18,5 @@ export const diagramAdapters: Adapter[] = [
   adapter5,
   adapter6,
   adapter7,
+  adapter8,
 ]
