@@ -10,6 +10,7 @@ import adapter2 from './mindmap'
 import adapter1 from './sequence'
 import adapter6 from './state'
 import adapter8 from './timeline'
+import adapter10 from './xychart'
 export const diagramAdapters: Adapter[] = [
   adapter0,
   adapter1,
@@ -21,4 +22,5 @@ export const diagramAdapters: Adapter[] = [
   adapter7,
   adapter8,
   adapter9,
+  adapter10,
 ]
