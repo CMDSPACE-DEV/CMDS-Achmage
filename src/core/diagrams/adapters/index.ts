@@ -1,2 +1,4 @@
 import type { Adapter } from '../DiagramEditor'
-export const diagramAdapters: Adapter[] = []
+
+import adapter0 from './flowchart'
+export const diagramAdapters: Adapter[] = [adapter0]
