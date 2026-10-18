@@ -19,6 +19,7 @@ import adapter30 from './packet'
 import adapter11 from './pie'
 import adapter12 from './quadrant'
 import adapter13 from './radar'
+import adapter31 from './railroad'
 import adapter19 from './requirement'
 import adapter14 from './sankey'
 import adapter1 from './sequence'
@@ -63,4 +64,5 @@ export const diagramAdapters: Adapter[] = [
   adapter28,
   adapter29,
   adapter30,
+  adapter31,
 ]
