@@ -15,6 +15,7 @@ import adapter26 from './ishikawa'
 import adapter9 from './journey'
 import adapter7 from './kanban'
 import adapter2 from './mindmap'
+import adapter30 from './packet'
 import adapter11 from './pie'
 import adapter12 from './quadrant'
 import adapter13 from './radar'
@@ -61,4 +62,5 @@ export const diagramAdapters: Adapter[] = [
   adapter27,
   adapter28,
   adapter29,
+  adapter30,
 ]
