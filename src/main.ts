@@ -310,6 +310,26 @@ export default class SmartComposerPlugin extends Plugin {
             })
         })
         const selection = editor.getSelection()
+        menu.addItem((item) => {
+          item
+            .setTitle('CMDS Achmage: Create diagram with Pele')
+            .setIcon('workflow')
+            .setSection('action')
+            .onClick(() => {
+              void import('./core/diagrams/DiagramWorkspaceModal')
+                .then(({ DiagramWorkspaceModal }) => {
+                  if (this.unloading) return
+                  const modal = new DiagramWorkspaceModal(
+                    this,
+                    undefined,
+                    selection,
+                  )
+                  this.register(() => modal.close())
+                  modal.open()
+                })
+                .catch(() => new Notice('Unable to open the diagram editor.'))
+            })
+        })
         if (selection) {
           menu.addItem((item) => {
             item

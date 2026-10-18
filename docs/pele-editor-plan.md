@@ -84,10 +84,13 @@ an explicitly documented compatibility decision.
 
 ## Semantic support matrix
 
-All rows initially have status **planned**, not implemented. Each type PR must
-replace that status with the exact supported syntax, tested gestures, limits and
-test references. Every type supports label/content editing, adding/removing its
-semantic items, undo/redo and save/reopen where those operations are meaningful.
+The rows below specify the requested target behavior. All 32 types now have
+**Draft source-mapped adapters**; their exact implemented subsets are documented
+under docs/pele-adapters. They are not complete implementations of every gesture
+in this target matrix. The common authoring board, field edits and fixtures are
+reviewable; advanced rendered-SVG gestures and real-app qualification remain.
+The owner explicitly requested publishing all scoped PRs before the joint merge
+meeting, including the known bundle failure.
 
 | Sequence | Type | Required direct manipulation |
 | --- | --- | --- |

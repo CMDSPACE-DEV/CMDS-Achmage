@@ -36,8 +36,10 @@ export class DiagramWorkspaceModal extends Modal {
   constructor(
     private readonly plugin: SmartComposerPlugin,
     private file?: TFile,
+    initialRequest = '',
   ) {
     super(plugin.app)
+    this.prompt = initialRequest
   }
   onOpen(): void {
     this.closed = false

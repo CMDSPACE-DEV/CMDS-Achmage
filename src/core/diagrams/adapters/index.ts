@@ -32,6 +32,7 @@ import adapter24 from './usecase'
 import adapter27 from './venn'
 import adapter28 from './wardley'
 import adapter10 from './xychart'
+
 export const diagramAdapters: Adapter[] = [
   adapter0,
   adapter1,
