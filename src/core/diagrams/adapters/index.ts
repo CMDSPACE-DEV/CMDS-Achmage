@@ -7,6 +7,7 @@ import adapter3 from './gantt'
 import adapter9 from './journey'
 import adapter7 from './kanban'
 import adapter2 from './mindmap'
+import adapter11 from './pie'
 import adapter1 from './sequence'
 import adapter6 from './state'
 import adapter8 from './timeline'
@@ -23,4 +24,5 @@ export const diagramAdapters: Adapter[] = [
   adapter8,
   adapter9,
   adapter10,
+  adapter11,
 ]
