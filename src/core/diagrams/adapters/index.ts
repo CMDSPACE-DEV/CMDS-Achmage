@@ -1,5 +1,6 @@
 import type { Adapter } from '../DiagramEditor'
 
+import adapter16 from './architecture'
 import adapter4 from './class'
 import adapter5 from './er'
 import adapter0 from './flowchart'
@@ -33,4 +34,5 @@ export const diagramAdapters: Adapter[] = [
   adapter13,
   adapter14,
   adapter15,
+  adapter16,
 ]
