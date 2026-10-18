@@ -13,6 +13,7 @@ import adapter2 from './mindmap'
 import adapter11 from './pie'
 import adapter12 from './quadrant'
 import adapter13 from './radar'
+import adapter19 from './requirement'
 import adapter14 from './sankey'
 import adapter1 from './sequence'
 import adapter6 from './state'
@@ -39,4 +40,5 @@ export const diagramAdapters: Adapter[] = [
   adapter16,
   adapter17,
   adapter18,
+  adapter19,
 ]
