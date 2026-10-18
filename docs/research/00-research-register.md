@@ -84,6 +84,7 @@ premature synthesis.
 | ID | Topic | Status | Planning use | Report |
 | --- | --- | --- | --- | --- |
 | R-058 | Pele renderer, semantic editor boundary and staged PR contract | **Partially verified; implementation and bundle qualification pending** | **Mandatory for Pele integration** | [R-058 report](R-058-pele-editor-boundaries.md) |
+| R-059 | Pele preview integration and bundle feasibility | **Partially verified** | **Mandatory for Pele preview** | [R-059 report](R-059-pele-preview-feasibility.md) |
 
 Do not create the final large-scale roadmap until the user explicitly asks for
 the synthesis. At that point:

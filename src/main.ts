@@ -175,6 +175,21 @@ export default class SmartComposerPlugin extends Plugin {
     })
 
     this.addCommand({
+      id: 'preview-pele-diagram',
+      name: 'Preview a diagram with Pele',
+      callback: () => {
+        void import('./core/diagrams/PelePreviewModal')
+          .then(({ PelePreviewModal }) => {
+            if (this.unloading) return
+            const modal = new PelePreviewModal(this.app)
+            this.register(() => modal.close())
+            modal.open()
+          })
+          .catch(() => new Notice('Unable to open the diagram preview.'))
+      },
+    })
+
+    this.addCommand({
       id: 'generate-image',
       name: 'Generate image (text to image)…',
       callback: () => new GenerateImageModal(this).open(),

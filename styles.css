@@ -5751,3 +5751,14 @@ body:not(.theme-dark)
 .smtcmp-discover-models-row span {
   color: var(--text-muted);
 }
+.smtcmp-pele-preview textarea {
+  width: 100%;
+  min-height: 10rem;
+  font-family: var(--font-monospace);
+}
+
+.smtcmp-pele-canvas {
+  min-height: 16rem;
+  max-height: 65vh;
+  overflow: auto;
+}
