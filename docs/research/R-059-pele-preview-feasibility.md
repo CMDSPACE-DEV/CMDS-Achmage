@@ -44,6 +44,9 @@ No persistence, AI generation, semantic editing or menu replacement is claimed.
 
 ## Conclusion and unresolved decision
 
+Immutable measured-result record:
+research:rr-20638be978a7deba03447d7a238f7ad0:3fb1b3476572929dd34c53132ee5199f04a728b16c34e85033e607d621109a68.
+
 The planned in-process all-types renderer cannot currently be released within
 the existing budget. Deferring import initialization does not remove Pele from
 the single CJS file. Keep this PR Draft; persistence/AI/editor/menu delivery
