@@ -5,6 +5,7 @@ import adapter16 from './architecture'
 import adapter18 from './block'
 import adapter17 from './c4'
 import adapter4 from './class'
+import adapter29 from './cynefin'
 import adapter5 from './er'
 import adapter25 from './eventmodeling'
 import adapter0 from './flowchart'
@@ -59,4 +60,5 @@ export const diagramAdapters: Adapter[] = [
   adapter26,
   adapter27,
   adapter28,
+  adapter29,
 ]
