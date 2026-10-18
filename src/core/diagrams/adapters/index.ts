@@ -14,6 +14,7 @@ import adapter14 from './sankey'
 import adapter1 from './sequence'
 import adapter6 from './state'
 import adapter8 from './timeline'
+import adapter15 from './treemap'
 import adapter10 from './xychart'
 export const diagramAdapters: Adapter[] = [
   adapter0,
@@ -31,4 +32,5 @@ export const diagramAdapters: Adapter[] = [
   adapter12,
   adapter13,
   adapter14,
+  adapter15,
 ]
