@@ -28,6 +28,7 @@ how we cleared them:
 | Disabling `@typescript-eslint/no-explicit-any` | Not allowed — type the value instead of disabling |
 | iOS-unsupported lookbehind regex `(?<=…)` | Rewrite without lookbehind (mobile / iOS < 16.4) |
 | Setting styles directly (`el.style.x = …`) | `el.setCssStyles({ … })` |
+| Creating a `style` element (1.3.1) | Move CSS to `styles.css`; ensure the UI is in the document where Obsidian loads it |
 | Raw `<h2>` heading in settings | `new Setting(el).setName(…).setHeading()` |
 | Settings heading contains the word "settings" or the plugin name | Rename the heading (e.g. "Could not load") |
 
@@ -72,6 +73,7 @@ gate:
 - `eslint-comments/require-description`, `eslint-comments/no-restricted-disable`,
   `eslint-comments/no-unlimited-disable`
 - `obsidianmd/regex-lookbehind`, `obsidianmd/no-static-styles-assignment`
+- `obsidianmd/no-forbidden-elements`
 - `obsidianmd/settings-tab/no-manual-html-headings`,
   `obsidianmd/settings-tab/no-problematic-settings-headings`
 

@@ -27,6 +27,8 @@ const GATE_RULES = {
   'obsidianmd/regex-lookbehind': 'error',
   // Direct element.style assignment (1.0.0).
   'obsidianmd/no-static-styles-assignment': 'error',
+  // Dynamically created style elements failed the 1.3.1 community scan.
+  'obsidianmd/no-forbidden-elements': 'error',
   // Raw <h2> settings heading instead of Setting().setHeading() (1.0.0).
   'obsidianmd/settings-tab/no-manual-html-headings': 'error',
   // Settings heading containing "settings" or the plugin name (1.0.2).
