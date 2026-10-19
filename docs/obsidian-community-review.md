@@ -139,6 +139,8 @@ Prerequisites: the fix is ready, and your git author is the org account
 | 1.0.0 | Failed | Korean-only README, wrong `isDesktopOnly`, many `obsidianmd` Errors, no attestations |
 | 1.0.1 | Failed | English README, `isDesktopOnly: true`, directive / lookbehind / static-style / any-disable Errors fixed, attestations added — but converting `<h2>` → `.setHeading()` exposed the settings-heading content rules |
 | 1.0.2 | **Passed** | Renamed the load-error heading to "Could not load" |
+| 1.3.1 | Failed | Inline edit UI created a `<style>` element in a Shadow DOM (`obsidianmd/no-forbidden-elements`) |
+| 1.3.2 | Pending | Inline edit styles moved to `styles.css` (#64) |
 
 ## References
 
