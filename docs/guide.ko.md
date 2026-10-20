@@ -2,7 +2,7 @@
 Obsidian의 노트를 AI 채팅, 검토 가능한 편집, 자료 조사, 이미지 제작의 작업 맥락으로 사용합니다.
 
 ## 배포 상태, 준비물, 비용
-**2026-10-19**에 갱신한 **CMDS Achmage 1.3.2** 기준입니다. 릴리스 파일은 `main.js`, `manifest.json`, `styles.css` 3종입니다. 커뮤니티 등재·심사 상태는 [Obsidian 포털](https://community.obsidian.md/plugins/cmds-achmage)에서 확인하며, 자동 검사는 직원의 수동 검토와 다릅니다. 연구 보고서의 과거 2.x 번호는 계승한 개발 계보의 버전이지 더 최신 CMDS 릴리스가 아닙니다.
+**2026-10-20**에 갱신한 **CMDS Achmage 1.3.3** 기준입니다. 릴리스 파일은 `main.js`, `manifest.json`, `styles.css` 3종입니다. 커뮤니티 등재·심사 상태는 [Obsidian 포털](https://community.obsidian.md/plugins/cmds-achmage)에서 확인하며, 자동 검사는 직원의 수동 검토와 다릅니다. 연구 보고서의 과거 2.x 번호는 계승한 개발 계보의 버전이지 더 최신 CMDS 릴리스가 아닙니다.
 - **Obsidian 데스크톱 1.13.0 이상**. 네이티브 프로세스, 클립보드, MCP 연결을 사용하며 모바일은 지원하지 않습니다.
 - 첫 사용에는 API 제공업체의 계정/키와 사용 가능한 크레딧을 권장합니다. 채팅 서비스 구독료와 API 잔액은 다릅니다.
 - 벡터 검색에는 선택적 임베딩 제공업체가 필요합니다. 노트/폴더 참조는 읽기/재순위화 경로로 임베딩 키 없이도 가능하지만 모델 사용량까지 없어지는 것은 아닙니다.
@@ -11,7 +11,7 @@ Obsidian의 노트를 AI 채팅, 검토 가능한 편집, 자료 조사, 이미�
 
 ## 설치와 안전한 준비
 1. **설정 → 커뮤니티 플러그인 → 탐색**에서 **CMDS Achmage**를 찾아 설치하고 활성화합니다.
-2. 수동 설치는 [1.3.2 릴리스](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.3.2)의 `main.js`, `manifest.json`, `styles.css`를 `<vault>/.obsidian/plugins/cmds-achmage/`에 넣고 Obsidian을 다시 로드합니다. 설정과 채팅 데이터를 백업하고 타인의 `data.json`은 가져오지 않습니다.
+2. 수동 설치는 [1.3.3 릴리스](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.3.3)의 `main.js`, `manifest.json`, `styles.css`를 `<vault>/.obsidian/plugins/cmds-achmage/`에 넣고 Obsidian을 다시 로드합니다. 설정과 채팅 데이터를 백업하고 타인의 `data.json`은 가져오지 않습니다.
 3. 선택한 제공업체에 보내도 되는 테스트 볼트 또는 비민감 노트를 엽니다.
 4. **설정 → CMDS Achmage → Advanced → Providers**에서 API 제공업체와 키를 추가/편집합니다. [API 키 안내](https://github.com/CMDSPACE-DEV/CMDS-Achmage/blob/main/docs/getting-api-keys.md)와 제공업체의 현재 공식 콘솔을 참고합니다.
 5. **Advanced → Models**에서 해당 제공업체의 활성 채팅 모델을 설정하고 **Plan → Chat model** 또는 컴포저에서 선택합니다. 탭 이름이 Plan이지만 채팅 모델 선택 자체가 구독 모델 전용은 아닙니다.

@@ -2,7 +2,7 @@
 Use your notes as working context for AI chat, reviewable edits, research, and image creation inside Obsidian.
 
 ## Status, requirements, and cost
-This manual describes **CMDS Achmage 1.3.2**, updated on **2026-10-19**. Releases contain three plugin assets: `main.js`, `manifest.json`, and `styles.css`. Community listing and review status are tracked in the [Obsidian portal](https://community.obsidian.md/plugins/cmds-achmage); automatic checks are not a manual review by Obsidian staff. Older 2.x numbers in research reports belong to its inherited development lineage, not a later CMDS release.
+This manual describes **CMDS Achmage 1.3.3**, updated on **2026-10-20**. Releases contain three plugin assets: `main.js`, `manifest.json`, and `styles.css`. Community listing and review status are tracked in the [Obsidian portal](https://community.obsidian.md/plugins/cmds-achmage); automatic checks are not a manual review by Obsidian staff. Older 2.x numbers in research reports belong to its inherited development lineage, not a later CMDS release.
 - **Obsidian desktop 1.13.0+**. Desktop capabilities include native processes, clipboard and MCP connections; no Obsidian Mobile support.
 - An API provider account/key and available usage credit for the recommended beginner path. A chat subscription is not an API-credit balance.
 - Optional embedding-provider access for vector retrieval. Explicit note/folder context can work without an embedding key using the available reading/reranking paths; model calls can still consume usage.
@@ -11,7 +11,7 @@ This manual describes **CMDS Achmage 1.3.2**, updated on **2026-10-19**. Release
 
 ## Install and prepare safely
 1. In **Settings → Community plugins → Browse**, search **CMDS Achmage**, install and enable it.
-2. Alternatively download `main.js`, `manifest.json`, and `styles.css` from [1.3.2](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.3.2) into `<vault>/.obsidian/plugins/cmds-achmage/` and restart/reload Obsidian. Keep existing settings and chat data backed up; do not import someone else's `data.json`.
+2. Alternatively download `main.js`, `manifest.json`, and `styles.css` from [1.3.3](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.3.3) into `<vault>/.obsidian/plugins/cmds-achmage/` and restart/reload Obsidian. Keep existing settings and chat data backed up; do not import someone else's `data.json`.
 3. Open a test vault or a non-sensitive note that is safe to send to your chosen provider.
 4. Open **Settings → CMDS Achmage → Advanced → Providers**. Add/edit an API provider and its key; use [the API-key guide](https://github.com/CMDSPACE-DEV/CMDS-Achmage/blob/main/docs/getting-api-keys.md) and that provider's current official console.
 5. In **Advanced → Models**, configure an enabled chat model tied to that provider. Choose it under **Plan → Chat model** or in the chat composer. Despite the tab name, the chat-model selection is not limited to subscription Plan models.
