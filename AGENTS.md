@@ -1,11 +1,5 @@
 # Repository Instructions
 
-## Pull request scope
-
-Use one feature or one change purpose per PR. Include that feature's tests and
-documentation, state dependencies explicitly, and keep unrelated work separate.
-Do not accumulate independently reviewable features in an integration PR.
-
 ## Mandatory research gate
 
 Before planning or implementing any non-trivial change in this repository:
