@@ -87,6 +87,12 @@ premature synthesis.
 | R-059 | Pele preview integration and bundle feasibility | **Partially verified** | **Mandatory for Pele preview** | [R-059 report](R-059-pele-preview-feasibility.md) |
 | R-060 | Source-mapped editor and 32 adapter qualification | **Partially verified** | **Mandatory for Pele editor** | [R-060 report](R-060-pele-editor-qualification.md) |
 
+### New scoped reports
+
+| ID | Topic | Status | Planning use | Report |
+| --- | --- | --- | --- | --- |
+| R-057 | Inline static stylesheet loading and 1.3.1 review gate regression | **Partially verified; automated and live checks tracked in report** | **Mandatory for inline stylesheet loading** | [R-057 report](R-057-inline-style-review.md) |
+
 Do not create the final large-scale roadmap until the user explicitly asks for
 the synthesis. At that point:
 

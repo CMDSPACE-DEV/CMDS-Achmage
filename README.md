@@ -3,7 +3,7 @@
 # CMDS Achmage
 Work with AI inside Obsidian: supply note context, review edits, research sources, and create images without leaving your writing flow.
 
-**Version 1.3.1 | Available in Community Plugins.**
+**Version 1.3.2 | Available in Community Plugins.**
 
 Obsidian 1.13.0+ | Desktop only.
 
@@ -16,7 +16,7 @@ Obsidian 1.13.0+ | Desktop only.
 ## Install and first use
 **Community:** Settings → Community plugins → Browse → **CMDS Achmage** → Install → Enable.
 
-**Manual:** Download `main.js`, `manifest.json`, and `styles.css` from [release 1.3.1](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.3.1), place them in `<vault>/.obsidian/plugins/cmds-achmage/`, reload Obsidian, and enable. Back up existing settings; do not copy another user’s `data.json`.
+**Manual:** Download `main.js`, `manifest.json`, and `styles.css` from [release 1.3.2](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.3.2), place them in `<vault>/.obsidian/plugins/cmds-achmage/`, reload Obsidian, and enable. Back up existing settings; do not copy another user’s `data.json`.
 
 In **Advanced → Providers/Models**, configure an API provider and chat model. Review **Writing → Include current file** and set **MCP → Tool execution → Per-tool approvals** before connecting tools. Run **Open chat**, mention a sample note with `@`, and ask one narrow question.
 
