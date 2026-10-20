@@ -55,6 +55,9 @@ jobs:
       - name: Test
         run: npm test -- --runInBand
 
+      - name: Check diagram adapters against the bundled Pele parser and renderer
+        run: npm run test:diagrams
+
       - name: Build plugin and enforce bundle budget
         run: npm run build
 

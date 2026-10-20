@@ -6709,4 +6709,54 @@ body:not(.theme-dark)
     background: CanvasText;
     box-shadow: none;
   }
+
+.smtcmp-pele-preview textarea {
+  width: 100%;
+  min-height: 10rem;
+  font-family: var(--font-monospace);
+}
+
+.smtcmp-pele-canvas {
+  min-height: 16rem;
+  max-height: 65vh;
+  overflow: auto;
+}
+.smtcmp-diagram-editor textarea {
+  width: 100%;
+  min-height: 10rem;
+  font-family: var(--font-monospace);
+}
+.smtcmp-diagram-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block: 0.5rem;
+}
+.smtcmp-diagram-board {
+  position: relative;
+  height: 32rem;
+  overflow: auto;
+  border: 1px solid var(--background-modifier-border);
+}
+.smtcmp-diagram-card {
+  position: absolute;
+  width: 240px;
+  padding: 0.5rem;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  transform: translate(var(--diagram-x, 0px), var(--diagram-y, 0px));
+}
+.smtcmp-diagram-card > button:first-child {
+  touch-action: none;
+  cursor: grab;
+}
+.smtcmp-diagram-card[data-selected='true'] {
+  border-color: var(--interactive-accent);
+}
+.smtcmp-diagram-card label {
+  display: block;
+}
+.smtcmp-diagram-card input {
+  width: 100%;
 }
