@@ -1,6 +1,7 @@
 import fs from 'fs'
 
-const maxMainBytes = 4_940_000
+// R-062: Sync Plus (200 MB file limit) is the target; 8 MB keeps an accidental-dependency guard.
+const maxMainBytes = 8_000_000
 const mainBytes = fs.statSync('main.js').size
 
 if (mainBytes > maxMainBytes) {

@@ -75,7 +75,7 @@ premature synthesis.
 | R-053 | MCP Streamable HTTP negotiation with legacy SSE fallback and desktop transport preservation | **Verified for source and local integration; Obsidian smoke pending** | **Mandatory for MCP transport negotiation** | [R-053 report](R-053-mcp-streamable-http-sse-fallback.md) |
 | R-054 | Obsidian 1.13 declarative settings search via one `render` row hosting the existing React settings UI (display() kept for < 1.13), and native runtime executable path moved to `App#saveLocalStorage` with one-time legacy raw-key migration | **Partially verified; typings, reviewer rules, and unit tests verified; live Obsidian 1.13 rendering pending** | **Mandatory for the settings tab entry point and the native runtime path store** | [R-054 report](R-054-declarative-settings-and-runtime-path-storage.md) |
 | R-056 | Dependency replacements, advisory paths, compatibility proofs and 1.3.1 bundle plan | **Partially verified; automated checks, desktop smoke pending** | **Mandatory for #18 and #14 integration** | [R-056 report](R-056-dependency-replacement-and-advisories.md) |
-| R-055 | Exact cl100k rank Brotli compression with lazy decoding and a 1.3.1 bundle budget | **Partially verified; compiled-data parity checked, real Obsidian startup pending** | **Mandatory for #14 and production bundle changes** | [R-055 report](R-055-main-js-bundle-size.md) |
+| R-055 | Exact cl100k rank Brotli compression with lazy decoding and a 1.3.1 bundle budget | **Partially verified; compiled-data parity checked, real Obsidian startup pending** | **Budget ceiling superseded by R-062.** **Mandatory for #14 and production bundle changes** | [R-055 report](R-055-main-js-bundle-size.md) |
 
 ## Mandatory Synthesis Rule
 
@@ -84,8 +84,9 @@ premature synthesis.
 | ID | Topic | Status | Planning use | Report |
 | --- | --- | --- | --- | --- |
 | R-058 | Pele renderer, semantic editor boundary and staged PR contract | **Partially verified; implementation and bundle qualification pending** | **Mandatory for Pele integration** | [R-058 report](R-058-pele-editor-boundaries.md) |
-| R-059 | Pele preview integration and bundle feasibility | **Partially verified** | **Mandatory for Pele preview** | [R-059 report](R-059-pele-preview-feasibility.md) |
+| R-059 | Pele preview integration and bundle feasibility | **Partially verified** | **Budget ceiling superseded by R-062.** **Mandatory for Pele preview** | [R-059 report](R-059-pele-preview-feasibility.md) |
 | R-060 | Source-mapped editor and 32 adapter qualification | **Partially verified** | **Mandatory for Pele editor** | [R-060 report](R-060-pele-editor-qualification.md) |
+| R-062 | main.js budget targets Sync Plus (200 MB); guard raised to 8,000,000 bytes by owner decision; supersedes the 4,940,000 ceiling in R-055/R-059 | **Verified** | **Mandatory for bundle budget changes** | [R-062 report](R-062-bundle-budget-sync-plus.md) |
 
 ### New scoped reports
 
