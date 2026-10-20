@@ -74,13 +74,10 @@ API. Keep styles in styles.css, use the Obsidian SVG sanitizer, display errors a
 text, and initially disable diagram links/images and arbitrary icon markup.
 Dispose resize observers and handlers when the preview closes.
 
-**Unresolved integration gate:** main.js has a 4,940,000-byte ceiling. R-055 records
-only 42,693 bytes of release headroom. Pele's advertised gzip size is not its
-contribution to this CommonJS bundle. Dynamic imports delay initialization but do
-not split this single-file build. Measure actual output before proposing a
-mergeable dependency change. Do not raise the ceiling or remove existing
-providers/languages to pass. A larger architectural change needs its own PR and
-an explicitly documented compatibility decision.
+**Bundle budget:** resolved by owner decision in R-062. `main.js` targets Sync
+Plus (200 MB per file); the build guard fails above 8,000,000 bytes. Dynamic
+imports delay initialization but do not split this single-file build, so measure
+actual output when adding renderer code.
 
 ## Semantic support matrix
 

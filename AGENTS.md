@@ -2,9 +2,11 @@
 
 ## Pull request scope
 
-Use one feature or one change purpose per PR. Include that feature's tests and
-documentation, state dependencies explicitly, and keep unrelated work separate.
-Do not accumulate independently reviewable features in an integration PR.
+Size a PR for one review sitting, not one function. Group changes that share a
+purpose and a review pattern (for example, all adapters of one kind) into one PR
+with their tests and documentation. Split only when parts can be merged or
+reverted independently. Avoid long stacks: if a PR needs more than about three
+predecessor PRs, combine the chain into fewer PRs. Keep unrelated work separate.
 
 ## Mandatory research gate
 
