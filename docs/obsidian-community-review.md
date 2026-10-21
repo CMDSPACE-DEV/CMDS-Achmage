@@ -1,8 +1,8 @@
 # Obsidian community review & release runbook
 
 How the Obsidian community-plugin review classifies findings, how the local gate
-catches known Errors on every PR, and the release procedure (official Review branch
-scan before `main`). Written for
+catches known Errors on every PR, and the release procedure (owner test, then the
+official Review branch scan, then `main`). Written for
 maintainers and for AI agents working in this repo.
 
 ## How the review works
@@ -104,43 +104,63 @@ this plugin they are legitimate, but a human reviewer may ask about them:
 
 ## Release procedure
 
-**Decision (2026-10-20, owner):** a release ships only after the **official review**
-passes on a review branch. The dashboard's **Review branch** scan is that official
-check; the local gate above is the per-PR safety net, not the release gate.
+**Decision (2026-10-21, owner):** a release ships only after the **official review**
+passes. The dashboard's **Review branch** scan is that official check, run twice:
+once on the owner-test branch as a pre-check, and once on the release candidate; the local gate
+above is the per-PR safety net, not the release gate. The version number is chosen
+only after the scan passes.
 
-Branches: team PRs target `main` as usual (`fix/…`, `feat/…`). For each release the
-maintainer builds **`review/X.Y.Z`** from `main`, merges the PRs chosen for that
-release into it, and scans that branch. `main` only receives the release once the
-scan passes.
+Three branch roles (team PRs always target `main`; PRs stay open until they reach `main` in step 7):
+
+| Branch | Purpose | Contains |
+| --- | --- | --- |
+| `test/YYYY-MM-DD` | Pre-check scan, then owner hands-on testing | Every PR the owner wants to try |
+| `review/YYYY-MM-DD` | Final Review branch scan | Only the PRs chosen for release |
+| `main` | Release | The passed review branch plus the version bump |
 
 Prerequisites: git author is the org account (`gh auth switch` to `cmds-contact`;
 commits authored `CMDSPACE <cmdspace.contact@gmail.com>`).
 
-1. **Create the review branch from the latest `main`:**
+1. **Collect PRs on an owner-test branch** from the latest `main`. Do not merge them
+   into `main`:
    ```bash
    git switch main && git pull
-   git switch -c review/X.Y.Z && git push -u origin review/X.Y.Z
+   git switch -c test/YYYY-MM-DD
+   git merge origin/<pr-branch-1> origin/<pr-branch-2> …
+   git push -u origin test/YYYY-MM-DD
    ```
-2. **Review the PRs and merge the approved ones into `review/X.Y.Z`.** Do not merge
-   them into `main` yet. Leave PRs that are not ready out.
-3. **Bump the version on `review/X.Y.Z`** (one commit; no separate version PR).
-   Updates `manifest.json`, `versions.json`, `package.json`, `package-lock.json`.
-   Add `docs/releases/RELEASE_NOTES_X.Y.Z.md` and update README/guide version links.
+   A stacked PR series needs only its top branch.
+2. **Pre-check scan:** on the community dashboard, press **Review branch** and choose
+   `test/YYYY-MM-DD`. This finds review Errors before the owner spends time testing.
+   Errors → ask the PR author to fix them on their PR branch, then re-merge it into
+   the test branch.
+3. **Owner tests** the plugin built from that branch
+   (`npm ci && npm run build`, copy `main.js`, `manifest.json`, `styles.css` into a test
+   vault) and **decides which PRs ship**. The rest stay open for a later round.
+4. **Build the review branch from the latest `main` with only the chosen PRs**, merged
+   from their own PR branches (not from the test branch):
+   ```bash
+   git switch main && git pull
+   git switch -c review/YYYY-MM-DD
+   git merge origin/<chosen-pr-branch> …
+   git push -u origin review/YYYY-MM-DD
+   ```
+   Keep it source-only — `main.js` and `meta.json` are gitignored build artifacts.
+5. **Final scan:** on the community dashboard, press **Review branch** and choose
+   `review/YYYY-MM-DD`. Errors → fix in a PR whose base is the review branch, merge,
+   scan again.
+6. **After the final scan passes, set the version** on the review branch (one commit; no
+   separate version PR). Add `docs/releases/RELEASE_NOTES_X.Y.Z.md` and update the
+   README/guide version links. The bump touches metadata and docs only.
    ```bash
    node scripts/version-bump.mjs X.Y.Z
    node scripts/check-version-parity.mjs X.Y.Z
    ```
-   Keep the branch source-only — `main.js` and `meta.json` are gitignored build
-   artifacts; the release workflow rebuilds them.
-4. **Owner tests** the plugin built from `review/X.Y.Z`
-   (`git switch review/X.Y.Z && npm ci && npm run build`).
-5. **Official scan:** on the community dashboard, press **Review branch** and choose
-   `review/X.Y.Z`. Errors → fix in a PR, merge it into `review/X.Y.Z`, scan again.
-6. **Merge `review/X.Y.Z` into `main`** through one PR (base `main`, compare
-   `review/X.Y.Z`) with **Create a merge commit** — not squash. The included PRs are
-   then marked Merged by GitHub and their authorship is kept. If `main` moved since
-   step 1, merge `main` into the review branch first and repeat step 5.
-7. **Tag the merged `main` HEAD with an annotated tag** from the command line (a tag
+7. **Merge the review branch into `main`** through one PR (base `main`, compare
+   `review/YYYY-MM-DD`) with **Create a merge commit** — not squash. The included PRs
+   are then marked Merged by GitHub and keep their authorship. If `main` moved since
+   step 4, merge `main` into the review branch first and repeat step 5.
+8. **Tag the merged `main` HEAD with an annotated tag** from the command line (a tag
    created in the GitHub web UI is lightweight and is rejected):
    ```bash
    git switch main && git pull
@@ -148,13 +168,13 @@ commits authored `CMDSPACE <cmdspace.contact@gmail.com>`).
    git push origin refs/tags/X.Y.Z
    ```
    The tag must point to `origin/main` HEAD; merge nothing into `main` between
-   steps 6 and 7.
-8. **The release workflow does the rest.** `.github/workflows/release.yml` runs the
+   steps 7 and 8.
+9. **The release workflow does the rest.** `.github/workflows/release.yml` runs the
    full cross-platform CI (`gates`), builds, **attests build provenance** for `main.js`
    and `styles.css`, drafts the release, verifies the downloaded assets byte-for-byte,
    and publishes it as latest.
-9. **Confirm the release review** on the dashboard (Pending for over a day → **Check
-   for new releases**), then delete `review/X.Y.Z`.
+10. **Confirm the release review** on the dashboard (Pending for over a day → **Check
+   for new releases**), then delete the test and review branches.
 
 Why `main` is still required: Obsidian reads `manifest.json` from the default branch
 HEAD, and `release.yml` only publishes a tag that equals `main` HEAD.

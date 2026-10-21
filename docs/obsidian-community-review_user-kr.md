@@ -6,19 +6,21 @@ CMDS Achmage를 새 버전으로 배포할 때 Obsidian 커뮤니티 심사를 �
 
 ## 한눈에 보기
 
-**배포는 리뷰 브랜치에서 공식 심사(Review branch)를 통과한 뒤에만 합니다** (2026-10-20 오너 결정).
+**배포는 공식 심사(Review branch)를 통과한 뒤에만 합니다.** 공식 심사는 두 번 돌립니다. 오너 테스트 전에 테스트 브랜치로 한 번(사전 심사), 배포할 PR만 모은 리뷰 브랜치로 한 번(최종 심사)입니다. 버전 번호는 최종 심사를 통과한 다음에 정합니다 (2026-10-21 오너 결정).
 
 ```mermaid
 flowchart TD
-    A["팀원 PR → main 대상<br/>(PR마다 로컬 게이트 자동 실행)"] --> B["① main에서 review/X.Y.Z 만들기"]
-    B --> C["② 이번 버전에 넣을 PR을 review/X.Y.Z에 머지"]
-    C --> D["③ review/X.Y.Z에서 버전 올리기"]
-    D --> E["④ 오너가 직접 테스트"]
-    E --> F["⑤ 대시보드 Review branch로<br/>review/X.Y.Z 공식 심사"]
-    F -->|Error| C
-    F -->|통과| G["⑥ review/X.Y.Z → main 머지"]
-    G --> H["⑦ main에 태그 → 자동 배포"]
-    H --> I["⑧ 배포 후 재심사 확인, review 브랜치 삭제"]
+    A["팀원 PR → main 대상<br/>(PR마다 로컬 게이트 자동 실행)"] --> B["① test/날짜 브랜치에<br/>테스트할 PR 모으기"]
+    B --> P["② Review branch 사전 심사"]
+    P -->|Error| B
+    P -->|통과| C["③ 오너 테스트 → 배포할 PR 결정"]
+    C --> D["④ review/날짜 브랜치에<br/>배포할 PR만 머지"]
+    D --> E["⑤ Review branch 최종 심사"]
+    E -->|Error| D
+    E -->|통과| F["⑥ 버전 정하고 올리기"]
+    F --> G["⑦ review/날짜 → main 머지"]
+    G --> H["⑧ main에 태그 → 자동 배포"]
+    H --> I["⑨ 재심사 확인, test·review 브랜치 삭제"]
 ```
 
 ## 1. 심사는 어떻게 이루어지나
@@ -133,47 +135,64 @@ flowchart TD
 
 ## 5. 릴리스 절차
 
-**원칙:** 공식 심사(Review branch)를 통과한 리뷰 브랜치만 `main`에 머지하고 배포합니다.
+**원칙:** 공식 심사(Review branch)를 통과한 것만 `main`에 머지하고 배포합니다. 공식 심사는 사전 심사(테스트 브랜치)와 최종 심사(리뷰 브랜치) 두 번입니다. 버전 번호는 최종 심사를 통과한 뒤에 정합니다.
 로컬 게이트는 PR마다 자동으로 도는 보조 장치이고, 배포 여부를 판정하지 않습니다.
 
-**브랜치**
-- 팀원 PR: 지금처럼 `fix/…`, `feat/…` 브랜치에서 **`main`을 대상**으로 올립니다.
-- 리뷰 브랜치: 버전마다 **`review/X.Y.Z`** 하나. 이번 버전에 넣을 PR을 모아 테스트하고 공식 심사를 받는 곳입니다.
+**브랜치 세 가지** (팀원 PR은 항상 `main`을 대상으로 올리고, 7번에서 `main`에 머지될 때까지 열린 상태로 둡니다)
+
+| 브랜치 | 용도 | 들어가는 것 |
+| --- | --- | --- |
+| `test/YYYY-MM-DD` | 사전 심사, 오너 테스트 | 써 보고 싶은 PR 전부 |
+| `review/YYYY-MM-DD` | 최종 심사 | 배포하기로 정한 PR만 |
+| `main` | 배포 | 심사를 통과한 리뷰 브랜치 + 버전 변경 |
 
 준비 사항: `gh auth switch`로 `cmds-contact` 계정으로 바꾸고, 커밋 작성자는 `CMDSPACE <cmdspace.contact@gmail.com>`으로 합니다.
 
-1. **최신 `main`에서 리뷰 브랜치 만들기**
+1. **테스트할 PR을 `test/YYYY-MM-DD`에 모읍니다.** 최신 `main`에서 만들고, `main`에는 머지하지 않습니다.
    ```bash
    git switch main && git pull
-   git switch -c review/X.Y.Z && git push -u origin review/X.Y.Z
+   git switch -c test/YYYY-MM-DD
+   git merge origin/<PR 브랜치1> origin/<PR 브랜치2> …
+   git push -u origin test/YYYY-MM-DD
    ```
-2. **PR 리뷰 후, 이번 버전에 넣을 PR을 `review/X.Y.Z`에 머지합니다.** 아직 `main`에는 머지하지 않습니다. 준비가 안 된 PR은 빼고 다음 버전으로 넘깁니다.
-3. **`review/X.Y.Z`에서 버전 올리기** (커밋 하나, 별도 PR 필요 없음)
+   줄줄이 쌓인 PR 묶음은 맨 위 PR의 브랜치 하나만 머지하면 됩니다.
+2. **사전 심사:** 커뮤니티 대시보드에서 **Review branch**를 누르고 `test/YYYY-MM-DD`를 고릅니다.
+   오너가 테스트에 시간을 쓰기 전에 심사 Error를 미리 찾는 단계입니다.
+   Error가 나오면 해당 PR 작성자에게 PR 브랜치에서 고쳐 달라고 요청하고, 고친 브랜치를 테스트 브랜치에 다시 머지합니다.
+3. **오너가 직접 테스트하고, 배포할 PR을 정합니다.**
+   ```bash
+   npm ci && npm run build
+   ```
+   `main.js`, `manifest.json`, `styles.css`를 테스트 볼트의 `.obsidian/plugins/cmds-achmage/`에 복사합니다.
+   이번에 빠진 PR은 열린 채로 두고 다음 차례에 다시 테스트합니다.
+4. **최신 `main`에서 `review/YYYY-MM-DD`를 만들고, 배포할 PR만 머지합니다.** 테스트 브랜치가 아니라 각 PR의 브랜치에서 머지합니다.
+   ```bash
+   git switch main && git pull
+   git switch -c review/YYYY-MM-DD
+   git merge origin/<배포할 PR 브랜치> …
+   git push -u origin review/YYYY-MM-DD
+   ```
+   `main.js`와 `meta.json`은 커밋하지 않습니다. 릴리스 워크플로가 다시 빌드합니다.
+5. **최종 심사:** 커뮤니티 대시보드에서 **Review branch**를 누르고 `review/YYYY-MM-DD`를 고릅니다.
+   Error가 나오면 고치는 PR을 리뷰 브랜치 대상으로 올려 머지하고 다시 심사합니다.
+6. **최종 심사를 통과하면 버전을 정하고 리뷰 브랜치에서 올립니다** (커밋 하나, 별도 PR 필요 없음).
    ```bash
    node scripts/version-bump.mjs X.Y.Z
    node scripts/check-version-parity.mjs X.Y.Z
    ```
-   `docs/releases/RELEASE_NOTES_X.Y.Z.md`를 쓰고 README·가이드의 버전 링크도 고칩니다.
-   `main.js`와 `meta.json`은 커밋하지 않습니다. 릴리스 워크플로가 다시 빌드합니다.
-4. **오너가 직접 테스트합니다.**
-   ```bash
-   git fetch origin && git switch review/X.Y.Z && npm ci && npm run build
-   ```
-   `main.js`, `manifest.json`, `styles.css`를 테스트 볼트의 `.obsidian/plugins/cmds-achmage/`에 복사합니다.
-5. **공식 심사:** 커뮤니티 대시보드에서 **Review branch**를 누르고 `review/X.Y.Z`를 고릅니다.
-   Error가 나오면 고치는 PR을 `review/X.Y.Z`에 머지하고 다시 심사합니다.
-6. **`review/X.Y.Z` → `main` PR을 만들어 머지합니다.** 머지 방식은 반드시 **Create a merge commit**입니다(Squash 금지).
+   `docs/releases/RELEASE_NOTES_X.Y.Z.md`를 쓰고 README·가이드의 버전 링크도 고칩니다. 메타데이터와 문서만 바뀌므로 심사를 다시 받지 않아도 됩니다.
+7. **`review/YYYY-MM-DD` → `main` PR을 만들어 머지합니다.** 머지 방식은 반드시 **Create a merge commit**입니다(Squash 금지).
    그래야 포함된 PR들이 GitHub에서 Merged로 표시되고 작성자 기록이 남습니다.
-   1번 이후 `main`이 바뀌었다면 `main`을 리뷰 브랜치에 먼저 받아 오고 5번을 다시 합니다.
-7. **`main`에 annotated 태그를 달고 push합니다.** GitHub 웹 화면에서 만든 태그는 일반 태그라서 워크플로가 거부하니, 반드시 명령어로 만듭니다.
+   4번 이후 `main`이 바뀌었다면 `main`을 리뷰 브랜치에 먼저 받아 오고 5번을 다시 합니다.
+8. **`main`에 annotated 태그를 달고 push합니다.** GitHub 웹 화면에서 만든 태그는 일반 태그라서 워크플로가 거부하니, 반드시 명령어로 만듭니다.
    ```bash
    git switch main && git pull
    git tag -a X.Y.Z -m "CMDS Achmage X.Y.Z"
    git push origin refs/tags/X.Y.Z
    ```
-   태그는 `origin/main` HEAD를 가리켜야 합니다. **6번과 7번 사이에는 `main`에 아무것도 머지하지 않습니다.**
-8. **나머지는 릴리스 워크플로가 처리합니다.** `.github/workflows/release.yml`이 전체 CI, 빌드, 출처 증명(attestation), 파일 검증, 공개를 차례로 합니다.
-9. **배포 후 대시보드에서 재심사 결과를 확인하고 `review/X.Y.Z`를 지웁니다.**
+   태그는 `origin/main` HEAD를 가리켜야 합니다. **7번과 8번 사이에는 `main`에 아무것도 머지하지 않습니다.**
+9. **나머지는 릴리스 워크플로가 처리합니다.** `.github/workflows/release.yml`이 전체 CI, 빌드, 출처 증명(attestation), 파일 검증, 공개를 차례로 합니다.
+10. **배포 후 대시보드에서 재심사 결과를 확인하고, test·review 브랜치를 지웁니다.**
    Pending이 하루 넘게 바뀌지 않으면 **Check for new releases**를 누릅니다.
 
 **왜 `main`을 거쳐야 하나:** Obsidian은 기본 브랜치(`main`) HEAD의 `manifest.json`을 읽고, `release.yml`은 태그가 `main` HEAD와 같아야 배포합니다.
