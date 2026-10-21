@@ -1,5 +1,11 @@
 # Repository Instructions
 
+## Pull request scope
+
+Size each PR so a reviewer can understand its purpose and request changes from
+the PR alone. Do not fragment one feature into many PRs; keep unrelated features
+apart, and separate changes that need the owner's hands-on testing.
+
 ## Mandatory research gate
 
 Before planning or implementing any non-trivial change in this repository:
