@@ -6,14 +6,15 @@ CMDS Achmage를 새 버전으로 배포할 때 Obsidian 커뮤니티 심사를 �
 
 ## 한눈에 보기
 
-**배포는 공식 심사(Review branch)를 통과한 뒤에만 합니다.** 공식 심사는 두 번 돌립니다. 오너 테스트 전에 테스트 브랜치로 한 번(사전 심사), 배포할 PR만 모은 리뷰 브랜치로 한 번(최종 심사)입니다. 버전 번호는 최종 심사를 통과한 다음에 정합니다 (2026-10-21 오너 결정).
+**배포는 공식 심사(Review branch)를 통과한 뒤에만 합니다.** 공식 심사는 두 번 돌립니다. 오너 테스트와 함께 테스트 브랜치로 한 번(사전 심사), 배포할 PR만 모은 리뷰 브랜치로 한 번(최종 심사)입니다. 버전 번호는 최종 심사를 통과한 다음에 정합니다 (2026-10-21 오너 결정).
 
 ```mermaid
 flowchart TD
     A["팀원 PR → main 대상<br/>(PR마다 로컬 게이트 자동 실행)"] --> B["① test/날짜 브랜치에<br/>테스트할 PR 모으기"]
     B --> P["② Review branch 사전 심사"]
-    P -->|Error| B
-    P -->|통과| C["③ 오너 테스트 → 배포할 PR 결정"]
+    B --> T["② 오너 테스트"]
+    P --> C["③ 테스트 결과와 사전 심사 결과로<br/>배포할 PR 결정"]
+    T --> C
     C --> D["④ review/날짜 브랜치에<br/>배포할 PR만 머지"]
     D --> E["⑤ Review branch 최종 심사"]
     E -->|Error| D
@@ -142,7 +143,7 @@ flowchart TD
 
 | 브랜치 | 용도 | 들어가는 것 |
 | --- | --- | --- |
-| `test/YYYY-MM-DD` | 사전 심사, 오너 테스트 | 써 보고 싶은 PR 전부 |
+| `test/YYYY-MM-DD` | 사전 심사와 오너 테스트 (동시에) | 써 보고 싶은 PR 전부 |
 | `review/YYYY-MM-DD` | 최종 심사 | 배포하기로 정한 PR만 |
 | `main` | 배포 | 심사를 통과한 리뷰 브랜치 + 버전 변경 |
 
@@ -156,15 +157,15 @@ flowchart TD
    git push -u origin test/YYYY-MM-DD
    ```
    줄줄이 쌓인 PR 묶음은 맨 위 PR의 브랜치 하나만 머지하면 됩니다.
-2. **사전 심사:** 커뮤니티 대시보드에서 **Review branch**를 누르고 `test/YYYY-MM-DD`를 고릅니다.
-   오너가 테스트에 시간을 쓰기 전에 심사 Error를 미리 찾는 단계입니다.
-   Error가 나오면 해당 PR 작성자에게 PR 브랜치에서 고쳐 달라고 요청하고, 고친 브랜치를 테스트 브랜치에 다시 머지합니다.
-3. **오너가 직접 테스트하고, 배포할 PR을 정합니다.**
-   ```bash
-   npm ci && npm run build
-   ```
-   `main.js`, `manifest.json`, `styles.css`를 테스트 볼트의 `.obsidian/plugins/cmds-achmage/`에 복사합니다.
-   이번에 빠진 PR은 열린 채로 두고 다음 차례에 다시 테스트합니다.
+2. **사전 심사와 오너 테스트를 함께 진행합니다.** 사전 심사 결과를 기다렸다가 테스트하는 것이 아닙니다.
+   - **사전 심사:** 커뮤니티 대시보드에서 **Review branch**를 누르고 `test/YYYY-MM-DD`를 고릅니다. 심사에서 걸릴 문제를 미리 찾습니다.
+   - **오너 테스트:** 같은 브랜치를 빌드해서 직접 써 봅니다.
+     ```bash
+     npm ci && npm run build
+     ```
+     `main.js`, `manifest.json`, `styles.css`를 테스트 볼트의 `.obsidian/plugins/cmds-achmage/`에 복사합니다.
+3. **테스트 결과와 사전 심사 결과를 보고 배포할 PR을 정합니다.**
+   심사 Error가 나온 PR은 작성자가 PR 브랜치에서 고치거나, 다음 차례로 넘깁니다. 이번에 빠진 PR은 열린 채로 둡니다.
 4. **최신 `main`에서 `review/YYYY-MM-DD`를 만들고, 배포할 PR만 머지합니다.** 테스트 브랜치가 아니라 각 PR의 브랜치에서 머지합니다.
    ```bash
    git switch main && git pull

@@ -106,7 +106,8 @@ this plugin they are legitimate, but a human reviewer may ask about them:
 
 **Decision (2026-10-21, owner):** a release ships only after the **official review**
 passes. The dashboard's **Review branch** scan is that official check, run twice:
-once on the owner-test branch as a pre-check, and once on the release candidate; the local gate
+once on the owner-test branch as a pre-check (alongside owner testing), and once on
+the release candidate; the local gate
 above is the per-PR safety net, not the release gate. The version number is chosen
 only after the scan passes.
 
@@ -114,7 +115,7 @@ Three branch roles (team PRs always target `main`; PRs stay open until they reac
 
 | Branch | Purpose | Contains |
 | --- | --- | --- |
-| `test/YYYY-MM-DD` | Pre-check scan, then owner hands-on testing | Every PR the owner wants to try |
+| `test/YYYY-MM-DD` | Pre-check scan and owner hands-on testing, in parallel | Every PR the owner wants to try |
 | `review/YYYY-MM-DD` | Final Review branch scan | Only the PRs chosen for release |
 | `main` | Release | The passed review branch plus the version bump |
 
@@ -130,13 +131,15 @@ commits authored `CMDSPACE <cmdspace.contact@gmail.com>`).
    git push -u origin test/YYYY-MM-DD
    ```
    A stacked PR series needs only its top branch.
-2. **Pre-check scan:** on the community dashboard, press **Review branch** and choose
-   `test/YYYY-MM-DD`. This finds review Errors before the owner spends time testing.
-   Errors → ask the PR author to fix them on their PR branch, then re-merge it into
-   the test branch.
-3. **Owner tests** the plugin built from that branch
-   (`npm ci && npm run build`, copy `main.js`, `manifest.json`, `styles.css` into a test
-   vault) and **decides which PRs ship**. The rest stay open for a later round.
+2. **Start the pre-check scan and owner testing in parallel.** The scan does not gate
+   testing.
+   - **Pre-check scan:** on the community dashboard, press **Review branch** and choose
+     `test/YYYY-MM-DD`. It surfaces review Errors early.
+   - **Owner tests** the plugin built from the same branch (`npm ci && npm run build`,
+     copy `main.js`, `manifest.json`, `styles.css` into a test vault).
+3. **Decide which PRs ship**, using both the test results and the pre-check report. A PR
+   with a review Error either gets fixed by its author on its PR branch or waits for a
+   later round. The rest stay open.
 4. **Build the review branch from the latest `main` with only the chosen PRs**, merged
    from their own PR branches (not from the test branch):
    ```bash
