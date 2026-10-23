@@ -510,6 +510,46 @@ describe('CodexMessageAdapter', () => {
     })
   })
 
+  it('fails when Codex substitutes another GPT-6 model', async () => {
+    const adapter = new CodexMessageAdapter({
+      fetchFn: makeSseFetch([
+        {
+          type: 'response.created',
+          response: responsePayload({ model: 'gpt-6-sol' }),
+        },
+      ]),
+    })
+
+    await expect(
+      adapter.generateResponse({
+        model: 'gpt-6.1-sol',
+        messages: [],
+        reasoning_effort: 'medium',
+      }),
+    ).rejects.toMatchObject({ code: 'model_mismatch', model: 'gpt-6.1-sol' })
+  })
+
+  it('accepts a dated snapshot of the requested model', async () => {
+    const snapshot = responsePayload({
+      model: 'gpt-6.1-sol-2026-09-29',
+      outputText: 'OK',
+    })
+    const adapter = new CodexMessageAdapter({
+      fetchFn: makeSseFetch([
+        { type: 'response.created', response: snapshot },
+        { type: 'response.completed', response: snapshot },
+      ]),
+    })
+
+    const response = await adapter.generateResponse({
+      model: 'gpt-6.1-sol',
+      messages: [],
+      reasoning_effort: 'medium',
+    })
+
+    expect(response.model).toBe('gpt-6.1-sol-2026-09-29')
+  })
+
   it('fails non-streaming and streaming calls when the SSE ends early', async () => {
     const events = [
       {

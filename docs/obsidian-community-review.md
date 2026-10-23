@@ -106,6 +106,21 @@ this plugin they are legitimate, but a human reviewer may ask about them:
 Prerequisites: the fix is ready, and your git author is the org account
 (`gh auth switch` to `cmds-contact`; commits authored `CMDSPACE <cmdspace.contact@gmail.com>`).
 
+0. **Check what else is in flight.** Run the preflight with the version you plan
+   to cut:
+   ```bash
+   npm run release:preflight -- X.Y.Z
+   ```
+   It fails on open pull requests against `main`, remote branches with commits
+   `main` lacks, and research report IDs that two different files claim on any
+   branch. Merge or close each item, or ship without it on purpose by passing
+   `--ack <PR number | branch | R-###>`. Put the decision in the release PR
+   description. (1.3.0 shipped while PR #41 was open and reused its research
+   IDs; this step exists because of that. See R-051.)
+   It also fails if the tag `X.Y.Z` already exists. The pre-rebrand Smart
+   Composer tags `1.4.0` and `2.0.0`–`2.6.6-test.3` are still in this
+   repository, so skip those numbers.
+
 1. **Bump the version.** Updates `manifest.json`, `versions.json`, `package.json`, and
    `package-lock.json` together:
    ```bash
