@@ -5,6 +5,7 @@
 // catches both before tagging, from git and GitHub state alone (R-051).
 //
 //   node scripts/release-preflight.mjs                    # report, exit 1 on findings
+//   node scripts/release-preflight.mjs 1.5.0              # also check the target version
 //   node scripts/release-preflight.mjs --ack 41 --ack feat/x   # acknowledged items pass
 //
 // Checks:
@@ -12,16 +13,23 @@
 //   2. Remote branches with commits that main does not have.
 //   3. Research report IDs that two different files claim, across main and
 //      every remote branch.
+//   4. With a target version: no tag of that name exists on origin. The
+//      pre-rebrand Smart Composer tags (1.4.0, 2.0.0–2.6.x) are still there,
+//      so the next minor after 1.3.x is not automatically free (R-051).
 // Items passed with --ack are still printed but do not fail the run, so a
-// deliberate "ship without #41" decision is written in the command line.
+// deliberate "ship without #41" decision is written in the command line. A
+// taken tag cannot be acknowledged.
 import { execFileSync } from 'node:child_process'
 
 const args = process.argv.slice(2)
 const acknowledged = new Set()
+let targetVersion = null
 for (let index = 0; index < args.length; index += 1) {
   if (args[index] === '--ack' && args[index + 1]) {
     acknowledged.add(args[index + 1].replace(/^#/, ''))
     index += 1
+  } else if (!args[index].startsWith('--')) {
+    targetVersion = args[index]
   }
 }
 
@@ -100,12 +108,32 @@ for (const [id, slugs] of [...owners].sort()) {
   report(id, `Research ID ${id} is claimed by different reports: ${claims}`)
 }
 
+// 4. Target version tag.
+if (targetVersion) {
+  const taken = run('git', [
+    'ls-remote',
+    '--tags',
+    'origin',
+    `refs/tags/${targetVersion}`,
+  ])
+  if (taken) {
+    findings.push({
+      ok: false,
+      message: `Tag ${targetVersion} already exists on origin; choose an unused version`,
+    })
+  }
+} else {
+  console.log('SKIP Target version tag check (pass the version, e.g. 1.5.0)')
+}
+
 const blocking = findings.filter((finding) => !finding.ok)
 for (const finding of findings) {
   console.log(`${finding.ok ? 'ACK ' : 'FAIL'} ${finding.message}`)
 }
 if (findings.length === 0) {
-  console.log('Release preflight clean: no open PRs, unmerged branches, or research ID collisions.')
+  console.log(
+    'Release preflight clean: no open PRs, unmerged branches, research ID collisions, or taken version tag.',
+  )
 }
 if (blocking.length > 0) {
   console.error(

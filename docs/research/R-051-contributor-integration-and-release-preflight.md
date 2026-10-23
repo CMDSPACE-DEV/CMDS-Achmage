@@ -6,12 +6,15 @@
   community-review gate, a live Claude Plan session check, and an offline
   migration run on a real vault are done. A live Team/Enterprise account and a
   live Eagle 1.8.4 upload are pending.
-- Planning use: **Mandatory for 1.4.0 release review**; read with R-044, R-045,
-  R-046, R-049, and R-050.
+- Planning use: **Mandatory for the release review of this integration**
+  (planned as 1.4.0, now proposed as 1.5.0); read with R-044, R-045, R-046,
+  R-049, R-050, and R-052.
 - Investigation date: 2026-10-14
 - Repository baseline: `main` at `66b9c59` (1.3.0, settings schema 32); branch
   `integration/1.4.0`
-- Target release: 1.4.0 (maintainer review before merge and tag)
+- Target release: originally 1.4.0. The tag `1.4.0` already exists (see
+  "Re-integration onto 1.3.2"), so 1.5.0 is proposed. The version is set on the
+  release branch after the official review scan, not in this PR.
 
 ## Executive Summary
 
@@ -83,12 +86,41 @@ schema (R-044 Known Unknowns).
   - Selections unchanged: chat `gpt-6.1-sol (plan)` and image
     `gpt-5.6-sol (plan)`.
 
+## Re-integration onto 1.3.2 (2026-10-23)
+
+1.3.1 and 1.3.2 shipped from `main` while this branch waited.
+`origin/main` at `2b3e618` (1.3.2, settings schema 32) was merged into the
+branch as a merge commit, so the branch and PR #55, which targets it, keep their
+history.
+
+| Area | Result |
+| --- | --- |
+| #38 organization opt-in | Already on `main` through #56 (1.3.1), built from this branch's `49fcb76` plus R-052. `main`'s version is kept, including its R-049 report with the owner's live macOS Team run (E-09). |
+| #39 changes in `ClaudeAgentProvider.ts`, `NativeRuntimeAuth.ts`, `openaiCodexProvider.ts` | Replayed onto `main`'s files as a three-way merge of `66b9c59` → `238a6d0`, the #39 merge, so no #38 or R-052 line is taken from this branch. The `as T` cast and the `Reasoning` import stay removed, as `main` (#59) did. |
+| Settings migration | `main` is still schema 32, so `32_to_33` keeps its number. |
+| Research IDs | R-046, R-048, R-050, and R-051 are still unused on `main`. Open PRs use R-058 to R-062. No renumbering. |
+| PR #55 | Merged into the branch. Its macOS smoke fixture answers plain `agy models`, which #39 now calls. |
+| Version | The `1.4.0` bump is removed. `manifest.json`, `package.json`, `package-lock.json`, and `versions.json` equal `main`. |
+
+**`1.4.0` is already a tag.** It is the pre-rebrand tag
+`Smart_composer_Achmage v1.4.0` (2026-07-20, manifest id `smart-composer`). The
+pre-rebrand `2.0.0` to `2.6.6-test.3` tags also remain. `docs/releases/RELEASE_NOTES_1.4.0.md`
+on `main` is that release's notes; the branch had overwritten it, and it is now
+restored. Releasing this branch as 1.4.0 would therefore fail at the tag step
+or attach to unrelated code. 1.5.0 is proposed instead, and preflight check 4
+(below) now catches a taken tag.
+
+The owner decided on 2026-10-21 (PR #107) that the version is chosen only
+after the official review-branch scan passes and is set on that branch. The
+bump and the release notes draft therefore leave this PR; the draft moves to
+the PR description.
+
 ## Pending Before Release
 
 - Maintainer review of the flagged decisions: Antigravity Claude rows, pinned
-  Claude Plan entries enabled by default, and version 1.4.0 versus 1.3.1.
-- Live Team/Enterprise account on macOS and Windows: Ready after opt-in, one
-  request, and revocation (R-049 E-09).
+  Claude Plan entries enabled by default, and the proposed version (1.5.0).
+- Live Team/Enterprise account: macOS Team is verified (R-049 E-09). Windows
+  Team and any Enterprise login are pending.
 - Live Eagle 1.8.4 install: inline auto-upload, the chat CMDS R2 button, and
   local image kept on failure (R-046).
 - Hosted CI on the release PR.
@@ -101,7 +133,9 @@ release procedure in `docs/obsidian-community-review.md`. It exits non-zero on:
 
 1. open pull requests against `main`;
 2. remote branches with commits `main` lacks;
-3. a research ID claimed by different report files on any branch.
+3. a research ID claimed by different report files on any branch;
+4. with a target version argument (`npm run release:preflight -- 1.5.0`), a
+   tag of that name already on `origin`. This one cannot be acknowledged.
 
 `--ack <PR | branch | R-###>` records a deliberate exclusion. Run against
 1.3.0's state, it reports PR #41 and the R-044/R-045 collisions. The global
@@ -120,3 +154,6 @@ fields of the init event. The migration dry run printed model ids only.
 ## Change Log
 
 - 2026-10-14: Initial report.
+- 2026-10-23: Re-integrated onto 1.3.2. Recorded the existing `1.4.0` tag,
+  restored the pre-rebrand 1.4.0 release notes, removed the version bump,
+  proposed 1.5.0, merged PR #55, and added preflight check 4.
