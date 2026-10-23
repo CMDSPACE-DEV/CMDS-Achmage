@@ -15,8 +15,9 @@ R-029 is mandatory for Antigravity updater, ready-state UX, and the 2.6.5
 patch or release. R-044 and R-050 are mandatory for the chat model catalog,
 Plan model selection, model discovery, and the Anthropic API request shape.
 R-049 is mandatory for Claude Plan authentication classification and partially
-supersedes R-027's Team/Enterprise row. R-051 records how contributor work was
-integrated into 1.4.0 and the release-process safeguard added after 1.3.0.
+supersedes R-027's Team/Enterprise row. R-052 is mandatory for Claude Plan
+authentication and environment preparation. R-051 records how contributor work
+was integrated into 1.4.0 and the release-process safeguard added after 1.3.0.
 
 ## Purpose
 
@@ -74,11 +75,22 @@ premature synthesis.
 | R-045 | Optional research credentials (Korean Law OC, OpenAlex key), device-local SecretStorage vs synced settings, Codex catalog client 0.162.1, Claude Haiku 5.5, and the 2026-10-12 Plan lineup check | **Verified for research connections; model items partially verified (no Anthropic key)** | **Mandatory for Research Connections credential handling**; read with R-044 for model catalog work | [R-045 report](R-045-optional-research-credentials-and-device-local-secrets.md) |
 | R-046 | Eagle 1.8.4 cloud upload rejected by a 1.7-only guard; capability detection and local hotfix | **Verified source, 850 tests, build and offline installed-provider integration; live UI/network untested** | **Mandatory for Eagle cloud bridge changes** | [R-046 report](R-046-eagle-cloud-api-version-compatibility.md) |
 | R-048 | Plan/model catalog/Eagle integration for a proposed 1.3 update | **Locally verified; hosted CI and live release checks remain separate** | **Mandatory for this integration PR** | [R-048 report](R-048-plan-models-eagle-integration.md) |
-| R-049 | Claude Team/Enterprise organization login opt-in: corrected classification (issue #38), device-local consent, managed settings for organization logins, `system/init` session guard; partially supersedes R-027's Team/Enterprise row | **Partially verified; source, 2.1.285 executable inspection, first-party documentation, and fixture tests complete; live Team/Enterprise validation pending** | **Mandatory for Claude Plan auth** | [R-049 report](R-049-claude-organization-plan-opt-in.md) |
+| R-049 | Claude Team/Enterprise organization login opt-in: corrected classification (issue #38), device-local consent, managed settings for organization logins, `system/init` session guard; partially supersedes R-027's Team/Enterprise row | **Partially verified; source, 2.1.285 executable inspection, first-party documentation, fixture tests, and a live macOS Team run (owner, E-09) complete; Windows Team and Enterprise live validation pending** | **Mandatory for Claude Plan auth** | [R-049 report](R-049-claude-organization-plan-opt-in.md) |
 | R-050 | Model catalog refresh 2026-10 (issue #39): Claude Plan pinned models and effort fix, GPT Plan capability table (GPT-6), Antigravity 1.2 catalog and endpoint guard, Anthropic API request shape and thinking replay, retired models, prices, schema 32 | **Partially verified; first-party sources, local Claude Code 2.1.285 and Antigravity 1.2.14 probes, and 838 local tests complete; GPT-6 on the Codex OAuth path and live API-key requests pending** | **Mandatory for chat model catalog and Plan model work** | [R-050 report](R-050-model-catalog-refresh-2026-10.md) |
 | R-051 | Integrating PR #41 (R-049, R-050, R-046) onto 1.3.0, research ID renumbering, Codex-catalog effort decision, and the release preflight that checks open PRs, unmerged branches, and research ID collisions | **Partially verified; local gates, live Claude Plan init check, and offline real-vault migration done; live Team/Enterprise and Eagle 1.8.4 pending** | **Mandatory for 1.4.0 release review** | [R-051 report](R-051-contributor-integration-and-release-preflight.md) |
+| R-052 | Claude Plan reads the terminal's `CLAUDE_CONFIG_DIR` on macOS: Obsidian launched from the Dock misses shell-only variables, so diagnosis read a different (signed-out) login; the plugin now copies only that variable from the login shell | **Partially verified; owner-run M5 commands, real-Obsidian M1 checks, and 219 native tests complete; fixed-build M5 check pending** | **Mandatory for Claude Plan auth and environment preparation** | [R-052 report](R-052-claude-config-dir-gui-environment.md) |
+| R-053 | MCP Streamable HTTP negotiation with legacy SSE fallback and desktop transport preservation | **Verified for source and local integration; Obsidian smoke pending** | **Mandatory for MCP transport negotiation** | [R-053 report](R-053-mcp-streamable-http-sse-fallback.md) |
+| R-054 | Obsidian 1.13 declarative settings search via one `render` row hosting the existing React settings UI (display() kept for < 1.13), and native runtime executable path moved to `App#saveLocalStorage` with one-time legacy raw-key migration | **Partially verified; typings, reviewer rules, and unit tests verified; live Obsidian 1.13 rendering pending** | **Mandatory for the settings tab entry point and the native runtime path store** | [R-054 report](R-054-declarative-settings-and-runtime-path-storage.md) |
+| R-056 | Dependency replacements, advisory paths, compatibility proofs and 1.3.1 bundle plan | **Partially verified; automated checks, desktop smoke pending** | **Mandatory for #18 and #14 integration** | [R-056 report](R-056-dependency-replacement-and-advisories.md) |
+| R-055 | Exact cl100k rank Brotli compression with lazy decoding and a 1.3.1 bundle budget | **Partially verified; compiled-data parity checked, real Obsidian startup pending** | **Mandatory for #14 and production bundle changes** | [R-055 report](R-055-main-js-bundle-size.md) |
 
 ## Mandatory Synthesis Rule
+
+### New scoped reports
+
+| ID | Topic | Status | Planning use | Report |
+| --- | --- | --- | --- | --- |
+| R-057 | Inline static stylesheet loading and 1.3.1 review gate regression | **Partially verified; automated and live checks tracked in report** | **Mandatory for inline stylesheet loading** | [R-057 report](R-057-inline-style-review.md) |
 
 Do not create the final large-scale roadmap until the user explicitly asks for
 the synthesis. At that point:

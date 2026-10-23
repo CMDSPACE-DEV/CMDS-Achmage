@@ -193,7 +193,7 @@ const upsertInlineSession = StateEffect.define<InlineSession>()
 const removeInlineSession = StateEffect.define<string>()
 const recordInlineInsertion = StateEffect.define<AcceptedInlineInsertion>()
 
-class InlineEditWidget extends WidgetType {
+export class InlineEditWidget extends WidgetType {
   private themeObserver: MutationObserver | null = null
 
   constructor(private readonly session: InlineSession) {
@@ -226,7 +226,7 @@ class InlineEditWidget extends WidgetType {
 
   toDOM(view: EditorView): HTMLElement {
     const doc = view.dom.ownerDocument
-    const host = doc.createElement('div')
+    const host = doc.win.createDiv()
     host.className = 'smtcmp-inline-host'
     const applySkin = () => {
       const { skin, accent, glow } = resolveInlineAppearance(doc.body)
@@ -243,12 +243,9 @@ class InlineEditWidget extends WidgetType {
         attributeFilter: ['class', ...APPEARANCE_BODY_ATTRS],
       })
     }
-    const shadow = host.attachShadow({ mode: 'open' })
-    const style = doc.createElement('style')
-    style.textContent = INLINE_STYLE
-    shadow.appendChild(style)
+    // Obsidian loads the scoped inline UI rules from styles.css.
 
-    const panel = doc.createElement('section')
+    const panel = doc.win.createEl('section')
     panel.className = 'panel'
     panel.dataset.status = this.session.status
     if (this.session.documentTask) {
@@ -256,7 +253,7 @@ class InlineEditWidget extends WidgetType {
     }
     panel.setAttribute('aria-live', 'polite')
     panel.setAttribute('aria-label', 'CMDS Achmage inline edit')
-    shadow.appendChild(panel)
+    host.appendChild(panel)
 
     panel.appendChild(makeHeader(doc, this.session))
     if (
@@ -273,13 +270,13 @@ class InlineEditWidget extends WidgetType {
     ) {
       const draft = this.session.getDraft()
       if (this.session.status === 'clarification') {
-        const question = doc.createElement('p')
+        const question = doc.win.createEl('p')
         question.className = 'question'
         question.textContent =
           this.session.clarification ?? 'Please clarify the requested edit.'
         panel.appendChild(question)
       }
-      const input = doc.createElement('textarea')
+      const input = doc.win.createEl('textarea')
       input.className = 'prompt'
       input.setAttribute('aria-label', 'Inline edit instruction')
       input.placeholder =
@@ -297,9 +294,9 @@ class InlineEditWidget extends WidgetType {
         this.session.status === 'clarification'
           ? this.session.referenceScope
           : draft.referenceScope
-      const promptSurface = doc.createElement('div')
+      const promptSurface = doc.win.createDiv()
       promptSurface.className = 'prompt-surface'
-      const promptReferenceEcho = doc.createElement('div')
+      const promptReferenceEcho = doc.win.createDiv()
       promptReferenceEcho.className = 'prompt-reference-echo'
       promptReferenceEcho.setAttribute('aria-hidden', 'true')
       const refreshPromptReferenceEcho = () => {
@@ -324,20 +321,20 @@ class InlineEditWidget extends WidgetType {
       // Output: text edit (default) or an image job (R-038).
       let outputMode: 'text' | 'image' = 'text'
       let selectedImageTemplate = this.session.defaultImageTemplateId ?? ''
-      const templateRow = doc.createElement('div')
+      const templateRow = doc.win.createDiv()
       templateRow.className = 'mode-row template-row'
-      const templateLabel = doc.createElement('span')
+      const templateLabel = doc.win.createSpan()
       templateLabel.className = 'mode-label'
       templateLabel.textContent = 'Guide template'
-      const templateSelect = doc.createElement('select')
+      const templateSelect = doc.win.createEl('select')
       templateSelect.className = 'template-select'
       templateSelect.setAttribute('aria-label', 'Image prompt template')
-      const noneOption = doc.createElement('option')
+      const noneOption = doc.win.createEl('option')
       noneOption.value = ''
       noneOption.textContent = 'No template'
       templateSelect.append(noneOption)
       for (const template of this.session.imageTemplates ?? []) {
-        const option = doc.createElement('option')
+        const option = doc.win.createEl('option')
         option.value = template.id
         option.textContent = template.name
         templateSelect.append(option)
@@ -379,7 +376,7 @@ class InlineEditWidget extends WidgetType {
       scopeControl.setEstimatedFiles(
         countReferencedMarkdownFiles(this.session.app, selectedReferences),
       )
-      const referenceRegion = doc.createElement('div')
+      const referenceRegion = doc.win.createDiv()
       referenceRegion.className = 'reference-region'
       let picker: ReturnType<typeof mountInlineReferencePicker> | null = null
       if (this.session.status === 'prompt') {
@@ -410,7 +407,7 @@ class InlineEditWidget extends WidgetType {
           referenceRegion.append(makeReferenceStatus(doc, this.session))
         }
       }
-      const actions = doc.createElement('div')
+      const actions = doc.win.createDiv()
       actions.className = 'actions'
       const cancel = makeButton(
         doc,
@@ -486,11 +483,11 @@ class InlineEditWidget extends WidgetType {
     } else if (this.session.status === 'image-task') {
       const task = this.session.imageTask
       const artifact = this.session.imageArtifact
-      const box = doc.createElement('div')
+      const box = doc.win.createDiv()
       box.className = 'image-progress'
-      const status = doc.createElement('div')
+      const status = doc.win.createDiv()
       status.className = 'document-progress__status'
-      const title = doc.createElement('strong')
+      const title = doc.win.createEl('strong')
       title.textContent = !task
         ? 'Preparing image brief'
         : task.status === 'awaiting-destination'
@@ -500,7 +497,7 @@ class InlineEditWidget extends WidgetType {
             : task.status === 'canceled'
               ? 'Canceled'
               : 'Generating image'
-      const detail = doc.createElement('small')
+      const detail = doc.win.createEl('small')
       detail.textContent =
         task?.progress?.message ??
         task?.error ??
@@ -510,7 +507,7 @@ class InlineEditWidget extends WidgetType {
       const busy =
         !task || task.status === 'queued' || task.status === 'running'
       if (busy) {
-        const meter = doc.createElement('progress')
+        const meter = doc.win.createEl('progress')
         meter.removeAttribute('value')
         meter.setAttribute('aria-label', 'Generating image')
         box.append(meter)
@@ -519,9 +516,9 @@ class InlineEditWidget extends WidgetType {
       if (artifactPath) {
         const file = this.session.app.vault.getAbstractFileByPath(artifactPath)
         if (file instanceof TFile) {
-          const preview = doc.createElement('div')
+          const preview = doc.win.createDiv()
           preview.className = 'image-preview'
-          const img = doc.createElement('img')
+          const img = doc.win.createEl('img')
           img.src = this.session.app.vault.getResourcePath(file)
           img.alt = 'Generated image preview'
           img.draggable = true
@@ -532,7 +529,7 @@ class InlineEditWidget extends WidgetType {
           box.append(preview)
         }
       }
-      const actions = doc.createElement('div')
+      const actions = doc.win.createDiv()
       actions.className = 'actions'
       const acts = this.session.imageActions
       if (
@@ -578,13 +575,13 @@ class InlineEditWidget extends WidgetType {
     } else if (this.session.status === 'large-confirm') {
       const analysis = this.session.documentAnalysis
       if (!analysis) throw new Error('Large-edit analysis is unavailable.')
-      const preflight = doc.createElement('div')
+      const preflight = doc.win.createDiv()
       preflight.className = 'document-preflight'
-      const message = doc.createElement('p')
+      const message = doc.win.createEl('p')
       message.className = 'document-preflight__message'
       message.textContent =
         'This selection is safer as a resumable document job. Every section is checkpointed and the original note stays unchanged until you approve a result.'
-      const metrics = doc.createElement('div')
+      const metrics = doc.win.createDiv()
       metrics.className = 'document-metrics'
       metrics.append(
         makeMetric(
@@ -605,7 +602,7 @@ class InlineEditWidget extends WidgetType {
             : 'Synthesis / insertion',
         ),
       )
-      const strategy = doc.createElement('div')
+      const strategy = doc.win.createDiv()
       strategy.className = 'document-strategy'
       strategy.setAttribute('role', 'group')
       strategy.setAttribute('aria-label', 'Document edit strategy')
@@ -622,11 +619,11 @@ class InlineEditWidget extends WidgetType {
         analysis.strategy === 'transform' ? 'primary' : 'secondary',
       )
       strategy.append(synthesis, transform)
-      const reason = doc.createElement('small')
+      const reason = doc.win.createEl('small')
       reason.className = 'document-preflight__reason'
       reason.textContent = analysis.reason
       preflight.append(message, metrics, strategy, reason)
-      const actions = doc.createElement('div')
+      const actions = doc.win.createDiv()
       actions.className = 'actions'
       actions.append(
         makeButton(
@@ -653,18 +650,18 @@ class InlineEditWidget extends WidgetType {
       panel.append(preflight, actions)
     } else if (this.session.status === 'document-task') {
       const task = this.session.documentTask
-      const progress = doc.createElement('div')
+      const progress = doc.win.createDiv()
       progress.className = 'document-progress'
-      const status = doc.createElement('div')
+      const status = doc.win.createDiv()
       status.className = 'document-progress__status'
-      const title = doc.createElement('strong')
+      const title = doc.win.createEl('strong')
       title.textContent = getDocumentTaskTitle(task)
-      const detail = doc.createElement('small')
+      const detail = doc.win.createEl('small')
       detail.textContent =
         task?.progress?.message ??
         (task ? task.status.replace(/-/g, ' ') : 'Preparing task')
       status.append(title, detail)
-      const meter = doc.createElement('progress')
+      const meter = doc.win.createEl('progress')
       meter.max = Math.max(1, task?.progress?.total ?? 1)
       meter.value = Math.max(0, task?.progress?.current ?? 0)
       meter.setAttribute(
@@ -673,12 +670,12 @@ class InlineEditWidget extends WidgetType {
       )
       progress.append(status, meter)
       if (this.session.referenceWarnings.length > 0) {
-        const warnings = doc.createElement('div')
+        const warnings = doc.win.createDiv()
         warnings.className = 'document-warnings'
         warnings.textContent = this.session.referenceWarnings.join(' · ')
         progress.append(warnings)
       }
-      const actions = doc.createElement('div')
+      const actions = doc.win.createDiv()
       actions.className = 'actions'
       if (task?.status === 'running' || task?.status === 'queued') {
         actions.append(
@@ -752,18 +749,18 @@ class InlineEditWidget extends WidgetType {
       )
       panel.append(progress, actions)
     } else if (this.session.status === 'document-review') {
-      const review = doc.createElement('div')
+      const review = doc.win.createDiv()
       review.className = 'document-ready'
-      const title = doc.createElement('strong')
+      const title = doc.win.createEl('strong')
       title.textContent = 'Document draft ready'
-      const detail = doc.createElement('p')
+      const detail = doc.win.createEl('p')
       detail.textContent =
         'The complete result was assembled from checkpointed sections. Review the draft before replacing the source selection.'
-      const path = doc.createElement('small')
+      const path = doc.win.createEl('small')
       path.textContent =
         this.session.documentDraftPath ?? 'Recoverable result saved'
       review.append(title, detail, path)
-      const actions = doc.createElement('div')
+      const actions = doc.win.createDiv()
       actions.className = 'actions'
       actions.append(
         makeButton(
@@ -793,21 +790,21 @@ class InlineEditWidget extends WidgetType {
       )
       panel.append(review, actions)
     } else if (this.session.status === 'loading') {
-      const loading = doc.createElement('div')
+      const loading = doc.win.createDiv()
       loading.className = 'loading'
-      const copy = doc.createElement('span')
+      const copy = doc.win.createSpan()
       copy.className = 'loading-copy'
       const loadingCopy = getInlineLoadingCopy(this.session)
       copy.append(
-        Object.assign(doc.createElement('strong'), {
+        Object.assign(doc.win.createEl('strong'), {
           textContent: loadingCopy.title,
         }),
-        Object.assign(doc.createElement('small'), {
+        Object.assign(doc.win.createEl('small'), {
           textContent: loadingCopy.detail,
         }),
       )
       loading.append(makeThinkingDots(doc), copy)
-      const actions = doc.createElement('div')
+      const actions = doc.win.createDiv()
       actions.className = 'actions'
       actions.append(
         makeButton(
@@ -828,16 +825,16 @@ class InlineEditWidget extends WidgetType {
         }
       })
     } else if (this.session.status === 'preview') {
-      const diff = doc.createElement('div')
+      const diff = doc.win.createDiv()
       const replacement = this.session.replacement ?? ''
       const isInsertion = this.session.placement === 'insert-after'
       if (isInsertion) {
         diff.className = 'insert-preview'
-        const source = doc.createElement('div')
+        const source = doc.win.createDiv()
         source.className = 'source-preserved'
-        const sourceTitle = doc.createElement('strong')
+        const sourceTitle = doc.win.createEl('strong')
         sourceTitle.textContent = 'Selection remains unchanged'
-        const sourceDetail = doc.createElement('small')
+        const sourceDetail = doc.win.createEl('small')
         sourceDetail.textContent = `${this.session.original.length.toLocaleString()} source characters`
         source.append(sourceTitle, sourceDetail)
         const after = makeRenderedDiffPane(doc, 'Insert below', 'after')
@@ -854,7 +851,7 @@ class InlineEditWidget extends WidgetType {
         void this.session.renderMarkdown(this.session.original, before.content)
         void this.session.renderMarkdown(replacement, after.content)
       }
-      const actions = doc.createElement('div')
+      const actions = doc.win.createDiv()
       actions.className = 'actions'
       actions.append(
         makeButton(
@@ -886,12 +883,12 @@ class InlineEditWidget extends WidgetType {
         }
       })
     } else {
-      const error = doc.createElement('p')
+      const error = doc.win.createEl('p')
       error.className = 'error'
       error.textContent = this.session.error ?? 'Inline edit failed.'
       panel.append(
         error,
-        Object.assign(doc.createElement('div'), { className: 'actions' }),
+        Object.assign(doc.win.createDiv(), { className: 'actions' }),
       )
       panel
         .querySelector('.actions')
@@ -2317,7 +2314,7 @@ export function rebaseInlineEditSessions<T extends InlineEditRange>(
         mapInlineEditRange(range as InlineEditRange, changes),
       )
     }
-    next.set(id, rebased as T)
+    next.set(id, rebased)
   }
   return next
 }
@@ -2467,11 +2464,11 @@ function makeRenderedDiffPane(
   label: string,
   className: string,
 ): { pane: HTMLElement; content: HTMLElement } {
-  const pane = doc.createElement('section')
+  const pane = doc.win.createEl('section')
   pane.className = className
-  const heading = doc.createElement('strong')
+  const heading = doc.win.createEl('strong')
   heading.textContent = label
-  const content = doc.createElement('div')
+  const content = doc.win.createDiv()
   content.className = 'rendered'
   pane.append(heading, content)
   return { pane, content }
@@ -2558,7 +2555,7 @@ function appendDiffTokens(
   className: 'added' | 'removed',
 ): void {
   if (tokens.length === 0) return
-  const span = doc.createElement(className === 'added' ? 'ins' : 'del')
+  const span = doc.win.createEl(className === 'added' ? 'ins' : 'del')
   span.className = className
   span.textContent = tokens.join('')
   target.append(span)
@@ -2607,12 +2604,12 @@ function makeOutputControl(
   initial: 'text' | 'image',
   onChange: (mode: 'text' | 'image') => void,
 ): HTMLElement {
-  const row = doc.createElement('div')
+  const row = doc.win.createDiv()
   row.className = 'mode-row output-row'
-  const label = doc.createElement('span')
+  const label = doc.win.createSpan()
   label.className = 'mode-label'
   label.textContent = 'Output'
-  const group = doc.createElement('div')
+  const group = doc.win.createDiv()
   group.className = 'mode-control'
   group.setAttribute('role', 'radiogroup')
   group.setAttribute('aria-label', 'Inline edit output')
@@ -2634,7 +2631,7 @@ function makeOutputControl(
     onChange(mode)
   }
   for (const option of options) {
-    const button = doc.createElement('button')
+    const button = doc.win.createEl('button')
     button.type = 'button'
     button.className = 'mode-option'
     button.dataset.output = option.mode
@@ -2655,12 +2652,12 @@ function makeModeControl(
   initialMode: InlineEditMode,
   onChange: (mode: InlineEditMode) => void,
 ): HTMLElement {
-  const row = doc.createElement('div')
+  const row = doc.win.createDiv()
   row.className = 'mode-row'
-  const label = doc.createElement('span')
+  const label = doc.win.createSpan()
   label.className = 'mode-label'
   label.textContent = 'Result placement'
-  const group = doc.createElement('div')
+  const group = doc.win.createDiv()
   group.className = 'mode-control'
   group.setAttribute('role', 'radiogroup')
   group.setAttribute('aria-label', 'Inline edit result placement')
@@ -2679,7 +2676,7 @@ function makeModeControl(
     onChange(mode)
   }
   for (const option of options) {
-    const button = doc.createElement('button')
+    const button = doc.win.createEl('button')
     button.type = 'button'
     button.className = 'mode-option'
     button.dataset.mode = option.mode
@@ -2703,12 +2700,12 @@ function makeReferenceScopeControl(
   setVisible: (visible: boolean) => void
   setEstimatedFiles: (count: number) => void
 } {
-  const row = doc.createElement('div')
+  const row = doc.win.createDiv()
   row.className = 'mode-row reference-scope-row'
-  const label = doc.createElement('span')
+  const label = doc.win.createSpan()
   label.className = 'mode-label'
   label.textContent = 'Folder context'
-  const group = doc.createElement('div')
+  const group = doc.win.createDiv()
   group.className = 'mode-control'
   group.setAttribute('role', 'radiogroup')
   group.setAttribute('aria-label', 'Folder reference context scope')
@@ -2727,7 +2724,7 @@ function makeReferenceScopeControl(
     onChange(scope)
   }
   for (const option of options) {
-    const button = doc.createElement('button')
+    const button = doc.win.createEl('button')
     button.type = 'button'
     button.className = 'mode-option'
     button.dataset.scope = option.scope
@@ -2761,11 +2758,11 @@ function makeReadOnlyReferenceChips(
   doc: Document,
   references: readonly InlineVaultReference[],
 ): HTMLElement {
-  const row = doc.createElement('div')
+  const row = doc.win.createDiv()
   row.className = 'reference-chips reference-chips-readonly'
   row.hidden = references.length === 0
   for (const reference of references) {
-    const chip = doc.createElement('span')
+    const chip = doc.win.createSpan()
     chip.className = 'reference-chip'
     chip.title = getInlineReferenceDescription(reference)
     chip.textContent = `${getInlineReferenceKind(reference)} · ${getInlineReferenceName(reference)}`
@@ -2782,7 +2779,7 @@ function renderPromptReferenceEcho(
   region.replaceChildren()
   region.hidden = references.length === 0
   for (const reference of references) {
-    const token = doc.createElement('span')
+    const token = doc.win.createSpan()
     token.className = 'prompt-reference-token'
     token.title = getInlineReferenceDescription(reference)
     token.textContent = `@${getInlineReferenceName(reference)}`
@@ -2794,17 +2791,17 @@ function makeReferenceStatus(
   doc: Document,
   session: InlineSession,
 ): HTMLElement {
-  const region = doc.createElement('div')
+  const region = doc.win.createDiv()
   region.className = 'reference-status'
-  const summary = doc.createElement('span')
+  const summary = doc.win.createSpan()
   summary.className = 'reference-summary'
   summary.textContent = getRetrievalSummary(session)
   region.append(summary)
   if (session.referenceWarnings.length > 0) {
-    const warnings = doc.createElement('ul')
+    const warnings = doc.win.createEl('ul')
     warnings.className = 'reference-warnings'
     for (const warning of session.referenceWarnings) {
-      const item = doc.createElement('li')
+      const item = doc.win.createEl('li')
       item.textContent = warning
       warnings.append(item)
     }
@@ -2986,10 +2983,10 @@ function getInlineReferenceKind(reference: InlineVaultReference): string {
 }
 
 function makeMetric(doc: Document, label: string, value: string): HTMLElement {
-  const metric = doc.createElement('div')
-  const heading = doc.createElement('small')
+  const metric = doc.win.createDiv()
+  const heading = doc.win.createEl('small')
   heading.textContent = label
-  const content = doc.createElement('strong')
+  const content = doc.win.createEl('strong')
   content.textContent = value
   metric.append(heading, content)
   return metric
@@ -3043,14 +3040,14 @@ function makeButton(
   variant: 'primary' | 'secondary' = 'secondary',
   shortcut?: string,
 ): HTMLButtonElement {
-  const button = doc.createElement('button')
+  const button = doc.win.createEl('button')
   button.type = 'button'
   button.className = variant
-  const text = doc.createElement('span')
+  const text = doc.win.createSpan()
   text.textContent = label
   button.append(text)
   if (shortcut) {
-    const key = doc.createElement('kbd')
+    const key = doc.win.createEl('kbd')
     key.textContent = shortcut
     button.append(key)
   }
@@ -3059,13 +3056,13 @@ function makeButton(
 }
 
 function makeHeader(doc: Document, session: InlineSession): HTMLElement {
-  const header = doc.createElement('header')
-  const identity = doc.createElement('span')
+  const header = doc.win.createEl('header')
+  const identity = doc.win.createSpan()
   identity.className = 'identity'
-  const spark = doc.createElement('i')
+  const spark = doc.win.createEl('i')
   spark.className = 'spark'
   spark.setAttribute('aria-hidden', 'true')
-  const title = doc.createElement('strong')
+  const title = doc.win.createEl('strong')
   title.textContent =
     session.status === 'large-confirm'
       ? 'Large document edit'
@@ -3079,7 +3076,7 @@ function makeHeader(doc: Document, session: InlineSession): HTMLElement {
               : 'Review inline edit'
             : 'Inline edit'
   identity.append(spark, title)
-  const context = doc.createElement('span')
+  const context = doc.win.createSpan()
   context.className = 'context'
   context.textContent = [
     session.targetLabel,
@@ -3093,13 +3090,13 @@ function makeHeader(doc: Document, session: InlineSession): HTMLElement {
 }
 
 function makeThinkingDots(doc: Document): HTMLElement {
-  const dots = doc.createElement('span')
+  const dots = doc.win.createSpan()
   dots.className = 'thinking-dots'
   dots.setAttribute('aria-hidden', 'true')
   dots.append(
-    doc.createElement('i'),
-    doc.createElement('i'),
-    doc.createElement('i'),
+    doc.win.createEl('i'),
+    doc.win.createEl('i'),
+    doc.win.createEl('i'),
   )
   return dots
 }
@@ -3127,490 +3124,3 @@ export function resolveInlineAppearance(body: {
     body.classList.contains('theme-dark'),
   )
 }
-
-const INLINE_STYLE = `
-/*
- * Default (:host with no owned skin) follows the user's Obsidian theme. Custom
- * properties inherit across the shadow boundary, so theme variables and the
- * Style Settings --ach-ss-* overrides set on <body> are readable here.
- * Spacing and the 13px type scale stay owned so a theme cannot break layout.
- */
-:host{
-  --ach-canvas:var(--background-secondary);
-  --ach-surface:var(--background-primary);
-  --ach-surface-raised:var(--background-secondary-alt,var(--background-secondary));
-  --ach-border:var(--background-modifier-border);
-  --ach-text:var(--text-normal);
-  --ach-muted:var(--text-muted);
-  --ach-heading:var(--ach-ss-heading,var(--text-normal));
-  --ach-action:var(--ach-ss-accent,var(--ach-preset-accent,var(--interactive-accent)));
-  --ach-action-hover:var(--interactive-accent-hover,var(--ach-action));
-  --ach-on-action:var(--ach-ss-on-action,var(--ach-preset-on-action,var(--text-on-accent)));
-  --ach-glow:var(--ach-ss-glow,var(--ach-glow-level,0.35));
-  --ach-shadow:var(--text-normal);
-  --ach-motion:var(--ach-ss-motion,var(--ach-preset-motion,var(--interactive-accent-hover,var(--ach-action))));
-  --ach-danger:var(--text-error);
-  --ach-before:color-mix(in srgb,var(--color-red) 12%,var(--background-primary));
-  --ach-before-border:color-mix(in srgb,var(--color-red) 35%,var(--background-modifier-border));
-  --ach-before-text:var(--color-red);
-  --ach-after:color-mix(in srgb,var(--color-green) 12%,var(--background-primary));
-  --ach-after-border:color-mix(in srgb,var(--color-green) 35%,var(--background-modifier-border));
-  --ach-after-text:var(--color-green);
-  --ach-radius:var(--ach-ss-radius-m,7px);
-  display:block;
-  min-width:0;
-  color:var(--ach-text);
-  color-scheme:normal;
-  font:13px/1.5 var(--font-interface,ui-sans-serif,system-ui,sans-serif);
-  letter-spacing:0;
-}
-/* Hallym Conversation Studio: the partner's light skin (R-005), opt-in. */
-:host([data-skin="hallym-light"]){
-  --ach-canvas:#f7f9fc;
-  --ach-surface:#ffffff;
-  --ach-surface-raised:#f0f5fa;
-  --ach-border:#d7e1ec;
-  --ach-text:#00102e;
-  --ach-muted:#526174;
-  --ach-heading:var(--ach-ss-heading,#002e6e);
-  --ach-action:var(--ach-ss-accent,var(--ach-preset-accent,#0066b3));
-  --ach-action-hover:color-mix(in srgb,var(--ach-action) 82%,#000000);
-  --ach-on-action:var(--ach-ss-on-action,var(--ach-preset-on-action,#ffffff));
-  --ach-glow:var(--ach-ss-glow,var(--ach-glow-level,0.6));
-  --ach-shadow:#002e6e;
-  --ach-motion:var(--ach-ss-motion,var(--ach-preset-motion,#00b5ad));
-  --ach-danger:#a52834;
-  --ach-before:#fff5f6;
-  --ach-before-border:#efd3d7;
-  --ach-before-text:#672a31;
-  --ach-after:#effaf6;
-  --ach-after-border:#cce9dd;
-  --ach-after-text:#123f31;
-  color-scheme:light;
-  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-}
-/* CMDS AI Operator Console: the owned dark skin (R-005), CMDS Pink, opt-in. */
-:host([data-skin="cmds-dark"]){
-  --ach-canvas:#0a0a0a;
-  --ach-surface:#141414;
-  --ach-surface-raised:#1f1f1f;
-  --ach-border:#333333;
-  --ach-text:#d4d4d4;
-  --ach-muted:#888888;
-  --ach-action:var(--ach-ss-accent,var(--ach-preset-accent,#e985a2));
-  --ach-heading:var(--ach-ss-heading,var(--ach-action));
-  --ach-action-hover:color-mix(in srgb,var(--ach-action) 80%,#ffffff);
-  --ach-on-action:var(--ach-ss-on-action,var(--ach-preset-on-action,#0a0a0a));
-  --ach-glow:var(--ach-ss-glow,var(--ach-glow-level,1));
-  --ach-shadow:#000000;
-  --ach-motion:var(--ach-ss-motion,var(--ach-preset-motion,#00b5ad));
-  --ach-danger:#ff6675;
-  --ach-before:#261516;
-  --ach-before-border:#573238;
-  --ach-before-text:#f5c5ca;
-  --ach-after:color-mix(in srgb,var(--ach-action) 8%,#0a0a0a);
-  --ach-after-border:color-mix(in srgb,var(--ach-action) 30%,#333333);
-  --ach-after-text:color-mix(in srgb,var(--ach-action) 55%,#ffffff);
-  color-scheme:dark;
-  font-family:"IBM Plex Sans",Inter,ui-sans-serif,system-ui,sans-serif;
-}
-/* R-033: accent presets and glow levels; precedence Style Settings > preset > skin. */
-:host([data-accent="cmds-pink"]){--ach-preset-accent:#e985a2;--ach-preset-on-action:#0a0a0a;--ach-preset-motion:#00b5ad}
-:host([data-accent="neon-lime"]){--ach-preset-accent:#b6ff00;--ach-preset-on-action:#0a0a0a;--ach-preset-motion:#00b5ad}
-:host([data-accent="hallym-blue"]){--ach-preset-accent:#0066b3;--ach-preset-on-action:#ffffff;--ach-preset-motion:#00b5ad}
-:host([data-accent="signal-teal"]){--ach-preset-accent:#00b5ad;--ach-preset-on-action:#04201f;--ach-preset-motion:#b6ff00}
-:host([data-accent="graphite"]){--ach-preset-accent:#8a8f98;--ach-preset-on-action:#ffffff;--ach-preset-motion:#b0b6c0}
-:host([data-glow="off"]){--ach-glow-level:0}
-:host([data-glow="soft"]){--ach-glow-level:0.6}
-:host([data-glow="neon"]){--ach-glow-level:1.7}
-:host([data-glow="neon"]) .panel{box-shadow:inset 2px 0 0 var(--ach-action),0 0 calc(18px * var(--ach-glow,1)) color-mix(in srgb,var(--ach-action) 22%,transparent),0 10px 28px color-mix(in srgb,var(--ach-shadow) 30%,transparent)}
-:host([data-glow="neon"]) .prompt-surface:focus-within{box-shadow:0 0 0 1px color-mix(in srgb,var(--ach-action) 30%,transparent),0 0 calc(18px * var(--ach-glow,1)) color-mix(in srgb,var(--ach-action) 22%,transparent)}
-:host([data-glow="neon"]) button.primary{box-shadow:0 0 calc(14px * var(--ach-glow,1)) color-mix(in srgb,var(--ach-action) 45%,transparent)}
-*,*::before,*::after{box-sizing:border-box}
-.panel{
-  position:relative;
-  min-width:0;
-  margin:8px 0 10px;
-  padding:12px;
-  overflow:hidden;
-  border:1px solid var(--ach-border);
-  border-radius:var(--ach-radius);
-  background:var(--ach-surface);
-  box-shadow:0 8px 24px color-mix(in srgb,var(--ach-shadow) 9%,transparent);
-}
-:host([data-skin="cmds-dark"]) .panel{
-  border-radius:5px 14px 5px 14px;
-  box-shadow:inset 2px 0 0 var(--ach-action),0 10px 28px rgba(0,0,0,.6);
-}
-.panel[data-status="loading"],
-.panel[data-status="document-task"][data-task-status="running"],
-.panel[data-status="document-task"][data-task-status="queued"]{isolation:isolate}
-.panel[data-status="loading"]::before,
-.panel[data-status="document-task"][data-task-status="running"]::before,
-.panel[data-status="document-task"][data-task-status="queued"]::before{
-  position:absolute;
-  z-index:0;
-  top:50%;
-  left:50%;
-  width:160%;
-  aspect-ratio:1;
-  pointer-events:none;
-  content:"";
-  background:conic-gradient(
-    transparent 0 58%,
-    color-mix(in srgb,var(--ach-action) 16%,transparent) 67%,
-    var(--ach-action) 76%,
-    var(--ach-motion) 85%,
-    transparent 94% 100%
-  );
-  filter:drop-shadow(0 0 calc(4px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-motion) 36%,transparent));
-  transform:translate(-50%,-50%) rotate(0deg);
-  animation:inline-panel-border-orbit 1.8s linear infinite;
-}
-.panel[data-status="loading"]::after,
-.panel[data-status="document-task"][data-task-status="running"]::after,
-.panel[data-status="document-task"][data-task-status="queued"]::after{
-  position:absolute;
-  z-index:1;
-  inset:1.5px;
-  pointer-events:none;
-  content:"";
-  border-radius:inherit;
-  background:var(--ach-surface);
-}
-.panel[data-status="loading"]>*,
-.panel[data-status="document-task"][data-task-status="running"]>*,
-.panel[data-status="document-task"][data-task-status="queued"]>*{position:relative;z-index:2}
-:host([data-skin="cmds-dark"]) .panel[data-status="loading"]{
-  box-shadow:0 10px 28px rgba(0,0,0,.6);
-}
-:host([data-skin="cmds-dark"]) .panel[data-status="loading"]::before{
-  filter:drop-shadow(0 0 calc(4px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-action) 38%,transparent)) drop-shadow(0 0 calc(8px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-motion) 16%,transparent));
-}
-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  min-height:24px;
-  margin:-2px 0 10px;
-  padding:0 0 8px;
-  border-bottom:1px solid var(--ach-border);
-}
-.identity{display:inline-flex;align-items:center;gap:7px;min-width:0;color:var(--ach-heading)}
-.identity strong{font-size:13px;font-weight:650;letter-spacing:0}
-.spark{
-  width:9px;
-  height:9px;
-  flex:0 0 auto;
-  border-radius:2px;
-  background:var(--ach-action);
-  box-shadow:0 0 calc(9px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-action) 42%,transparent);
-  transform:rotate(45deg);
-}
-.context{
-  overflow:hidden;
-  color:var(--ach-muted);
-  font:10px/1.2 ui-monospace,"Cascadia Code",monospace;
-  text-overflow:ellipsis;
-  text-transform:uppercase;
-  white-space:nowrap;
-}
-.reference-region{min-width:0}
-.reference-chips{
-  display:flex;
-  min-width:0;
-  flex-wrap:wrap;
-  gap:5px;
-  margin:0 0 7px;
-}
-.reference-chip{
-  display:inline-flex;
-  max-width:min(100%,260px);
-  min-height:25px;
-  align-items:center;
-  gap:5px;
-  padding:3px 5px 3px 7px;
-  overflow:hidden;
-  border:1px solid color-mix(in srgb,var(--ach-action) 35%,var(--ach-border));
-  border-radius:5px;
-  background:color-mix(in srgb,var(--ach-action) 7%,var(--ach-surface));
-  color:var(--ach-heading);
-  font-size:11px;
-}
-.reference-icon{display:inline-flex;width:14px;height:14px;flex:0 0 auto}
-.reference-icon svg,.reference-remove svg{width:100%;height:100%;stroke-width:1.8}
-.reference-chip-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-button.reference-remove{
-  width:20px;
-  min-width:20px;
-  min-height:20px;
-  padding:3px;
-  border:0;
-}
-.reference-list{
-  max-height:220px;
-  margin:0 0 7px;
-  padding:4px;
-  overflow:auto;
-  border:1px solid var(--ach-border);
-  border-radius:6px;
-  background:var(--ach-surface);
-  box-shadow:0 10px 28px rgba(0,46,110,.15);
-  scrollbar-color:var(--ach-border) transparent;
-}
-button.reference-option{
-  display:grid;
-  width:100%;
-  min-height:38px;
-  grid-template-columns:16px minmax(0,1fr);
-  justify-content:stretch;
-  padding:5px 7px;
-  border:0;
-  text-align:left;
-}
-button.reference-option[data-active="true"]{
-  background:var(--ach-surface-raised);
-  color:var(--ach-action);
-}
-.reference-option-copy{display:flex;min-width:0;flex-direction:column;align-items:flex-start}
-.reference-option-copy strong,.reference-option-copy small{
-  display:block;
-  max-width:100%;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.reference-option-copy strong{font-size:11px}
-.reference-option-copy small{color:var(--ach-muted);font-size:9px;font-weight:400}
-.reference-chips-readonly{margin-bottom:9px}
-.reference-status{
-  display:flex;
-  min-width:0;
-  flex-direction:column;
-  gap:5px;
-  margin:-2px 0 8px;
-}
-.reference-summary{
-  overflow:hidden;
-  color:var(--ach-muted);
-  font:10px/1.35 ui-monospace,"Cascadia Code",monospace;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.reference-warnings{
-  margin:0;
-  padding:6px 8px 6px 24px;
-  border-left:2px solid var(--ach-danger);
-  background:var(--ach-before);
-  color:var(--ach-danger);
-  font-size:10px;
-}
-.prompt-surface{
-  width:100%;
-  overflow:hidden;
-  border:1px solid var(--ach-border);
-  border-radius:6px;
-  background:var(--ach-canvas);
-}
-.prompt-reference-echo{
-  display:flex;
-  min-width:0;
-  flex-wrap:wrap;
-  gap:5px;
-  padding:8px 10px 0;
-}
-.prompt-reference-token{
-  display:inline-block;
-  max-width:min(100%,280px);
-  padding:1px 6px;
-  overflow:hidden;
-  border-radius:4px;
-  background:color-mix(in srgb,var(--ach-action) 10%,var(--ach-surface));
-  color:var(--ach-action);
-  font-size:11px;
-  font-weight:650;
-  line-height:1.65;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.prompt{
-  display:block;
-  width:100%;
-  min-height:72px;
-  max-height:240px;
-  padding:10px 11px;
-  resize:vertical;
-  color:var(--ach-text);
-  caret-color:var(--ach-action);
-  border:0;
-  border-radius:0;
-  outline:none;
-  background:transparent;
-  font:inherit;
-  line-height:1.5;
-}
-.prompt-reference-echo:not([hidden]) + .prompt{padding-top:6px}
-.prompt::placeholder{color:var(--ach-muted);opacity:.8}
-.prompt-surface:focus-within{
-  border-color:var(--ach-action);
-  box-shadow:0 0 0 2px color-mix(in srgb,var(--ach-action) 18%,transparent);
-}
-:host([data-skin="cmds-dark"]) .prompt-surface:focus-within{
-  box-shadow:0 0 0 1px color-mix(in srgb,var(--ach-action) 27%,transparent),0 0 calc(18px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-action) 10%,transparent);
-}
-.mode-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin-top:8px;
-}
-.mode-label{
-  color:var(--ach-muted);
-  font:10px/1.2 ui-monospace,"Cascadia Code",monospace;
-  text-transform:uppercase;
-}
-.mode-control{
-  display:inline-grid;
-  grid-auto-flow:column;
-  overflow:hidden;
-  border:1px solid var(--ach-border);
-  border-radius:5px;
-  background:var(--ach-canvas);
-}
-button.mode-option{
-  min-height:27px;
-  padding:4px 8px;
-  border:0;
-  border-left:1px solid var(--ach-border);
-  border-radius:0;
-  font-size:11px;
-}
-button.mode-option:first-child{border-left:0}
-.image-progress{display:flex;flex-direction:column;gap:10px;margin:2px 0 10px}
-.image-progress progress{width:100%;height:4px;accent-color:var(--ach-action)}
-.image-preview img{display:block;max-width:100%;max-height:280px;border:1px solid var(--ach-border);border-radius:var(--ach-radius);background:var(--ach-surface-raised);object-fit:contain}
-select.template-select{max-width:16em;height:28px;padding:0 8px;border:1px solid var(--ach-border);border-radius:var(--ach-radius);background:var(--ach-surface-raised);color:var(--ach-text);font:inherit;font-size:12px}
-select.template-select:focus-visible{outline:none;border-color:var(--ach-action);box-shadow:0 0 0 2px color-mix(in srgb,var(--ach-action) 18%,transparent)}
-button.mode-option[data-active="true"]{
-  background:var(--ach-action);
-  color:var(--ach-on-action);
-}
-.actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:10px}
-button{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:7px;
-  min-height:32px;
-  padding:5px 10px;
-  border:1px solid var(--ach-border);
-  border-radius:5px;
-  outline:none;
-  background:transparent;
-  color:var(--ach-muted);
-  font:inherit;
-  font-weight:560;
-  cursor:pointer;
-}
-button:hover,button:focus-visible{
-  border-color:var(--ach-action);
-  color:var(--ach-action);
-  background:var(--ach-surface-raised);
-}
-button:focus-visible{box-shadow:0 0 0 2px color-mix(in srgb,var(--ach-action) 24%,transparent)}
-button.primary{
-  border-color:var(--ach-action);
-  background:var(--ach-action);
-  color:var(--ach-on-action);
-}
-button.primary:hover,button.primary:focus-visible{border-color:var(--ach-action-hover);background:var(--ach-action-hover);color:var(--ach-on-action)}
-kbd{
-  padding:1px 4px;
-  border:1px solid currentColor;
-  border-radius:3px;
-  font:9px/1.25 ui-monospace,"Cascadia Code",monospace;
-  opacity:.67;
-}
-.question{
-  margin:0 0 9px;
-  padding:8px 10px;
-  border-left:2px solid var(--ach-motion);
-  background:var(--ach-surface-raised);
-  color:var(--ach-text);
-}
-.loading{display:flex;align-items:center;gap:12px;min-height:54px;padding:4px 2px}
-.loading-copy{display:flex;min-width:0;flex-direction:column;gap:1px}
-.loading-copy strong{color:var(--ach-heading);font-size:13px;font-weight:650}
-.loading-copy small{overflow:hidden;color:var(--ach-muted);font-size:11px;text-overflow:ellipsis;white-space:nowrap}
-.thinking-dots{display:flex;align-items:center;justify-content:center;gap:3px;width:28px;height:28px;flex:0 0 auto}
-.thinking-dots i{width:4px;height:4px;border-radius:50%;background:var(--ach-heading);box-shadow:0 0 calc(5px * var(--ach-glow, 1)) color-mix(in srgb,var(--ach-action) 34%,transparent);opacity:.58}
-.thinking-dots i:nth-child(2){opacity:1}
-.document-preflight,.document-progress,.document-ready{display:flex;min-width:0;flex-direction:column;gap:9px}
-.document-preflight__message,.document-ready p{margin:0;color:var(--ach-text)}
-.document-preflight__reason,.document-ready small,.document-progress__status small{color:var(--ach-muted);font-size:10px}
-.document-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
-.document-metrics>div{display:flex;min-width:0;flex-direction:column;gap:2px;padding:8px;border:1px solid var(--ach-border);border-radius:6px;background:var(--ach-canvas)}
-.document-metrics small{color:var(--ach-muted);font-size:9px;text-transform:uppercase}
-.document-metrics strong{overflow:hidden;color:var(--ach-heading);font-size:11px;text-overflow:ellipsis}
-.document-strategy{display:flex;gap:7px}
-.document-progress__status{display:flex;min-width:0;flex-direction:column;gap:2px}
-.document-progress__status strong,.document-ready>strong{color:var(--ach-heading);font-size:13px}
-.document-progress progress{width:100%;height:6px;overflow:hidden;border:0;border-radius:999px;background:var(--ach-surface-raised);accent-color:var(--ach-action)}
-.document-warnings{padding:7px 8px;border-left:2px solid var(--ach-danger);background:var(--ach-before);color:var(--ach-danger);font-size:10px}
-.document-ready{padding:10px;border:1px solid var(--ach-after-border);border-radius:6px;background:var(--ach-after);color:var(--ach-after-text)}
-.diff{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
-.insert-preview{display:grid;grid-template-columns:minmax(145px,.42fr) minmax(0,1fr);gap:8px}
-.diff section,.insert-preview section{
-  min-width:0;
-  max-height:320px;
-  margin:0;
-  padding:10px;
-  overflow:auto;
-  border:1px solid;
-  border-radius:6px;
-  scrollbar-color:var(--ach-border) transparent;
-}
-.diff section>strong,.insert-preview section>strong{display:block;margin-bottom:7px;font-size:11px;text-transform:uppercase}
-.source-preserved{
-  display:flex;
-  min-width:0;
-  flex-direction:column;
-  align-items:flex-start;
-  justify-content:center;
-  gap:3px;
-  padding:10px;
-  border:1px solid var(--ach-border);
-  border-radius:6px;
-  background:var(--ach-surface-raised);
-}
-.source-preserved strong{color:var(--ach-heading);font-size:12px}
-.source-preserved small{color:var(--ach-muted);font-size:10px}
-.before{border-color:var(--ach-before-border)!important;background:var(--ach-before);color:var(--ach-before-text)}
-.after{border-color:var(--ach-after-border)!important;background:var(--ach-after);color:var(--ach-after-text)}
-.rendered{overflow-wrap:anywhere}
-.rendered :first-child{margin-top:0}.rendered :last-child{margin-bottom:0}
-.rendered p,.rendered ul,.rendered ol,.rendered blockquote,.rendered pre{margin:0 0 9px}
-.rendered h1,.rendered h2,.rendered h3,.rendered h4{margin:10px 0 6px;color:inherit;font-size:1em}
-.rendered a{color:var(--ach-action)}
-.rendered code{padding:1px 3px;border-radius:3px;background:color-mix(in srgb,var(--ach-surface) 70%,transparent);font:11px/1.4 ui-monospace,"Cascadia Code",monospace}
-.rendered pre{overflow:auto;padding:8px;border-radius:4px;background:var(--ach-canvas)}
-.rendered table{width:100%;border-collapse:collapse}.rendered th,.rendered td{padding:5px;border:1px solid currentColor}
-.word-diff{
-  margin:0;
-  padding:11px;
-  white-space:pre-wrap;
-  border:1px solid var(--ach-border);
-  border-radius:6px;
-  background:var(--ach-canvas);
-  overflow-wrap:anywhere;
-}
-.word-diff del{background:var(--ach-before);color:var(--ach-danger);text-decoration:line-through}
-.word-diff ins{background:var(--ach-after);color:var(--ach-after-text);text-decoration:none}
-.error{margin:0;padding:9px 10px;border-left:2px solid var(--ach-danger);background:var(--ach-before);color:var(--ach-danger)}
-@keyframes inline-panel-border-orbit{to{transform:translate(-50%,-50%) rotate(360deg)}}
-@media(max-width:620px){.diff,.insert-preview{grid-template-columns:1fr}.diff section,.insert-preview section{max-height:240px}.document-metrics{grid-template-columns:1fr}.actions{flex-wrap:wrap}.context{display:none}.mode-row{align-items:flex-start;flex-direction:column}.mode-control{width:100%;grid-auto-columns:1fr}button{min-height:34px}}
-@media(prefers-reduced-motion:reduce){.panel[data-status="loading"]::before,.panel[data-status="document-task"]::before{animation:none;background:var(--ach-action);opacity:.4}}
-@media(forced-colors:active){.panel,.prompt,.mode-control,.reference-chip,.reference-list,.diff section,.insert-preview section,.source-preserved,.word-diff,.document-metrics>div,.document-ready,button{border:1px solid CanvasText}.panel[data-status="loading"]::before,.panel[data-status="document-task"]::before{background:CanvasText;filter:none}.spark,.thinking-dots i{background:CanvasText;box-shadow:none}}
-`

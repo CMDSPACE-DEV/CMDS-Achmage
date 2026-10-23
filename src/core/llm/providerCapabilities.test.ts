@@ -11,7 +11,7 @@ function model(
     model: modelName,
     providerId: providerType,
     providerType,
-  } as ChatModel
+  }
 }
 
 describe('getProviderCapabilities', () => {

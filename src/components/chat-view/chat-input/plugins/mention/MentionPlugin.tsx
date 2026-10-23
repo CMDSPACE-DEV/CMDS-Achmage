@@ -188,7 +188,7 @@ export default function NewMentionsPlugin({
   searchResultByQuery,
 }: {
   searchResultByQuery: (query: string) => SearchableMentionable[]
-}): JSX.Element | null {
+}): React.JSX.Element | null {
   const [editor] = useLexicalComposerContext()
 
   const [queryString, setQueryString] = useState<string | null>(null)

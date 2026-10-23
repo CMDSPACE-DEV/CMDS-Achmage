@@ -2,8 +2,8 @@
 Use your notes as working context for AI chat, reviewable edits, research, and image creation inside Obsidian.
 
 ## Status, requirements, and cost
-This manual describes **CMDS Achmage 1.2.0**, updated on **2026-09-15**. Releases contain three plugin assets: `main.js`, `manifest.json`, and `styles.css`. Community listing and review status are tracked in the [Obsidian portal](https://community.obsidian.md/plugins/cmds-achmage); automatic checks are not a manual review by Obsidian staff. Older 2.x numbers in research reports belong to its inherited development lineage, not a later CMDS release.
-- **Obsidian desktop 1.11.4+**. Desktop capabilities include native processes, clipboard and MCP connections; no Obsidian Mobile support.
+This manual describes **CMDS Achmage 1.3.2**, updated on **2026-10-19**. Releases contain three plugin assets: `main.js`, `manifest.json`, and `styles.css`. Community listing and review status are tracked in the [Obsidian portal](https://community.obsidian.md/plugins/cmds-achmage); automatic checks are not a manual review by Obsidian staff. Older 2.x numbers in research reports belong to its inherited development lineage, not a later CMDS release.
+- **Obsidian desktop 1.13.0+**. Desktop capabilities include native processes, clipboard and MCP connections; no Obsidian Mobile support.
 - An API provider account/key and available usage credit for the recommended beginner path. A chat subscription is not an API-credit balance.
 - Optional embedding-provider access for vector retrieval. Explicit note/folder context can work without an embedding key using the available reading/reranking paths; model calls can still consume usage.
 - Optional Eagle/CMDS Eagle, external MCP tools, research-service accounts, and image-provider credentials for their respective features.
@@ -11,7 +11,7 @@ This manual describes **CMDS Achmage 1.2.0**, updated on **2026-09-15**. Release
 
 ## Install and prepare safely
 1. In **Settings → Community plugins → Browse**, search **CMDS Achmage**, install and enable it.
-2. Alternatively download `main.js`, `manifest.json`, and `styles.css` from [1.2.0](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.2.0) into `<vault>/.obsidian/plugins/cmds-achmage/` and restart/reload Obsidian. Keep existing settings and chat data backed up; do not import someone else's `data.json`.
+2. Alternatively download `main.js`, `manifest.json`, and `styles.css` from [1.3.2](https://github.com/CMDSPACE-DEV/CMDS-Achmage/releases/tag/1.3.2) into `<vault>/.obsidian/plugins/cmds-achmage/` and restart/reload Obsidian. Keep existing settings and chat data backed up; do not import someone else's `data.json`.
 3. Open a test vault or a non-sensitive note that is safe to send to your chosen provider.
 4. Open **Settings → CMDS Achmage → Advanced → Providers**. Add/edit an API provider and its key; use [the API-key guide](https://github.com/CMDSPACE-DEV/CMDS-Achmage/blob/main/docs/getting-api-keys.md) and that provider's current official console.
 5. In **Advanced → Models**, configure an enabled chat model tied to that provider. Choose it under **Plan → Chat model** or in the chat composer. Despite the tab name, the chat-model selection is not limited to subscription Plan models.
@@ -31,7 +31,7 @@ Success is a response grounded in the intended note using the intended provider.
 Open the intended note, turn on **Edit note** (pen icon), and request a small explicit change. Reply edit cards are anchored to existing text. Review each card and use **Apply**; **Apply all** can apply multiple cards. Whole-document suggestions can offer **Apply changes** to patch changed paragraphs.
 This path applies matching text without a second model call. If the source changed or an anchor is ambiguous, inspect and regenerate rather than forcing a blind replacement. Use the editor's undo immediately for an unwanted applied edit; keep backups for larger changes.
 ### Inline edit
-Select text and run **Inline edit selection** (default Mod+Shift+K, shown as Cmd+Shift+K on macOS). The panel's **Output: Text edit** rewrites that selection. Review the proposed result before applying. Other notes/folders can be included as reference context; this is distinct from granting them write access.
+Select text and run **Inline edit selection**. No shortcut is assigned by default; bind the command in **Settings → Hotkeys**. The panel's **Output: Text edit** rewrites that selection. Review the proposed result before applying. Other notes/folders can be included as reference context; this is distinct from granting them write access.
 ### Long documents
 Large edits can become document-scale jobs with checkpoints and visible drafts. **Review document edit jobs** opens their review/resume workflow. Check source, target, completed/failed chunks and generated draft before promoting it to your working document. Cancellation can stop remaining work, not refund completed requests or undo all existing files.
 Drafts default to `CMDS Achmage/Document Drafts`; generated drafts carry `achmage-source`, `achmage-generated`, and `achmage-model` provenance without rewriting your authorship schema. Historical snapshots are not automatically purged by this guide.
@@ -151,7 +151,7 @@ Developed by **Yohan Koo (CMDSPACE)**, https://cmdspace.work, together with **Pr
 Forked from [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer). Preserve [LINEAGE.md](https://github.com/CMDSPACE-DEV/CMDS-Achmage/blob/main/LINEAGE.md), [LICENSE](https://github.com/CMDSPACE-DEV/CMDS-Achmage/blob/main/LICENSE). The MIT license retains **Copyright (c) 2024 Heesu Suh**; rebranding does not replace upstream attribution.
 
 ## Verification scope
-The 1.2.0 update adds model-picker clipping fixes, template saving and slash insertion repairs, Korean IME selection guards, and grouped settings. Local verification passed 766 tests plus type, lint, build, minimum-app-version and community-review Error gates. Model-picker layout and template save/insertion were exercised in the running desktop app; native OS IME typing remains a manual-check boundary. See [1.2.0 release notes](releases/RELEASE_NOTES_1.2.0.md).
+The 1.3.1 update improves Claude organization login, MCP compatibility, settings search, popout windows, and save-failure feedback, and reduces the plugin bundle below 5 MB. See [1.3.1 release notes](releases/RELEASE_NOTES_1.3.1.md) for changes and verification limits. macOS Team login was verified; Windows Team and Enterprise login remain unverified. Actual Obsidian startup time and token usage after compression still need a manual check.
 
 Original documentation baseline: The 1.1.0 `manifest.json`, command registration, `SettingsTabRoot.tsx`, `ChatSection.tsx`, `RAGSection.tsx`, `McpSection.tsx`, settings schema, research register and relevant runtime/provenance reports were inspected. Source evidence is not a fresh functional test of every provider/tool/OS. No current UI screenshot is claimed or fabricated, no code changed, and no credentials or private source notes were sent for these documentation checks.
 

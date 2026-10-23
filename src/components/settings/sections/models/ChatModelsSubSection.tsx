@@ -41,8 +41,8 @@ export function ChatModelsSubSection({
       title: 'Delete Chat Model',
       message: message,
       ctaText: 'Delete',
-      onConfirm: async () => {
-        await setSettings({
+      onConfirm: () => {
+        void setSettings({
           ...settings,
           chatModels: [...settings.chatModels].filter((v) => v.id !== modelId),
         })
@@ -113,9 +113,9 @@ export function ChatModelsSubSection({
                 <td>
                   <ObsidianToggle
                     value={isEnabled(chatModel.enable)}
-                    onChange={(value) =>
-                      handleToggleEnableChatModel(chatModel.id, value)
-                    }
+                    onChange={(value) => {
+                      void handleToggleEnableChatModel(chatModel.id, value)
+                    }}
                   />
                 </td>
                 <td>
@@ -138,7 +138,9 @@ export function ChatModelsSubSection({
                       (v) => v.id === chatModel.id,
                     ) && (
                       <button
-                        onClick={() => handleDeleteChatModel(chatModel.id)}
+                        onClick={() => {
+                          void handleDeleteChatModel(chatModel.id)
+                        }}
                         className="clickable-icon"
                       >
                         <Trash2 />

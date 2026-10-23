@@ -231,7 +231,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
         chatMessages: updatedMessages,
         conversationId: currentConversationId,
       })
-      requestAnimationFrame(forceScrollToBottom)
+      window.requestAnimationFrame(forceScrollToBottom)
       return true
     },
     [
@@ -348,7 +348,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
 
       // Update the chat history to show the new user message
       setChatMessages(inputChatMessages)
-      requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
         forceScrollToBottom()
       })
 
@@ -483,7 +483,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
           chatMessages: updatedMessages,
           conversationId: currentConversationId,
         })
-        requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
           forceScrollToBottom()
         })
       }
@@ -534,17 +534,10 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
   }, [])
 
   useEffect(() => {
-    const updateConversationAsync = async () => {
-      try {
-        if (chatMessages.length > 0) {
-          createOrUpdateConversation(currentConversationId, chatMessages)
-        }
-      } catch (error) {
-        new Notice('Failed to save chat history')
-        console.error('Failed to save chat history', error)
-      }
+    // Save failures are reported inside the debounced save (useChatHistory).
+    if (chatMessages.length > 0) {
+      void createOrUpdateConversation(currentConversationId, chatMessages)
     }
-    updateConversationAsync()
   }, [currentConversationId, chatMessages, createOrUpdateConversation])
 
   // Updates the currentFile of the focused message (input or chat history)
@@ -803,7 +796,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
                 }
                 onSubmit={(content, useVaultSearch, mentionables) => {
                   if (editorStateToPlainText(content).trim() === '') return
-                  handleUserMessageSubmit({
+                  void handleUserMessageSubmit({
                     inputChatMessages: [
                       ...groupedChatMessages
                         .slice(0, index)
@@ -850,7 +843,9 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
                 submitChatMutation.isPending &&
                 index === groupedChatMessages.length - 1
               }
-              onToolMessageUpdate={handleToolMessageUpdate}
+              onToolMessageUpdate={(message) =>
+                void handleToolMessageUpdate(message)
+              }
             />
           ),
         )}
@@ -1020,7 +1015,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
             setInputMessage(getNewInputMessage(app))
             return
           }
-          handleUserMessageSubmit({
+          void handleUserMessageSubmit({
             inputChatMessages: [...chatMessages, userMessage],
             useVaultSearch,
           })

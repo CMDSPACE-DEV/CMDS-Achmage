@@ -7,10 +7,10 @@ import type { ResearchHttpClient } from './ResearchHttpClient'
 import type { ResearchSecretStore } from './ResearchSecretStore'
 
 describe('research adapters', () => {
-  const originalDomParser = globalThis.DOMParser
+  const originalDomParser = window.DOMParser
 
   beforeAll(() => {
-    Object.defineProperty(globalThis, 'DOMParser', {
+    Object.defineProperty(window, 'DOMParser', {
       configurable: true,
       writable: true,
       value: XmlDomParser,
@@ -18,7 +18,7 @@ describe('research adapters', () => {
   })
 
   afterAll(() => {
-    Object.defineProperty(globalThis, 'DOMParser', {
+    Object.defineProperty(window, 'DOMParser', {
       configurable: true,
       writable: true,
       value: originalDomParser,

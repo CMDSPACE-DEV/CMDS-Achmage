@@ -99,7 +99,7 @@ export default function LexicalContentEditable({
    */
   useEffect(() => {
     if (autoFocus) {
-      requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
         contentEditableRef.current?.focus()
       })
     }

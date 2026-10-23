@@ -1,0 +1,2122 @@
+{
+  "baseline": "dc7d8f3",
+  "date": "2026-10-14",
+  "before": {
+    "info": 0,
+    "low": 1,
+    "moderate": 19,
+    "high": 51,
+    "critical": 2,
+    "total": 73
+  },
+  "after": {
+    "info": 0,
+    "low": 0,
+    "moderate": 11,
+    "high": 37,
+    "critical": 0,
+    "total": 48
+  },
+  "named": [
+    {
+      "name": "ajv",
+      "before": [
+        {
+          "path": "node_modules/@modelcontextprotocol/sdk/node_modules/ajv",
+          "version": "8.17.1",
+          "dev": false
+        },
+        {
+          "path": "node_modules/ajv",
+          "version": "6.12.6",
+          "dev": true
+        },
+        {
+          "path": "node_modules/ajv-formats/node_modules/ajv",
+          "version": "8.17.1",
+          "dev": false
+        }
+      ],
+      "parents": [
+        {
+          "path": "node_modules/@eslint/eslintrc",
+          "range": "^6.12.4"
+        },
+        {
+          "path": "node_modules/@modelcontextprotocol/sdk",
+          "range": "^8.17.1"
+        },
+        {
+          "path": "node_modules/ajv-formats",
+          "range": "^8.0.0"
+        },
+        {
+          "path": "node_modules/eslint",
+          "range": "^6.12.4"
+        }
+      ],
+      "beforeBundledBytes": 211960,
+      "after": [
+        {
+          "path": "node_modules/@modelcontextprotocol/sdk/node_modules/ajv",
+          "version": "8.20.0",
+          "dev": false
+        },
+        {
+          "path": "node_modules/ajv",
+          "version": "6.15.0",
+          "dev": true
+        },
+        {
+          "path": "node_modules/ajv-formats/node_modules/ajv",
+          "version": "8.20.0",
+          "dev": false
+        }
+      ],
+      "afterBundledBytes": 212418,
+      "advisories": [
+        {
+          "source": 1113714,
+          "title": "ajv has ReDoS when using `$data` option",
+          "url": "https://github.com/advisories/GHSA-2g4f-4pwh-qvx6",
+          "range": "<6.14.0"
+        },
+        {
+          "source": 1113715,
+          "title": "ajv has ReDoS when using `$data` option",
+          "url": "https://github.com/advisories/GHSA-2g4f-4pwh-qvx6",
+          "range": ">=7.0.0-alpha.0 <8.18.0"
+        }
+      ],
+      "remaining": null
+    },
+    {
+      "name": "brace-expansion",
+      "before": [
+        {
+          "path": "node_modules/@eslint/eslintrc/node_modules/brace-expansion",
+          "version": "1.1.12",
+          "dev": true
+        },
+        {
+          "path": "node_modules/@humanwhocodes/config-array/node_modules/brace-expansion",
+          "version": "1.1.12",
+          "dev": true
+        },
+        {
+          "path": "node_modules/brace-expansion",
+          "version": "2.0.2",
+          "dev": false
+        },
+        {
+          "path": "node_modules/eslint-plugin-import/node_modules/brace-expansion",
+          "version": "1.1.12",
+          "dev": true
+        },
+        {
+          "path": "node_modules/eslint-plugin-react/node_modules/brace-expansion",
+          "version": "1.1.12",
+          "dev": true
+        },
+        {
+          "path": "node_modules/eslint/node_modules/brace-expansion",
+          "version": "1.1.12",
+          "dev": true
+        },
+        {
+          "path": "node_modules/glob/node_modules/brace-expansion",
+          "version": "1.1.12",
+          "dev": true
+        },
+        {
+          "path": "node_modules/jake/node_modules/brace-expansion",
+          "version": "1.1.12",
+          "dev": true
+        },
+        {
+          "path": "node_modules/test-exclude/node_modules/brace-expansion",
+          "version": "1.1.12",
+          "dev": true
+        }
+      ],
+      "parents": [
+        {
+          "path": "node_modules/@eslint/eslintrc/node_modules/minimatch",
+          "range": "^1.1.7"
+        },
+        {
+          "path": "node_modules/@humanwhocodes/config-array/node_modules/minimatch",
+          "range": "^1.1.7"
+        },
+        {
+          "path": "node_modules/eslint-plugin-import/node_modules/minimatch",
+          "range": "^1.1.7"
+        },
+        {
+          "path": "node_modules/eslint-plugin-react/node_modules/minimatch",
+          "range": "^1.1.7"
+        },
+        {
+          "path": "node_modules/eslint/node_modules/minimatch",
+          "range": "^1.1.7"
+        },
+        {
+          "path": "node_modules/filelist/node_modules/minimatch",
+          "range": "^2.0.1"
+        },
+        {
+          "path": "node_modules/gaxios/node_modules/minimatch",
+          "range": "^2.0.1"
+        },
+        {
+          "path": "node_modules/glob/node_modules/minimatch",
+          "range": "^1.1.7"
+        },
+        {
+          "path": "node_modules/jake/node_modules/minimatch",
+          "range": "^1.1.7"
+        },
+        {
+          "path": "node_modules/minimatch",
+          "range": "^2.0.1"
+        },
+        {
+          "path": "node_modules/test-exclude/node_modules/minimatch",
+          "range": "^1.1.7"
+        }
+      ],
+      "beforeBundledBytes": 2162,
+      "after": [
+        {
+          "path": "node_modules/@eslint/eslintrc/node_modules/brace-expansion",
+          "version": "1.1.21",
+          "dev": true
+        },
+        {
+          "path": "node_modules/@humanwhocodes/config-array/node_modules/brace-expansion",
+          "version": "1.1.21",
+          "dev": true
+        },
+        {
+          "path": "node_modules/brace-expansion",
+          "version": "2.1.7",
+          "dev": false
+        },
+        {
+          "path": "node_modules/eslint-plugin-import/node_modules/brace-expansion",
+          "version": "1.1.21",
+          "dev": true
+        },
+        {
+          "path": "node_modules/eslint-plugin-react/node_modules/brace-expansion",
+          "version": "1.1.21",
+          "dev": true
+        },
+        {
+          "path": "node_modules/eslint/node_modules/brace-expansion",
+          "version": "1.1.21",
+          "dev": true
+        },
+        {
+          "path": "node_modules/glob/node_modules/brace-expansion",
+          "version": "1.1.21",
+          "dev": true
+        },
+        {
+          "path": "node_modules/minimatch/node_modules/brace-expansion",
+          "version": "5.0.12",
+          "dev": false
+        },
+        {
+          "path": "node_modules/test-exclude/node_modules/brace-expansion",
+          "version": "1.1.21",
+          "dev": true
+        }
+      ],
+      "afterBundledBytes": 3225,
+      "advisories": [
+        {
+          "source": 1115540,
+          "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+          "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v",
+          "range": "<1.1.13"
+        },
+        {
+          "source": 1115541,
+          "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+          "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v",
+          "range": ">=2.0.0 <2.0.3"
+        },
+        {
+          "source": 1123896,
+          "title": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
+          "url": "https://github.com/advisories/GHSA-3jxr-9vmj-r5cp",
+          "range": ">=2.0.0 <2.1.2"
+        },
+        {
+          "source": 1123897,
+          "title": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
+          "url": "https://github.com/advisories/GHSA-3jxr-9vmj-r5cp",
+          "range": "<1.1.16"
+        },
+        {
+          "source": 1130588,
+          "title": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
+          "url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg",
+          "range": "<1.1.17"
+        },
+        {
+          "source": 1130589,
+          "title": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
+          "url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg",
+          "range": ">=2.0.0 <2.1.3"
+        },
+        {
+          "source": 1130736,
+          "title": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+          "url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895",
+          "range": ">=2.0.0 <2.1.4"
+        },
+        {
+          "source": 1130737,
+          "title": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+          "url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895",
+          "range": "<1.1.18"
+        },
+        {
+          "source": 1240100,
+          "title": "brace-expansion: Quadratic-time expansion of the `{a},b}` rewrite causes CPU denial of service",
+          "url": "https://github.com/advisories/GHSA-q2hr-2g5m-vwhr",
+          "range": "<1.1.21"
+        },
+        {
+          "source": 1240101,
+          "title": "brace-expansion: Quadratic-time expansion of the `{a},b}` rewrite causes CPU denial of service",
+          "url": "https://github.com/advisories/GHSA-q2hr-2g5m-vwhr",
+          "range": ">=2.0.0 <2.1.7"
+        },
+        {
+          "source": 1240104,
+          "title": "brace-expansion: DoS via uncontrolled recursion on nested brace groups causing stack exhaustion",
+          "url": "https://github.com/advisories/GHSA-qhr7-859c-m2p7",
+          "range": "<1.1.20"
+        },
+        {
+          "source": 1240105,
+          "title": "brace-expansion: DoS via uncontrolled recursion on nested brace groups causing stack exhaustion",
+          "url": "https://github.com/advisories/GHSA-qhr7-859c-m2p7",
+          "range": ">=2.0.0 <2.1.6"
+        },
+        {
+          "source": 1240108,
+          "title": "brace-expansion: DoS via uncontrolled recursion in parseCommaParts causing stack exhaustion",
+          "url": "https://github.com/advisories/GHSA-6j4f-fj2g-mc7p",
+          "range": "<1.1.19"
+        },
+        {
+          "source": 1240109,
+          "title": "brace-expansion: DoS via uncontrolled recursion in parseCommaParts causing stack exhaustion",
+          "url": "https://github.com/advisories/GHSA-6j4f-fj2g-mc7p",
+          "range": ">=2.0.0 <2.1.5"
+        }
+      ],
+      "remaining": null
+    },
+    {
+      "name": "drizzle-orm",
+      "before": [
+        {
+          "path": "node_modules/drizzle-orm",
+          "version": "0.39.0",
+          "dev": false
+        }
+      ],
+      "parents": [
+        {
+          "path": "(root)",
+          "range": "^0.39.0"
+        }
+      ],
+      "beforeBundledBytes": 92216,
+      "after": [
+        {
+          "path": "node_modules/drizzle-orm",
+          "version": "0.45.2",
+          "dev": false
+        }
+      ],
+      "afterBundledBytes": 98773,
+      "advisories": [
+        {
+          "source": 1116251,
+          "title": "Drizzle ORM has SQL injection via improperly escaped SQL identifiers",
+          "url": "https://github.com/advisories/GHSA-gpj5-g38j-94v9",
+          "range": "<0.45.2"
+        }
+      ],
+      "remaining": null
+    },
+    {
+      "name": "fast-uri",
+      "before": [
+        {
+          "path": "node_modules/fast-uri",
+          "version": "3.1.0",
+          "dev": false
+        }
+      ],
+      "parents": [
+        {
+          "path": "node_modules/@modelcontextprotocol/sdk/node_modules/ajv",
+          "range": "^3.0.1"
+        },
+        {
+          "path": "node_modules/ajv-formats/node_modules/ajv",
+          "range": "^3.0.1"
+        }
+      ],
+      "beforeBundledBytes": 9618,
+      "after": [
+        {
+          "path": "node_modules/fast-uri",
+          "version": "3.1.8",
+          "dev": false
+        }
+      ],
+      "afterBundledBytes": 17118,
+      "advisories": [
+        {
+          "source": 1124064,
+          "title": "fast-uri vulnerable to host confusion via literal backslash authority delimiter",
+          "url": "https://github.com/advisories/GHSA-v2hh-gcrm-f6hx",
+          "range": ">=3.0.0 <=3.1.3"
+        },
+        {
+          "source": 1130720,
+          "title": "fast-uri vulnerable to host confusion via backslash authority introducer",
+          "url": "https://github.com/advisories/GHSA-7p8r-x3mc-p8w7",
+          "range": ">=3.0.0 <3.1.5"
+        },
+        {
+          "source": 1145559,
+          "title": "fast-uri vulnerable to path traversal via percent-encoded dot segments",
+          "url": "https://github.com/advisories/GHSA-q3j6-qgpj-74h6",
+          "range": ">=3.0.0 <=3.1.0"
+        },
+        {
+          "source": 1153168,
+          "title": "fast-uri vulnerable to host confusion via percent-encoded authority delimiters",
+          "url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc",
+          "range": ">=3.0.0 <=3.1.1"
+        },
+        {
+          "source": 1158524,
+          "title": "fast-uri vulnerable to server-side request forgery via malformed IPv6 normalization",
+          "url": "https://github.com/advisories/GHSA-f65p-4m7j-42xc",
+          "range": ">=3.0.0 <3.1.6"
+        },
+        {
+          "source": 1158530,
+          "title": "fast-uri vulnerable to host confusion via percent-encoded scheme normalization",
+          "url": "https://github.com/advisories/GHSA-jqff-g426-hqxp",
+          "range": ">=3.0.0 <3.1.6"
+        },
+        {
+          "source": 1204921,
+          "title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
+          "url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6",
+          "range": ">=3.0.0 <3.1.3"
+        },
+        {
+          "source": 1239943,
+          "title": "fast-uri vulnerable to authority injection via an unvalidated port in serialize",
+          "url": "https://github.com/advisories/GHSA-qw65-cvwx-89v3",
+          "range": ">=3.0.0 <3.1.7"
+        },
+        {
+          "source": 1240091,
+          "title": "fast-uri vulnerable to inconsistent host case normalization via percent-encoded octets",
+          "url": "https://github.com/advisories/GHSA-hrr3-gc8f-f4qj",
+          "range": ">=3.0.0 <3.1.8"
+        }
+      ],
+      "remaining": null
+    },
+    {
+      "name": "form-data",
+      "before": [
+        {
+          "path": "node_modules/form-data",
+          "version": "4.0.5",
+          "dev": false
+        }
+      ],
+      "parents": [
+        {
+          "path": "node_modules/@types/node-fetch",
+          "range": "^4.0.0"
+        },
+        {
+          "path": "node_modules/jsdom",
+          "range": "^4.0.0"
+        }
+      ],
+      "beforeBundledBytes": 0,
+      "after": [
+        {
+          "path": "node_modules/form-data",
+          "version": "4.0.6",
+          "dev": false
+        }
+      ],
+      "afterBundledBytes": 0,
+      "advisories": [
+        {
+          "source": 1120743,
+          "title": "form-data: CRLF injection in form-data via unescaped multipart field names and filenames",
+          "url": "https://github.com/advisories/GHSA-hmw2-7cc7-3qxx",
+          "range": ">=4.0.0 <4.0.6"
+        }
+      ],
+      "remaining": null
+    },
+    {
+      "name": "hono",
+      "before": [
+        {
+          "path": "node_modules/hono",
+          "version": "4.12.32",
+          "dev": false
+        }
+      ],
+      "parents": [
+        {
+          "path": "node_modules/@modelcontextprotocol/sdk",
+          "range": "^4.11.4"
+        }
+      ],
+      "beforeBundledBytes": 0,
+      "after": [
+        {
+          "path": "node_modules/hono",
+          "version": "4.13.13",
+          "dev": false
+        }
+      ],
+      "afterBundledBytes": 0,
+      "advisories": [
+        {
+          "source": 1130733,
+          "title": "Hono: ReDoS in CORS middleware via Access-Control-Request-Headers",
+          "url": "https://github.com/advisories/GHSA-8j4g-w8fx-2239",
+          "range": "<4.12.34"
+        },
+        {
+          "source": 1138771,
+          "title": "Hono: `memo()` retains SSR output across requests, leading to cross-user data disclosure",
+          "url": "https://github.com/advisories/GHSA-f23p-vx2j-j53r",
+          "range": ">=3.8.0 <4.12.34"
+        },
+        {
+          "source": 1138772,
+          "title": "Hono: Proxy Helper does not remove response headers listed in the `Connection` header",
+          "url": "https://github.com/advisories/GHSA-79qm-7rj5-m7r9",
+          "range": ">=4.7.0 <4.12.34"
+        },
+        {
+          "source": 1138773,
+          "title": "Hono: Algorithmic Complexity DoS in Language Middleware",
+          "url": "https://github.com/advisories/GHSA-54fx-42gc-7vw4",
+          "range": ">=4.12.0 <4.12.34"
+        },
+        {
+          "source": 1193729,
+          "title": "Hono: Incomplete fix for CVE-2026-39408: `toSSG()` still writes files outside the output directory",
+          "url": "https://github.com/advisories/GHSA-gqvv-2mrq-wpjv",
+          "range": "<4.13.5"
+        },
+        {
+          "source": 1193730,
+          "title": "Hono: Unbounded dot-notation nesting in `parseBody()` can cause memory exhaustion",
+          "url": "https://github.com/advisories/GHSA-g6gw-c38x-mqfc",
+          "range": "<4.13.5"
+        },
+        {
+          "source": 1193731,
+          "title": "Hono: Query parser reads parameters after the URL fragment, causing cache-key and proxy interpretation differentials",
+          "url": "https://github.com/advisories/GHSA-crvj-82cr-hjcx",
+          "range": "<4.13.5"
+        },
+        {
+          "source": 1240640,
+          "title": "hono/jsx renders plain strings unescaped in boundary components, leading to XSS",
+          "url": "https://github.com/advisories/GHSA-hxh3-vqpv-xpqv",
+          "range": "<4.13.7"
+        }
+      ],
+      "remaining": null
+    },
+    {
+      "name": "js-yaml",
+      "before": [
+        {
+          "path": "node_modules/@istanbuljs/load-nyc-config/node_modules/js-yaml",
+          "version": "3.14.2",
+          "dev": true
+        },
+        {
+          "path": "node_modules/js-yaml",
+          "version": "4.1.1",
+          "dev": false
+        }
+      ],
+      "parents": [
+        {
+          "path": "node_modules/@eslint/eslintrc",
+          "range": "^4.1.0"
+        },
+        {
+          "path": "node_modules/@istanbuljs/load-nyc-config",
+          "range": "^3.13.1"
+        },
+        {
+          "path": "node_modules/eslint",
+          "range": "^4.1.0"
+        },
+        {
+          "path": "node_modules/langchain",
+          "range": "^4.1.0"
+        }
+      ],
+      "beforeBundledBytes": 0,
+      "after": [
+        {
+          "path": "node_modules/@istanbuljs/load-nyc-config/node_modules/js-yaml",
+          "version": "3.15.2",
+          "dev": true
+        },
+        {
+          "path": "node_modules/js-yaml",
+          "version": "4.3.2",
+          "dev": false
+        }
+      ],
+      "afterBundledBytes": 0,
+      "advisories": [
+        {
+          "source": 1121859,
+          "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+          "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68",
+          "range": "<3.15.0"
+        },
+        {
+          "source": 1121860,
+          "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+          "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68",
+          "range": ">=4.0.0 <=4.1.1"
+        },
+        {
+          "source": 1123911,
+          "title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+          "url": "https://github.com/advisories/GHSA-52cp-r559-cp3m",
+          "range": ">=4.0.0 <4.3.0"
+        },
+        {
+          "source": 1123912,
+          "title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+          "url": "https://github.com/advisories/GHSA-52cp-r559-cp3m",
+          "range": ">=3.0.0 <3.15.0"
+        },
+        {
+          "source": 1138114,
+          "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported",
+          "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj",
+          "range": ">=3.0.0 <3.15.1"
+        },
+        {
+          "source": 1138115,
+          "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported",
+          "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj",
+          "range": ">=4.0.0 <4.3.1"
+        },
+        {
+          "source": 1193726,
+          "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+          "url": "https://github.com/advisories/GHSA-2883-xcg3-v3hh",
+          "range": ">=3.0.0 <3.15.2"
+        },
+        {
+          "source": 1193727,
+          "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+          "url": "https://github.com/advisories/GHSA-2883-xcg3-v3hh",
+          "range": ">=4.0.0 <4.3.2"
+        }
+      ],
+      "remaining": {
+        "name": "js-yaml",
+        "severity": "moderate",
+        "isDirect": false,
+        "via": ["argparse"],
+        "effects": ["@istanbuljs/load-nyc-config"],
+        "range": "3.2.7 - 3.15.2",
+        "nodes": [
+          "node_modules/@istanbuljs/load-nyc-config/node_modules/js-yaml"
+        ],
+        "fixAvailable": {
+          "name": "jest",
+          "version": "30.5.2",
+          "isSemVerMajor": true
+        }
+      }
+    },
+    {
+      "name": "langsmith",
+      "before": [
+        {
+          "path": "node_modules/langsmith",
+          "version": "0.3.87",
+          "dev": false
+        }
+      ],
+      "parents": [
+        {
+          "path": "node_modules/@langchain/core",
+          "range": "^0.3.67"
+        },
+        {
+          "path": "node_modules/langchain",
+          "range": "^0.3.67"
+        }
+      ],
+      "beforeBundledBytes": 105716,
+      "after": [
+        {
+          "path": "node_modules/langsmith",
+          "version": "0.6.0",
+          "dev": false
+        }
+      ],
+      "afterBundledBytes": 142596,
+      "advisories": [
+        {
+          "source": 1113091,
+          "title": "LangSmith Client SDK Affected by Server-Side Request Forgery via Tracing Header Injection",
+          "url": "https://github.com/advisories/GHSA-v34v-rq6j-cj6p",
+          "range": ">=0.3.41 <0.4.6"
+        },
+        {
+          "source": 1116472,
+          "title": "LangSmith Client SDKs has Prototype Pollution in langsmith-sdk via Incomplete `__proto__` Guard in Internal lodash `set()`",
+          "url": "https://github.com/advisories/GHSA-fw9q-39r9-c252",
+          "range": "<=0.5.17"
+        },
+        {
+          "source": 1117058,
+          "title": "LangSmith SDK: Streaming token events bypass output redaction",
+          "url": "https://github.com/advisories/GHSA-rr7j-v2q5-chgv",
+          "range": "<=0.5.18"
+        },
+        {
+          "source": 1120161,
+          "title": "LangSmith SDK: Public prompt pull deserializes untrusted manifests without trust boundary warning",
+          "url": "https://github.com/advisories/GHSA-3644-q5cj-c5c7",
+          "range": "<0.6.0"
+        }
+      ],
+      "remaining": null
+    },
+    {
+      "name": "minimatch",
+      "before": [
+        {
+          "path": "node_modules/@eslint/eslintrc/node_modules/minimatch",
+          "version": "3.1.2",
+          "dev": true
+        },
+        {
+          "path": "node_modules/@humanwhocodes/config-array/node_modules/minimatch",
+          "version": "3.1.2",
+          "dev": true
+        },
+        {
+          "path": "node_modules/eslint-plugin-import/node_modules/minimatch",
+          "version": "3.1.2",
+          "dev": true
+        },
+        {
+          "path": "node_modules/eslint-plugin-react/node_modules/minimatch",
+          "version": "3.1.2",
+          "dev": true
+        },
+        {
+          "path": "node_modules/eslint/node_modules/minimatch",
+          "version": "3.1.2",
+          "dev": true
+        },
+        {
+          "path": "node_modules/filelist/node_modules/minimatch",
+          "version": "5.1.6",
+          "dev": true
+        },
+        {
+          "path": "node_modules/gaxios/node_modules/minimatch",
+          "version": "9.0.5",
+          "dev": false
+        },
+        {
+          "path": "node_modules/glob/node_modules/minimatch",
+          "version": "3.1.2",
+          "dev": true
+        },
+        {
+          "path": "node_modules/jake/node_modules/minimatch",
+          "version": "3.1.2",
+          "dev": true
+        },
+        {
+          "path": "node_modules/minimatch",
+          "version": "10.0.1",
+          "dev": false
+        },
+        {
+          "path": "node_modules/test-exclude/node_modules/minimatch",
+          "version": "3.1.2",
+          "dev": true
+        }
+      ],
+      "parents": [
+        {
+          "path": "(root)",
+          "range": "^10.0.1"
+        },
+        {
+          "path": "node_modules/@eslint/eslintrc",
+          "range": "^3.1.2"
+        },
+        {
+          "path": "node_modules/@humanwhocodes/config-array",
+          "range": "^3.0.5"
+        },
+        {
+          "path": "node_modules/eslint",
+          "range": "^3.1.2"
+        },
+        {
+          "path": "node_modules/eslint-plugin-import",
+          "range": "^3.1.2"
+        },
+        {
+          "path": "node_modules/eslint-plugin-react",
+          "range": "^3.1.2"
+        },
+        {
+          "path": "node_modules/filelist",
+          "range": "^5.0.1"
+        },
+        {
+          "path": "node_modules/gaxios/node_modules/glob",
+          "range": "^9.0.4"
+        },
+        {
+          "path": "node_modules/glob",
+          "range": "^3.1.1"
+        },
+        {
+          "path": "node_modules/jake",
+          "range": "^3.1.2"
+        },
+        {
+          "path": "node_modules/test-exclude",
+          "range": "^3.0.4"
+        }
+      ],
+      "beforeBundledBytes": 19886,
+      "after": [
+        {
+          "path": "node_modules/@eslint/eslintrc/node_modules/minimatch",
+          "version": "3.1.5",
+          "dev": true
+        },
+        {
+          "path": "node_modules/@humanwhocodes/config-array/node_modules/minimatch",
+          "version": "3.1.5",
+          "dev": true
+        },
+        {
+          "path": "node_modules/eslint-plugin-import/node_modules/minimatch",
+          "version": "3.1.5",
+          "dev": true
+        },
+        {
+          "path": "node_modules/eslint-plugin-react/node_modules/minimatch",
+          "version": "3.1.5",
+          "dev": true
+        },
+        {
+          "path": "node_modules/eslint/node_modules/minimatch",
+          "version": "3.1.5",
+          "dev": true
+        },
+        {
+          "path": "node_modules/gaxios/node_modules/minimatch",
+          "version": "9.0.9",
+          "dev": false
+        },
+        {
+          "path": "node_modules/glob/node_modules/minimatch",
+          "version": "3.1.5",
+          "dev": true
+        },
+        {
+          "path": "node_modules/minimatch",
+          "version": "10.2.6",
+          "dev": false
+        },
+        {
+          "path": "node_modules/test-exclude/node_modules/minimatch",
+          "version": "3.1.5",
+          "dev": true
+        }
+      ],
+      "afterBundledBytes": 28026,
+      "advisories": [
+        {
+          "source": 1113459,
+          "title": "minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern",
+          "url": "https://github.com/advisories/GHSA-3ppc-4f35-3m26",
+          "range": "<3.1.3"
+        },
+        {
+          "source": 1113461,
+          "title": "minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern",
+          "url": "https://github.com/advisories/GHSA-3ppc-4f35-3m26",
+          "range": ">=5.0.0 <5.1.7"
+        },
+        {
+          "source": 1113465,
+          "title": "minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern",
+          "url": "https://github.com/advisories/GHSA-3ppc-4f35-3m26",
+          "range": ">=9.0.0 <9.0.6"
+        },
+        {
+          "source": 1113466,
+          "title": "minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern",
+          "url": "https://github.com/advisories/GHSA-3ppc-4f35-3m26",
+          "range": ">=10.0.0 <10.2.1"
+        },
+        {
+          "source": 1113538,
+          "title": "minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments",
+          "url": "https://github.com/advisories/GHSA-7r86-cg39-jmmj",
+          "range": "<3.1.3"
+        },
+        {
+          "source": 1113540,
+          "title": "minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments",
+          "url": "https://github.com/advisories/GHSA-7r86-cg39-jmmj",
+          "range": ">=5.0.0 <5.1.8"
+        },
+        {
+          "source": 1113544,
+          "title": "minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments",
+          "url": "https://github.com/advisories/GHSA-7r86-cg39-jmmj",
+          "range": ">=9.0.0 <9.0.7"
+        },
+        {
+          "source": 1113545,
+          "title": "minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments",
+          "url": "https://github.com/advisories/GHSA-7r86-cg39-jmmj",
+          "range": ">=10.0.0 <10.2.3"
+        },
+        {
+          "source": 1113546,
+          "title": "minimatch ReDoS: nested *() extglobs generate catastrophically backtracking regular expressions",
+          "url": "https://github.com/advisories/GHSA-23c5-xmqv-rm74",
+          "range": "<3.1.4"
+        },
+        {
+          "source": 1113548,
+          "title": "minimatch ReDoS: nested *() extglobs generate catastrophically backtracking regular expressions",
+          "url": "https://github.com/advisories/GHSA-23c5-xmqv-rm74",
+          "range": ">=5.0.0 <5.1.8"
+        },
+        {
+          "source": 1113552,
+          "title": "minimatch ReDoS: nested *() extglobs generate catastrophically backtracking regular expressions",
+          "url": "https://github.com/advisories/GHSA-23c5-xmqv-rm74",
+          "range": ">=9.0.0 <9.0.7"
+        },
+        {
+          "source": 1113553,
+          "title": "minimatch ReDoS: nested *() extglobs generate catastrophically backtracking regular expressions",
+          "url": "https://github.com/advisories/GHSA-23c5-xmqv-rm74",
+          "range": ">=10.0.0 <10.2.3"
+        }
+      ],
+      "remaining": null
+    },
+    {
+      "name": "prismjs",
+      "before": [
+        {
+          "path": "node_modules/prismjs",
+          "version": "1.30.0",
+          "dev": false
+        },
+        {
+          "path": "node_modules/refractor/node_modules/prismjs",
+          "version": "1.27.0",
+          "dev": false
+        }
+      ],
+      "parents": [
+        {
+          "path": "node_modules/@lexical/code",
+          "range": "^1.27.0"
+        },
+        {
+          "path": "node_modules/react-syntax-highlighter",
+          "range": "^1.30.0"
+        },
+        {
+          "path": "node_modules/refractor",
+          "range": "~1.27.0"
+        }
+      ],
+      "beforeBundledBytes": 7483,
+      "after": [
+        {
+          "path": "node_modules/prismjs",
+          "version": "1.30.0",
+          "dev": false
+        }
+      ],
+      "afterBundledBytes": 7522,
+      "advisories": [
+        {
+          "source": 1105770,
+          "title": "PrismJS DOM Clobbering vulnerability",
+          "url": "https://github.com/advisories/GHSA-x7hr-w5r2-h6wg",
+          "range": "<1.30.0"
+        }
+      ],
+      "remaining": null
+    },
+    {
+      "name": "qs",
+      "before": [
+        {
+          "path": "node_modules/qs",
+          "version": "6.15.3",
+          "dev": false
+        }
+      ],
+      "parents": [
+        {
+          "path": "node_modules/body-parser",
+          "range": "^6.15.2"
+        },
+        {
+          "path": "node_modules/express",
+          "range": "^6.14.0"
+        }
+      ],
+      "beforeBundledBytes": 0,
+      "after": [
+        {
+          "path": "node_modules/qs",
+          "version": "6.16.0",
+          "dev": false
+        }
+      ],
+      "afterBundledBytes": 0,
+      "advisories": [
+        {
+          "source": 1158506,
+          "title": "qs array-limit bypass via bracket-key comma parsing",
+          "url": "https://github.com/advisories/GHSA-x5fp-wj9c-mxmx",
+          "range": ">=6.14.2 <=6.15.3"
+        },
+        {
+          "source": 1158507,
+          "title": "qs: Denial of Service via Attacker Controlled isBuffer",
+          "url": "https://github.com/advisories/GHSA-4mjr-xmp4-gh2g",
+          "range": ">=2.2.5 <6.16.0"
+        }
+      ],
+      "remaining": null
+    },
+    {
+      "name": "uuid",
+      "before": [
+        {
+          "path": "node_modules/uuid",
+          "version": "10.0.0",
+          "dev": false
+        }
+      ],
+      "parents": [
+        {
+          "path": "(root)",
+          "range": "^10.0.0"
+        },
+        {
+          "path": "node_modules/@langchain/core",
+          "range": "^10.0.0"
+        },
+        {
+          "path": "node_modules/langchain",
+          "range": "^10.0.0"
+        },
+        {
+          "path": "node_modules/langsmith",
+          "range": "^10.0.0"
+        }
+      ],
+      "beforeBundledBytes": 4853,
+      "after": [
+        {
+          "path": "node_modules/uuid",
+          "version": "11.1.1",
+          "dev": false
+        }
+      ],
+      "afterBundledBytes": 4000,
+      "advisories": [
+        {
+          "source": 1119441,
+          "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+          "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+          "range": "<11.1.1"
+        }
+      ],
+      "remaining": null
+    },
+    {
+      "name": "ws",
+      "before": [
+        {
+          "path": "node_modules/ws",
+          "version": "8.18.1",
+          "dev": false
+        }
+      ],
+      "parents": [
+        {
+          "path": "node_modules/@google/genai",
+          "range": "^8.18.0"
+        },
+        {
+          "path": "node_modules/jsdom",
+          "range": "^8.11.0"
+        }
+      ],
+      "beforeBundledBytes": 0,
+      "after": [
+        {
+          "path": "node_modules/ws",
+          "version": "8.22.0",
+          "dev": false
+        }
+      ],
+      "afterBundledBytes": 0,
+      "advisories": [
+        {
+          "source": 1119108,
+          "title": "ws: Uninitialized memory disclosure",
+          "url": "https://github.com/advisories/GHSA-58qx-3vcg-4xpx",
+          "range": ">=8.0.0 <8.20.1"
+        },
+        {
+          "source": 1123259,
+          "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
+          "url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p",
+          "range": ">=8.0.0 <8.21.0"
+        }
+      ],
+      "remaining": null
+    },
+    {
+      "name": "yaml",
+      "before": [
+        {
+          "path": "node_modules/yaml",
+          "version": "2.6.0",
+          "dev": false
+        }
+      ],
+      "parents": [
+        {
+          "path": "node_modules/langchain",
+          "range": "^2.2.1"
+        }
+      ],
+      "beforeBundledBytes": 0,
+      "after": [
+        {
+          "path": "node_modules/yaml",
+          "version": "2.9.1",
+          "dev": false
+        }
+      ],
+      "afterBundledBytes": 0,
+      "advisories": [
+        {
+          "source": 1115556,
+          "title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
+          "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp",
+          "range": ">=2.0.0 <2.8.3"
+        }
+      ],
+      "remaining": null
+    }
+  ],
+  "residual": [
+    {
+      "name": "@esbuild-kit/core-utils",
+      "severity": "moderate",
+      "versions": [
+        {
+          "path": "node_modules/@esbuild-kit/core-utils",
+          "version": "3.3.2",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["esbuild"],
+      "fixAvailable": {
+        "name": "drizzle-kit",
+        "version": "0.31.11",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@esbuild-kit/esm-loader",
+      "severity": "moderate",
+      "versions": [
+        {
+          "path": "node_modules/@esbuild-kit/esm-loader",
+          "version": "2.6.5",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@esbuild-kit/core-utils"],
+      "fixAvailable": {
+        "name": "drizzle-kit",
+        "version": "0.31.11",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@istanbuljs/load-nyc-config",
+      "severity": "moderate",
+      "versions": [
+        {
+          "path": "node_modules/@istanbuljs/load-nyc-config",
+          "version": "1.1.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["js-yaml"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@jest/console",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@jest/console",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["jest-message-util"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@jest/core",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@jest/core",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": [
+        "@jest/console",
+        "@jest/reporters",
+        "@jest/test-result",
+        "@jest/transform",
+        "jest-config",
+        "jest-haste-map",
+        "jest-message-util",
+        "jest-resolve",
+        "jest-resolve-dependencies",
+        "jest-runner",
+        "jest-runtime",
+        "jest-snapshot",
+        "jest-watcher",
+        "micromatch"
+      ],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@jest/environment",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@jest/environment",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@jest/fake-timers"],
+      "fixAvailable": {
+        "name": "jest-environment-jsdom",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@jest/expect",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@jest/expect",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["expect", "jest-snapshot"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@jest/fake-timers",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@jest/fake-timers",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["jest-message-util"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@jest/globals",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@jest/globals",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@jest/environment", "@jest/expect"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@jest/reporters",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@jest/reporters",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": [
+        "@jest/console",
+        "@jest/test-result",
+        "@jest/transform",
+        "jest-message-util"
+      ],
+      "fixAvailable": true
+    },
+    {
+      "name": "@jest/test-result",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@jest/test-result",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@jest/console"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@jest/test-sequencer",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@jest/test-sequencer",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@jest/test-result", "jest-haste-map"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@jest/transform",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@jest/transform",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["babel-plugin-istanbul", "jest-haste-map", "micromatch"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@types/jest",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@types/jest",
+          "version": "29.5.14",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["expect"],
+      "fixAvailable": {
+        "name": "@types/jest",
+        "version": "30.0.0",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@typescript-eslint/eslint-plugin",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@typescript-eslint/eslint-plugin",
+          "version": "5.29.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": [
+        "@typescript-eslint/parser",
+        "@typescript-eslint/type-utils",
+        "@typescript-eslint/utils"
+      ],
+      "fixAvailable": {
+        "name": "@typescript-eslint/eslint-plugin",
+        "version": "8.71.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@typescript-eslint/parser",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@typescript-eslint/parser",
+          "version": "5.29.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@typescript-eslint/typescript-estree"],
+      "fixAvailable": {
+        "name": "@typescript-eslint/parser",
+        "version": "8.71.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@typescript-eslint/type-utils",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@typescript-eslint/type-utils",
+          "version": "5.29.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@typescript-eslint/utils"],
+      "fixAvailable": true
+    },
+    {
+      "name": "@typescript-eslint/typescript-estree",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@typescript-eslint/typescript-estree",
+          "version": "5.29.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["globby"],
+      "fixAvailable": {
+        "name": "@typescript-eslint/parser",
+        "version": "8.71.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "@typescript-eslint/utils",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/@typescript-eslint/utils",
+          "version": "5.29.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@typescript-eslint/typescript-estree"],
+      "fixAvailable": {
+        "name": "@typescript-eslint/eslint-plugin",
+        "version": "8.71.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "argparse",
+      "severity": "moderate",
+      "versions": [
+        {
+          "path": "node_modules/@istanbuljs/load-nyc-config/node_modules/argparse",
+          "version": "1.0.10",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["sprintf-js"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "babel-jest",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/babel-jest",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@jest/transform", "babel-plugin-istanbul"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "babel-plugin-istanbul",
+      "severity": "moderate",
+      "versions": [
+        {
+          "path": "node_modules/babel-plugin-istanbul",
+          "version": "6.1.1",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@istanbuljs/load-nyc-config"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "braces",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/braces",
+          "version": "3.0.3",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": [
+        {
+          "title": "braces vulnerable to stack-exhaustion denial of service through deeply nested patterns",
+          "url": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+          "range": "<=3.0.3"
+        }
+      ],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "create-jest",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/create-jest",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["jest-config"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "drizzle-kit",
+      "severity": "moderate",
+      "versions": [
+        {
+          "path": "node_modules/drizzle-kit",
+          "version": "0.30.6",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@esbuild-kit/esm-loader", "esbuild"],
+      "fixAvailable": {
+        "name": "drizzle-kit",
+        "version": "0.31.11",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "esbuild",
+      "severity": "moderate",
+      "versions": [
+        {
+          "path": "node_modules/@esbuild-kit/core-utils/node_modules/esbuild",
+          "version": "0.18.20",
+          "dev": true
+        },
+        {
+          "path": "node_modules/drizzle-kit/node_modules/esbuild",
+          "version": "0.19.12",
+          "dev": true
+        },
+        {
+          "path": "node_modules/esbuild",
+          "version": "0.17.3",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": [
+        {
+          "title": "esbuild enables any website to send any requests to the development server and read the response",
+          "url": "https://github.com/advisories/GHSA-67mh-4wv8-2f99",
+          "range": "<=0.24.2"
+        }
+      ],
+      "fixAvailable": {
+        "name": "esbuild",
+        "version": "0.28.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "expect",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/expect",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["jest-message-util"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "fast-glob",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/fast-glob",
+          "version": "3.3.3",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["micromatch"],
+      "fixAvailable": {
+        "name": "@typescript-eslint/parser",
+        "version": "8.71.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "globby",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/globby",
+          "version": "11.1.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["fast-glob"],
+      "fixAvailable": {
+        "name": "@typescript-eslint/parser",
+        "version": "8.71.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "jest",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/jest",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@jest/core", "jest-cli"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "jest-circus",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/jest-circus",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": [
+        "@jest/environment",
+        "@jest/expect",
+        "@jest/test-result",
+        "jest-message-util",
+        "jest-runtime",
+        "jest-snapshot"
+      ],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "jest-cli",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/jest-cli",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@jest/core", "@jest/test-result", "create-jest", "jest-config"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "jest-config",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/jest-config",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": [
+        "@jest/test-sequencer",
+        "babel-jest",
+        "jest-circus",
+        "jest-environment-node",
+        "jest-resolve",
+        "jest-runner",
+        "micromatch"
+      ],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "jest-environment-jsdom",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/jest-environment-jsdom",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@jest/environment", "@jest/fake-timers"],
+      "fixAvailable": {
+        "name": "jest-environment-jsdom",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "jest-environment-node",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/jest-environment-node",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@jest/environment", "@jest/fake-timers"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "jest-haste-map",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/jest-haste-map",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["micromatch"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "jest-message-util",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/jest-message-util",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["micromatch"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "jest-resolve",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/jest-resolve",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["jest-haste-map"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "jest-resolve-dependencies",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/jest-resolve-dependencies",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["jest-snapshot"],
+      "fixAvailable": true
+    },
+    {
+      "name": "jest-runner",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/jest-runner",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": [
+        "@jest/console",
+        "@jest/environment",
+        "@jest/test-result",
+        "@jest/transform",
+        "jest-environment-node",
+        "jest-haste-map",
+        "jest-message-util",
+        "jest-resolve",
+        "jest-runtime",
+        "jest-watcher"
+      ],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "jest-runtime",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/jest-runtime",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": [
+        "@jest/environment",
+        "@jest/fake-timers",
+        "@jest/globals",
+        "@jest/test-result",
+        "@jest/transform",
+        "jest-haste-map",
+        "jest-message-util",
+        "jest-resolve",
+        "jest-snapshot"
+      ],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "jest-snapshot",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/jest-snapshot",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@jest/transform", "expect", "jest-message-util"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "jest-watcher",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/jest-watcher",
+          "version": "29.7.0",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["@jest/test-result"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "js-yaml",
+      "severity": "moderate",
+      "versions": [
+        {
+          "path": "node_modules/@istanbuljs/load-nyc-config/node_modules/js-yaml",
+          "version": "3.15.2",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["argparse"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "micromatch",
+      "severity": "high",
+      "versions": [
+        {
+          "path": "node_modules/micromatch",
+          "version": "4.0.8",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["braces"],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    },
+    {
+      "name": "moment",
+      "severity": "moderate",
+      "versions": [
+        {
+          "path": "node_modules/moment",
+          "version": "2.29.4",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": [
+        {
+          "title": "moment vulnerable to Path Traversal via crafted non-string locale name",
+          "url": "https://github.com/advisories/GHSA-4p3w-j4w9-5jqw",
+          "range": ">=2.29.2 <2.31.0"
+        }
+      ],
+      "fixAvailable": {
+        "name": "obsidian",
+        "version": "1.14.4",
+        "isSemVerMajor": false
+      }
+    },
+    {
+      "name": "obsidian",
+      "severity": "moderate",
+      "versions": [
+        {
+          "path": "node_modules/obsidian",
+          "version": "1.13.1",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": ["moment"],
+      "fixAvailable": {
+        "name": "obsidian",
+        "version": "1.14.4",
+        "isSemVerMajor": false
+      }
+    },
+    {
+      "name": "sprintf-js",
+      "severity": "moderate",
+      "versions": [
+        {
+          "path": "node_modules/sprintf-js",
+          "version": "1.0.3",
+          "dev": true
+        }
+      ],
+      "bundledBytes": 0,
+      "via": [
+        {
+          "title": "sprintf-js vulnerable to denial of service through unbounded precision specifiers",
+          "url": "https://github.com/advisories/GHSA-hp3w-g68c-fv3c",
+          "range": "<=1.1.3"
+        }
+      ],
+      "fixAvailable": {
+        "name": "jest",
+        "version": "30.5.2",
+        "isSemVerMajor": true
+      }
+    }
+  ]
+}

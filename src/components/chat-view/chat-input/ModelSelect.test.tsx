@@ -39,7 +39,7 @@ describe('ModelSelect', () => {
   })
 
   it('portals outside the clipping leaf and preserves keyboard selection', async () => {
-    const leaf = document.createElement('div')
+    const leaf = createDiv()
     document.body.appendChild(leaf)
     const view = render(
       <DialogContainerProvider container={leaf}>

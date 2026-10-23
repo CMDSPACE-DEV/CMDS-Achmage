@@ -1,11 +1,11 @@
 import fs from 'fs'
 
-const maxMainBytes = Math.floor(6.5 * 1024 * 1024)
+const maxMainBytes = 4_940_000
 const mainBytes = fs.statSync('main.js').size
 
 if (mainBytes > maxMainBytes) {
   throw new Error(
-    `main.js is ${mainBytes.toLocaleString()} bytes; the 2.6.0 budget is ${maxMainBytes.toLocaleString()} bytes.`,
+    `main.js is ${mainBytes.toLocaleString()} bytes; the production budget is ${maxMainBytes.toLocaleString()} bytes.`,
   )
 }
 

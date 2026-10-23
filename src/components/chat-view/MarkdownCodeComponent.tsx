@@ -74,7 +74,7 @@ export default function MarkdownCodeComponent({
     try {
       await navigator.clipboard.writeText(String(children))
       setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      window.setTimeout(() => setCopied(false), 2000)
     } catch (err) {
       console.error('Failed to copy text: ', err)
     }
@@ -134,7 +134,7 @@ export default function MarkdownCodeComponent({
           <button
             className="clickable-icon smtcmp-code-block-header-button"
             onClick={() => {
-              handleCopy()
+              void handleCopy()
             }}
           >
             {copied ? (
@@ -170,7 +170,7 @@ export default function MarkdownCodeComponent({
           <button
             className="clickable-icon smtcmp-code-block-header-button"
             onClick={() => {
-              handleCopy()
+              void handleCopy()
             }}
           >
             {copied ? (

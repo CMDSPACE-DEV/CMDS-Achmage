@@ -19,7 +19,7 @@ function makeCapturingFetch(
   return jest.fn(async (_url, init) => {
     onBody(JSON.parse(String(init?.body)) as CapturedBody)
     throw new Error('stop after capture')
-  }) as unknown as typeof fetch
+  })
 }
 
 function makeSseFetch(
@@ -46,7 +46,7 @@ function makeSseFetch(
       status: 200,
       body,
     } as Response
-  }) as unknown as typeof fetch
+  })
 }
 
 function responsePayload({
@@ -574,8 +574,8 @@ describe('CodexMessageAdapter', () => {
       reasoning_effort: 'medium',
     })
     await expect(async () => {
-      for await (const _chunk of stream) {
-        // Consume the stream to surface terminal validation.
+      for await (const chunk of stream) {
+        void chunk // Consume the stream to surface terminal validation.
       }
     }).rejects.toThrow('Codex stream ended before a terminal response event')
   })

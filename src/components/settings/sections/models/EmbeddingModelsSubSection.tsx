@@ -35,26 +35,28 @@ export function EmbeddingModelsSubSection({
       title: 'Delete Embedding Model',
       message: message,
       ctaText: 'Delete',
-      onConfirm: async () => {
-        const vectorManager = (await plugin.getDbManager()).getVectorManager()
-        const embeddingStats = await vectorManager.getEmbeddingStats()
-        const embeddingStat = embeddingStats.find((v) => v.model === modelId)
+      onConfirm: () => {
+        void (async () => {
+          const vectorManager = (await plugin.getDbManager()).getVectorManager()
+          const embeddingStats = await vectorManager.getEmbeddingStats()
+          const embeddingStat = embeddingStats.find((v) => v.model === modelId)
 
-        if (embeddingStat?.rowCount && embeddingStat.rowCount > 0) {
-          // only clear when there's data
-          const embeddingModelClient = getEmbeddingModelClient({
-            settings,
-            embeddingModelId: modelId,
+          if (embeddingStat?.rowCount && embeddingStat.rowCount > 0) {
+            // only clear when there's data
+            const embeddingModelClient = getEmbeddingModelClient({
+              settings,
+              embeddingModelId: modelId,
+            })
+            await vectorManager.clearAllVectors(embeddingModelClient)
+          }
+
+          await setSettings({
+            ...settings,
+            embeddingModels: [...settings.embeddingModels].filter(
+              (v) => v.id !== modelId,
+            ),
           })
-          await vectorManager.clearAllVectors(embeddingModelClient)
-        }
-
-        await setSettings({
-          ...settings,
-          embeddingModels: [...settings.embeddingModels].filter(
-            (v) => v.id !== modelId,
-          ),
-        })
+        })()
       },
     }).open()
   }
@@ -90,9 +92,9 @@ export function EmbeddingModelsSubSection({
                       (v) => v.id === embeddingModel.id,
                     ) && (
                       <button
-                        onClick={() =>
-                          handleDeleteEmbeddingModel(embeddingModel.id)
-                        }
+                        onClick={() => {
+                          void handleDeleteEmbeddingModel(embeddingModel.id)
+                        }}
                         className="clickable-icon"
                       >
                         <Trash2 />

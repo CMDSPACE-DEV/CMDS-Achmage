@@ -8,7 +8,7 @@ export abstract class AbstractJsonRepository<T, M> {
   constructor(app: App, dataDir: string) {
     this.app = app
     this.dataDir = normalizePath(dataDir)
-    this.ensureDirectory()
+    void this.ensureDirectory()
   }
 
   private async ensureDirectory(): Promise<void> {

@@ -61,7 +61,7 @@ export function getOpenFiles(app: App): TFile[] {
     const leaves = app.workspace.getLeavesOfType('markdown')
 
     return leaves.map((v) => (v.view as MarkdownView).file).filter((v) => !!v)
-  } catch (e) {
+  } catch {
     return []
   }
 }
@@ -117,7 +117,7 @@ export function openMarkdownFile(
     }
   } else {
     const leaf = app.workspace.getLeaf('tab')
-    leaf.openFile(file, {
+    void leaf.openFile(file, {
       eState: startLine ? { line: startLine - 1 } : undefined, // -1 because line is 0-indexed
     })
   }

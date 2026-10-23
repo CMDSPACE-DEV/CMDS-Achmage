@@ -1,5 +1,6 @@
 import { Platform } from 'obsidian'
 
+import { claudeEnvironmentSource } from './claudeShellConfigDir'
 import { NativeCliResolver } from './NativeCliResolver'
 import {
   NativeProcessOptions,
@@ -242,7 +243,10 @@ async function diagnoseClaude(
   policy: ClaudePlanAuthPolicy = {},
   managedSettingsInspector?: ClaudeManagedSettingsInspector,
 ): Promise<NativeRuntimeSnapshot> {
-  const environment = prepareNativePlanEnvironment('claude', environmentSource)
+  const environment = prepareNativePlanEnvironment(
+    'claude',
+    claudeEnvironmentSource(environmentSource),
+  )
   const versionResult = await runWithTimeout(runner, {
     executable: executablePath,
     args: ['--version'],
@@ -834,14 +838,14 @@ async function runWithTimeout(
   const timeoutController = new AbortController()
   const abort = () => timeoutController.abort()
   options.signal?.addEventListener('abort', abort, { once: true })
-  const timeout = setTimeout(
+  const timeout = window.setTimeout(
     () => timeoutController.abort(),
     DIAGNOSTIC_TIMEOUT_MS,
   )
   try {
     return await runner({ ...options, signal: timeoutController.signal })
   } finally {
-    clearTimeout(timeout)
+    window.clearTimeout(timeout)
     options.signal?.removeEventListener('abort', abort)
   }
 }

@@ -1,5 +1,3 @@
-import { Reasoning } from 'openai/resources/shared'
-
 import { ChatModel } from '../../types/chat-model.types'
 import {
   LLMOptions,
@@ -334,10 +332,10 @@ export class OpenAICodexProvider extends BaseLLMProvider<
       reasoning_effort: reasoningEffort,
       reasoning_summary:
         reasoningEffort !== 'none' && reasoningSummary
-          ? (reasoningSummary as Reasoning['summary'])
+          ? reasoningSummary
           : undefined,
       // The installed SDK type predates the `max` effort. The adapter narrows
       // a local wire type without requiring a broad SDK upgrade.
-    } as T
+    }
   }
 }

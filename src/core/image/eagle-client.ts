@@ -76,7 +76,7 @@ export class EagleClient {
     private readonly baseUrl: string,
     private readonly transport: EagleTransport = obsidianTransport,
     private readonly sleep: (ms: number) => Promise<void> = (ms) =>
-      new Promise((resolve) => setTimeout(resolve, ms)),
+      new Promise((resolve) => window.setTimeout(resolve, ms)),
     private readonly now: () => number = () => Date.now(),
   ) {}
 
@@ -220,7 +220,7 @@ export class EagleClient {
       url: `${this.baseUrl}${endpoint}`,
       method: 'GET',
     })
-    return (json ?? {}) as EagleResponse<T>
+    return json ?? {}
   }
 
   private async post<T>(
@@ -232,6 +232,6 @@ export class EagleClient {
       method: 'POST',
       body,
     })
-    return (json ?? {}) as EagleResponse<T>
+    return json ?? {}
   }
 }

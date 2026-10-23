@@ -322,8 +322,8 @@ async function captureStreamFailure(
     messages: [{ role: 'user', content: 'Return a test marker.' }],
   })
   try {
-    for await (const _chunk of stream) {
-      // Consume the async generator so the request process runs.
+    for await (const chunk of stream) {
+      void chunk // Consume the async generator so the request process runs.
     }
   } catch (error) {
     return error instanceof Error

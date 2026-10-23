@@ -1,8 +1,9 @@
 import path from 'path'
 import esbuild from 'esbuild'
 import process from 'process'
-import builtins from 'builtin-modules'
+import { builtinModules as builtins } from 'node:module'
 import fs from 'fs'
+import { tokenizerBrotliPlugin } from './scripts/tokenizer-brotli-plugin.mjs'
 
 const nodeBuiltins = [...builtins, ...builtins.map((mod) => `node:${mod}`)]
 
@@ -92,7 +93,7 @@ const context = await esbuild.context({
   outfile: 'main.js',
   minify: prod,
   metafile: true,
-  plugins: [pgliteShimPlugin],
+  plugins: [pgliteShimPlugin, ...(prod ? [tokenizerBrotliPlugin] : [])],
   loader: {
     '.css': 'text',
   },

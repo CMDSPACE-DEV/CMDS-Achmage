@@ -194,7 +194,7 @@ function TemplateFormComponent({
       }
     }
     if (templateId) {
-      fetchExistingTemplate(templateId)
+      void fetchExistingTemplate(templateId)
     }
 
     return () => {
@@ -228,7 +228,7 @@ function TemplateFormComponent({
       <ObsidianSetting>
         <ObsidianButton
           text={isSaving ? 'Saving...' : 'Save'}
-          onClick={handleSubmit}
+          onClick={() => void handleSubmit()}
           disabled={isSaving}
           cta
         />

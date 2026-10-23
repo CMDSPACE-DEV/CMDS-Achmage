@@ -41,10 +41,10 @@ export function getInternalRagModel(model: ChatModel): ChatModel {
   }
 
   if ('thinking' in model) {
-    return { ...model, thinking: undefined } as ChatModel
+    return { ...model, thinking: undefined }
   }
   if ('reasoning' in model) {
-    return { ...model, reasoning: undefined } as ChatModel
+    return { ...model, reasoning: undefined }
   }
   return model
 }

@@ -62,7 +62,7 @@ function createConnection({
       tools: tools.map((tool) => ({
         name: tool.name,
         description: tool.description,
-        inputSchema: tool.inputSchema as Record<string, unknown>,
+        inputSchema: tool.inputSchema,
         schemaHash: `hash-${tool.name}`,
       })),
     },

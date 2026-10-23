@@ -141,7 +141,11 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
           )}
 
           <ObsidianSetting>
-            <ObsidianButton text="Save" onClick={handleSubmit} cta />
+            <ObsidianButton
+              text="Save"
+              onClick={() => void handleSubmit()}
+              cta
+            />
             <ObsidianButton text="Cancel" onClick={onClose} />
           </ObsidianSetting>
         </>
@@ -265,7 +269,11 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
           </ObsidianSetting>
 
           <ObsidianSetting>
-            <ObsidianButton text="Save" onClick={handleSubmit} cta />
+            <ObsidianButton
+              text="Save"
+              onClick={() => void handleSubmit()}
+              cta
+            />
             <ObsidianButton text="Cancel" onClick={onClose} />
           </ObsidianSetting>
         </>
@@ -373,7 +381,11 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
           )}
 
           <ObsidianSetting>
-            <ObsidianButton text="Save" onClick={handleSubmit} cta />
+            <ObsidianButton
+              text="Save"
+              onClick={() => void handleSubmit()}
+              cta
+            />
             <ObsidianButton text="Cancel" onClick={onClose} />
           </ObsidianSetting>
         </>
@@ -508,7 +520,11 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
           )}
 
           <ObsidianSetting>
-            <ObsidianButton text="Save" onClick={handleSubmit} cta />
+            <ObsidianButton
+              text="Save"
+              onClick={() => void handleSubmit()}
+              cta
+            />
             <ObsidianButton text="Cancel" onClick={onClose} />
           </ObsidianSetting>
         </>
@@ -663,7 +679,11 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
           )}
 
           <ObsidianSetting>
-            <ObsidianButton text="Save" onClick={handleSubmit} cta />
+            <ObsidianButton
+              text="Save"
+              onClick={() => void handleSubmit()}
+              cta
+            />
             <ObsidianButton text="Cancel" onClick={onClose} />
           </ObsidianSetting>
         </>
@@ -732,7 +752,11 @@ const MODEL_SETTINGS_REGISTRY: ModelSettingsRegistry[] = [
           </ObsidianSetting>
 
           <ObsidianSetting>
-            <ObsidianButton text="Save" onClick={handleSubmit} cta />
+            <ObsidianButton
+              text="Save"
+              onClick={() => void handleSubmit()}
+              cta
+            />
             <ObsidianButton text="Cancel" onClick={onClose} />
           </ObsidianSetting>
         </>

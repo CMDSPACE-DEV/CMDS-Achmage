@@ -6,11 +6,11 @@
  */
 export function prepareChatMountSurface(host: HTMLElement): HTMLDivElement {
   if (host.shadowRoot) {
-    const passthroughSlot = host.ownerDocument.createElement('slot')
+    const passthroughSlot = host.ownerDocument.win.createEl('slot')
     host.shadowRoot.replaceChildren(passthroughSlot)
   }
 
-  const mountElement = host.ownerDocument.createElement('div')
+  const mountElement = host.ownerDocument.win.createDiv()
   mountElement.className = 'smtcmp-shell'
   host.replaceChildren(mountElement)
   return mountElement

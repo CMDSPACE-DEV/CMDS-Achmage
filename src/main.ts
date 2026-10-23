@@ -17,6 +17,7 @@ import { resolveImageOutputFolder } from './core/image/output-folder'
 import { saveImageToVault } from './core/image/save-image'
 import { renderTextCard } from './core/image/text-card'
 import type { InlineEditController } from './core/inline/InlineEditController'
+import { bindNativeRuntimePathStore } from './core/llm/native/NativeRuntimePathStore'
 import type { McpManager } from './core/mcp/mcpManager'
 import {
   McpSecretStore,
@@ -71,11 +72,12 @@ export default class SmartComposerPlugin extends Plugin {
     null
   private settingsSaveQueue: SettingsSaveQueue<SmartComposerSettings> | null =
     null
-  private timeoutIds: ReturnType<typeof setTimeout>[] = [] // Use ReturnType instead of number
+  private timeoutIds: number[] = []
   private unloading = false
 
   async onload() {
     markPerformance('smart-composer:onload:start')
+    bindNativeRuntimePathStore(this.app)
     this.unloading = false
     await this.loadSettings()
     const taskManager = new BackgroundTaskManager(this.app)
@@ -160,14 +162,13 @@ export default class SmartComposerPlugin extends Plugin {
       id: 'add-selection-to-chat',
       name: 'Add selection to chat',
       editorCallback: (editor: Editor, view: MarkdownView) => {
-        this.addSelectionToChat(editor, view)
+        void this.addSelectionToChat(editor, view)
       },
     })
 
     this.addCommand({
       id: 'inline-edit',
       name: 'Inline edit selection',
-      hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'k' }],
       editorCallback: (editor: Editor, view: MarkdownView) => {
         void this.openInlineEdit(editor, view)
       },
@@ -386,7 +387,7 @@ export default class SmartComposerPlugin extends Plugin {
     this.inlineEditController = null
     this.conversationRunManager = null
     // clear all timers
-    this.timeoutIds.forEach((id) => clearTimeout(id))
+    this.timeoutIds.forEach((id) => window.clearTimeout(id))
     this.timeoutIds = []
 
     // RagEngine cleanup
@@ -401,7 +402,7 @@ export default class SmartComposerPlugin extends Plugin {
     this.inlineEditControllerInitPromise = null
 
     // DatabaseManager cleanup
-    this.dbManager?.cleanup()
+    void this.dbManager?.cleanup()
     this.dbManager = null
 
     // McpManager cleanup
@@ -503,11 +504,11 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
     const view = this.app.workspace.getActiveViewOfType(MarkdownView)
     const editor = view?.editor
     if (!view || !editor) {
-      this.activateChatView(undefined, openNewChat)
+      void this.activateChatView(undefined, openNewChat)
       return
     }
     const selectedBlockData = await getMentionableBlockData(editor, view)
-    this.activateChatView(
+    void this.activateChatView(
       {
         selectedBlock: selectedBlockData ?? undefined,
       },
@@ -530,7 +531,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
       leaf.view.openNewChat(chatProps?.selectedBlock)
     }
 
-    this.app.workspace.revealLeaf(
+    void this.app.workspace.revealLeaf(
       this.app.workspace.getLeavesOfType(CHAT_VIEW_TYPE)[0],
     )
   }
@@ -817,7 +818,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
   }
 
   private registerTimeout(callback: () => void, timeout: number): void {
-    const timeoutId = setTimeout(callback, timeout)
+    const timeoutId = window.setTimeout(callback, timeout)
     this.timeoutIds.push(timeoutId)
   }
 
@@ -829,9 +830,8 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
       await migrateToJsonDatabaseIfNeeded(
         this.app,
         () => this.getDbManager(),
-        async () => {
-          await this.reloadChatView()
-          console.log('Migration to JSON storage completed successfully')
+        () => {
+          void this.reloadChatView()
         },
       )
     } catch (error) {
@@ -898,7 +898,7 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
 
 function markPerformance(name: string): void {
   try {
-    globalThis.performance?.mark(name)
+    window.performance?.mark(name)
   } catch {
     // Performance Timeline instrumentation must never affect plugin behavior.
   }
@@ -910,7 +910,7 @@ function measurePerformance(
   endMark: string,
 ): void {
   try {
-    globalThis.performance?.measure(name, startMark, endMark)
+    window.performance?.measure(name, startMark, endMark)
   } catch {
     // Performance Timeline instrumentation must never affect plugin behavior.
   }

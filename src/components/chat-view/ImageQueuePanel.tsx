@@ -85,7 +85,7 @@ export function ImageQueuePanel({
             taskScope="image-queue"
             onLocateOrigin={(messageId) => {
               setExpanded(false)
-              requestAnimationFrame(() => onLocateOrigin(messageId))
+              window.requestAnimationFrame(() => onLocateOrigin(messageId))
             }}
           />
         </div>

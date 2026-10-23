@@ -40,7 +40,9 @@ export function TemplateSection({ app }: TemplateSectionProps) {
     new CreateTemplateModal({
       app,
       selectedSerializedNodes: null,
-      onSubmit: fetchTemplateList,
+      onSubmit: () => {
+        void fetchTemplateList()
+      },
     }).open()
   }, [fetchTemplateList, app])
 
@@ -49,7 +51,9 @@ export function TemplateSection({ app }: TemplateSectionProps) {
       new EditTemplateModal({
         app,
         templateId: template.id,
-        onSubmit: fetchTemplateList,
+        onSubmit: () => {
+          void fetchTemplateList()
+        },
       }).open()
     },
     [fetchTemplateList, app],
@@ -62,14 +66,16 @@ export function TemplateSection({ app }: TemplateSectionProps) {
         title: 'Delete Template',
         message: message,
         ctaText: 'Delete',
-        onConfirm: async () => {
-          try {
-            await templateManager.deleteTemplate(template.id)
-            fetchTemplateList()
-          } catch (error) {
-            console.error('Failed to delete template:', error)
-            new Notice('Failed to delete template. Please try again.')
-          }
+        onConfirm: () => {
+          void (async () => {
+            try {
+              await templateManager.deleteTemplate(template.id)
+              await fetchTemplateList()
+            } catch (error) {
+              console.error('Failed to delete template:', error)
+              new Notice('Failed to delete template. Please try again.')
+            }
+          })()
         },
       }).open()
     },
@@ -77,7 +83,7 @@ export function TemplateSection({ app }: TemplateSectionProps) {
   )
 
   useEffect(() => {
-    fetchTemplateList()
+    void fetchTemplateList()
   }, [fetchTemplateList])
 
   return (

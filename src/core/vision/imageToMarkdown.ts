@@ -77,7 +77,7 @@ type ElectronClipboard = {
 
 /** Desktop Obsidian exposes Electron's clipboard, which needs no window focus. */
 function readElectronClipboardImage(): ClipboardImage | null {
-  const req = (globalThis as { require?: (id: string) => unknown }).require
+  const req = (window as { require?: (id: string) => unknown }).require
   if (typeof req !== 'function') return null
   try {
     const electron = req('electron') as { clipboard?: ElectronClipboard }
@@ -105,8 +105,7 @@ function readElectronClipboardImage(): ClipboardImage | null {
 export async function readClipboardImage(): Promise<ClipboardImage | null> {
   const fromElectron = readElectronClipboardImage()
   if (fromElectron) return fromElectron
-  const clipboard = (globalThis as { navigator?: Navigator }).navigator
-    ?.clipboard
+  const clipboard = (window as { navigator?: Navigator }).navigator?.clipboard
   if (!clipboard || typeof clipboard.read !== 'function') return null
   let items: ClipboardItem[]
   try {
