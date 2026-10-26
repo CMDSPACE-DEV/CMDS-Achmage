@@ -277,7 +277,8 @@ export class InlineEditWidget extends WidgetType {
         panel.appendChild(question)
       }
       const input = doc.win.createEl('textarea')
-      input.className = 'prompt'
+      // Not `prompt`: Obsidian's app.css positions `.prompt` absolutely (#112).
+      input.className = 'edit-instruction'
       input.setAttribute('aria-label', 'Inline edit instruction')
       input.placeholder =
         this.session.status === 'clarification'

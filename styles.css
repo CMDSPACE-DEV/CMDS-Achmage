@@ -6210,7 +6210,7 @@ body:not(.theme-dark)
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.smtcmp-inline-host .prompt {
+.smtcmp-inline-host .edit-instruction {
   display: block;
   width: 100%;
   min-height: 72px;
@@ -6226,10 +6226,10 @@ body:not(.theme-dark)
   font: inherit;
   line-height: 1.5;
 }
-.smtcmp-inline-host .prompt-reference-echo:not([hidden]) + .prompt {
+.smtcmp-inline-host .prompt-reference-echo:not([hidden]) + .edit-instruction {
   padding-top: 6px;
 }
-.smtcmp-inline-host .prompt::placeholder {
+.smtcmp-inline-host .edit-instruction::placeholder {
   color: var(--ach-muted);
   opacity: 0.8;
 }
@@ -6686,7 +6686,7 @@ body:not(.theme-dark)
 }
 @media (forced-colors: active) {
   .smtcmp-inline-host .panel,
-  .smtcmp-inline-host .prompt,
+  .smtcmp-inline-host .edit-instruction,
   .smtcmp-inline-host .mode-control,
   .smtcmp-inline-host .reference-chip,
   .smtcmp-inline-host .reference-list,
