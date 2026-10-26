@@ -84,6 +84,7 @@ premature synthesis.
 | ID | Topic | Status | Planning use | Report |
 | --- | --- | --- | --- | --- |
 | R-057 | Inline static stylesheet loading and 1.3.1 review gate regression | **Partially verified; automated and live checks tracked in report** | **Mandatory for inline stylesheet loading** | [R-057 report](R-057-inline-style-review.md) |
+| R-063 | Codex catalog client version 0.162.1 → 0.164.0 (issue #44) and why the `ultra` effort stays deferred | **Partially verified; release and catalog sources verified, live ChatGPT-account `/models` call pending** | Optional; read with R-044 and R-045 for Plan model discovery | [R-063 report](R-063-codex-catalog-client-0.164.0.md) |
 
 Do not create the final large-scale roadmap until the user explicitly asks for
 the synthesis. At that point:
