@@ -207,7 +207,7 @@ flowchart TD
 | 1.0.2 | **통과** | 오류 화면 제목을 "Could not load"로 변경 |
 | 1.3.1 | 실패 | 인라인 편집 UI가 Shadow DOM 안에서 `<style>` 요소를 만듦 (`obsidianmd/no-forbidden-elements`). **커뮤니티 검색 목록에서 빠짐** |
 | 1.3.2 | **통과** | 인라인 편집 스타일을 `styles.css`로 옮김 (#64) |
-| 1.3.3 | 대기 | Windows에서 npm으로 설치한 Claude Code 실행 파일 인식 (#103). 심사 규칙과 관련된 변경 없음 |
+| 1.3.3 | 대기 | Windows에서 npm으로 설치한 Claude Code 실행 파일 인식 (#103), 인라인 편집 입력창 클래스 이름 변경 (#113). 심사 규칙과 관련된 변경 없음 |
 
 ## 참고 자료
 

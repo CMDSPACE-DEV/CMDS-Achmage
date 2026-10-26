@@ -191,7 +191,7 @@ HEAD, and `release.yml` only publishes a tag that equals `main` HEAD.
 | 1.0.2 | **Passed** | Renamed the load-error heading to "Could not load" |
 | 1.3.1 | Failed | Inline edit UI created a `<style>` element in a Shadow DOM (`obsidianmd/no-forbidden-elements`) |
 | 1.3.2 | **Passed** | Inline edit styles moved to `styles.css` (#64) |
-| 1.3.3 | Pending | Windows npm Claude Code executable discovery (#103); no review-rule changes |
+| 1.3.3 | Pending | Windows npm Claude Code executable discovery (#103) and the inline edit input class rename (#113); no review-rule changes |
 
 ## References
 
