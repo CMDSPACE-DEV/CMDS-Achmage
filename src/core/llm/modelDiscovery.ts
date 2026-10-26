@@ -38,7 +38,7 @@ export const CODEX_MODELS_ENDPOINT =
  * of Codex" for Astra. Report the newest released Codex version; the
  * scheduled catalog watch flags this constant when a newer release exists.
  */
-export const CODEX_CATALOG_CLIENT_VERSION = '0.162.1'
+export const CODEX_CATALOG_CLIENT_VERSION = '0.164.0'
 
 const EFFORT_SET = new Set<string>(GPT_5_6_EFFORTS)
 
