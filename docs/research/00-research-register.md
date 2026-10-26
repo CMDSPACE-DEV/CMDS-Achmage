@@ -85,6 +85,7 @@ premature synthesis.
 | ID | Topic | Status | Planning use | Report |
 | --- | --- | --- | --- | --- |
 | R-057 | Inline static stylesheet loading and 1.3.1 review gate regression | **Partially verified; automated and live checks tracked in report** | **Mandatory for inline stylesheet loading** | [R-057 report](R-057-inline-style-review.md) |
+| R-064 | Inline edit input floated by Obsidian's global `.prompt` rule after the 1.3.2 light-DOM move (issue #112); class renamed to `edit-instruction` with a guard test | **Partially verified; cause and fix verified in a live vault, default-theme and popout checks pending** | **Mandatory for inline edit class names and light-DOM styling**; read with R-057 | [R-064 report](R-064-inline-prompt-class-collision.md) |
 
 Do not create the final large-scale roadmap until the user explicitly asks for
 the synthesis. At that point:
