@@ -245,6 +245,23 @@ Available models
     ])
   })
 
+  it('reads the Antigravity 1.2 id-then-label catalog and keeps only Gemini', () => {
+    expect(
+      parseAntigravityModels(
+        [
+          'Fetching available models...',
+          'gemini-3.8-flash-medium\tGemini 3.8 Flash (Medium)',
+          'gemini-3.1-pro-high\tGemini 3.1 Pro (High)',
+          'claude-sonnet-5-5\tClaude Sonnet 5.5',
+          'gpt-oss-120b\tGPT-OSS 120B',
+        ].join('\n'),
+      ),
+    ).toEqual([
+      { id: 'gemini-3.8-flash-medium', label: 'Gemini 3.8 Flash (Medium)' },
+      { id: 'gemini-3.1-pro-high', label: 'Gemini 3.1 Pro (High)' },
+    ])
+  })
+
   it('deduplicates repeated catalog rows', () => {
     expect(
       parseAntigravityModels(

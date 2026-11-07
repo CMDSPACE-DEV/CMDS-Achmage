@@ -32,6 +32,19 @@ describe('getProviderCapabilities', () => {
     },
   )
 
+  it.each(['gpt-6.1-sol', 'gpt-6-sol', 'gpt-6-astra', 'gpt-6-luna'])(
+    'keeps image generation off for %s until it is verified on the Plan path',
+    (modelName) => {
+      expect(
+        getProviderCapabilities(model('openai-plan', modelName)),
+      ).toMatchObject({
+        plan: true,
+        reasoningEffort: true,
+        imageGeneration: false,
+      })
+    },
+  )
+
   it('keeps Claude Plan tools and reasoning while disabling images', () => {
     expect(
       getProviderCapabilities(model('anthropic-plan', 'claude-sonnet-5-0')),

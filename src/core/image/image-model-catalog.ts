@@ -15,6 +15,12 @@ export const API_IMAGE_MODEL_CATALOG: readonly ChatModel[] = [
   {
     providerType: 'gemini',
     providerId: 'gemini',
+    id: 'gemini-3.1-flash-lite-image',
+    model: 'gemini-3.1-flash-lite-image',
+  },
+  {
+    providerType: 'gemini',
+    providerId: 'gemini',
     id: 'gemini-3-pro-image',
     model: 'gemini-3-pro-image',
   },
@@ -33,6 +39,7 @@ const API_IMAGE_MODEL_NAMES: Readonly<
     'gemini-3.1-flash-image',
     'gemini-3.1-flash-lite-image',
     'gemini-3-pro-image',
+    // Shut down 2026-10-02; 31_to_32 moves stored entries to 3.1 Flash Image.
     'gemini-2.5-flash-image',
   ],
   xai: ['grok-imagine-image-2.0'],

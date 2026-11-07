@@ -220,9 +220,6 @@ describe('NativeRuntimeService structured diagnosis', () => {
       if (options.args[0] === '--version') {
         return { stdout: 'agy 1.1.11', stderr: '', exitCode: 0 }
       }
-      if (options.args.includes('--json')) {
-        return { stdout: '', stderr: 'unknown option', exitCode: 2 }
-      }
       return {
         stdout: 'Gemini Pro  gemini-pro',
         stderr: '',
@@ -248,7 +245,7 @@ describe('NativeRuntimeService structured diagnosis', () => {
     expect(snapshot.authDecision?.reason).toContain('compatibility mode')
   })
 
-  it('retries exit-zero non-JSON output with the text catalog command', async () => {
+  it('reads the text catalog with a single models call', async () => {
     const resolver = resolverWith(geminiDiscovery())
     const runner = jest.fn(async (options: NativeProcessOptions) => {
       if (options.args[0] === '--version') {
@@ -275,8 +272,9 @@ describe('NativeRuntimeService structured diagnosis', () => {
       catalog: 'ready',
       authDecision: { allowed: true },
     })
-    expect(runner).toHaveBeenCalledTimes(3)
-    expect(runner.mock.calls[2]?.[0].args).toEqual(['models'])
+    // Antigravity 1.2 removed `models --json`, so nothing is retried.
+    expect(runner).toHaveBeenCalledTimes(2)
+    expect(runner.mock.calls[1]?.[0].args).toEqual(['models'])
   })
 })
 

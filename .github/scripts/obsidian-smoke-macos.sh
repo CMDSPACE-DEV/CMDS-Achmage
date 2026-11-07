@@ -289,7 +289,7 @@ verify_installer_modal() {
     printf '%s\n' \
       '#!/usr/bin/env bash' \
       'if [[ "${1:-}" == "--version" ]]; then printf "0.0.0-ci-fixture (Antigravity CLI)\\n"; exit 0; fi' \
-      'if [[ "${1:-}" == "models" && "${2:-}" == "--json" ]]; then printf '\''{"models":[{"id":"gemini-ci-fixture","displayName":"Gemini CI Fixture"}]}'\''; exit 0; fi' \
+      'if [[ "${1:-}" == "models" && $# -eq 1 ]]; then printf "gemini-ci-fixture\\tGemini CI Fixture\\n"; exit 0; fi' \
       'exit 1' \
       > "${HOME}/.local/bin/agy"
     chmod 0755 "${HOME}/.local/bin/agy"

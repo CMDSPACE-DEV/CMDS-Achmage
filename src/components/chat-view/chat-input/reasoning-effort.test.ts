@@ -13,7 +13,19 @@ const GPT_MODELS = [
   ['gpt-5.6-sol', 'medium'],
   ['gpt-5.6-terra', 'low'],
   ['gpt-5.6-luna', 'none'],
+  ['gpt-6.1-sol', 'medium'],
+  ['gpt-6-sol', 'medium'],
+  ['gpt-6-astra', 'low'],
+  ['gpt-6-luna', 'medium'],
 ] as const
+
+// No GPT-6 model lists `none` in the Codex catalog (R-044 E-08).
+const MODELS_WITHOUT_NONE = new Set<string>([
+  'gpt-6.1-sol',
+  'gpt-6-astra',
+  'gpt-6-sol',
+  'gpt-6-luna',
+])
 
 function gptModel(
   model = 'gpt-5.6-sol',
@@ -49,7 +61,9 @@ describe('quick reasoning effort', () => {
 
   it.each(
     GPT_MODELS.flatMap(([model]) =>
-      GPT_5_6_EFFORTS.map((effort) => [model, effort] as const),
+      GPT_5_6_EFFORTS.filter(
+        (effort) => effort !== 'none' || !MODELS_WITHOUT_NONE.has(model),
+      ).map((effort) => [model, effort] as const),
     ),
   )('shows every supported GPT effort for %s: %s', (model, effort) => {
     const configuredModel = {
@@ -89,6 +103,28 @@ describe('quick reasoning effort', () => {
     }
 
     expect(getQuickReasoningControl(configuredModel)?.value).toBe('off')
+  })
+
+  it('offers only the efforts a GPT-6 model accepts', () => {
+    const options = getQuickReasoningControl(gptModel('gpt-6.1-sol'))?.options
+    expect(options?.map((option) => option.value)).toEqual([
+      'low',
+      'medium',
+      'high',
+      'xhigh',
+      'max',
+    ])
+    expect(() =>
+      updateQuickReasoningEffort(gptModel('gpt-6-astra'), 'none'),
+    ).toThrow('Unsupported reasoning effort for gpt-6-astra: none')
+  })
+
+  it('treats Fable as adaptive and keeps Haiku without a control', () => {
+    expect(getQuickReasoningControl(claudeModel('fable'))?.kind).toBe('claude')
+    expect(
+      getQuickReasoningControl(claudeModel('claude-fable-5-1'))?.kind,
+    ).toBe('claude')
+    expect(getQuickReasoningControl(claudeModel('haiku'))).toBeNull()
   })
 
   it('supports legacy versioned Sonnet metadata', () => {
@@ -192,17 +228,22 @@ describe('quick reasoning effort', () => {
     })
   })
 
-  it.each(['gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-luna'])(
+  it.each(['gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-luna', 'gpt-6.2-nova'])(
     'shows the control for GPT-6 Plan model %s without none',
     (model) => {
       const control = getQuickReasoningControl(gptModel(model))
       expect(control?.kind).toBe('gpt')
-      expect(control?.value).toBe('medium')
       expect(control?.options.map((option) => option.value)).not.toContain(
         'none',
       )
     },
   )
+
+  it('gives a GPT-6 model the table does not know its family default', () => {
+    expect(getQuickReasoningControl(gptModel('gpt-6.2-nova'))?.value).toBe(
+      'medium',
+    )
+  })
 
   it('keeps a discovered GPT-6 default effort and rejects none', () => {
     const discovered = {
@@ -214,13 +255,13 @@ describe('quick reasoning effort', () => {
       reasoning: { reasoning_effort: 'max' },
     })
     expect(() => updateQuickReasoningEffort(discovered, 'none')).toThrow(
-      'Unsupported reasoning effort "none" for gpt-6.1-sol',
+      'Unsupported reasoning effort for gpt-6.1-sol: none',
     )
   })
 
   it('rejects invalid and unsupported updates', () => {
     expect(() => updateQuickReasoningEffort(gptModel(), 'minimal')).toThrow(
-      'Unsupported reasoning effort "minimal" for gpt-5.6-sol',
+      'Unsupported reasoning effort for gpt-5.6-sol: minimal',
     )
     expect(() => updateQuickReasoningEffort(claudeModel(), 'none')).toThrow(
       'Unsupported Claude reasoning effort: none',

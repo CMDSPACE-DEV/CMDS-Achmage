@@ -99,11 +99,12 @@ describe('AntigravityProvider official CLI protocol', () => {
     })
   })
 
-  it('runs a Gemini request after a non-empty JSON catalog preflight', async () => {
+  it('runs a Gemini request after a non-empty catalog preflight', async () => {
     mockedRunNativeProcess.mockImplementation(async (options) => {
-      if (options.args.join(' ') === 'models --json') {
+      if (options.args.join(' ') === 'models') {
         return {
-          stdout: JSON.stringify({ models: [{ id: 'gemini-pro' }] }),
+          stdout:
+            'Fetching available models...\ngemini-3.8-flash-medium\tGemini 3.8 Flash (Medium)',
           stderr: '',
           exitCode: 0,
         }
@@ -137,7 +138,7 @@ describe('AntigravityProvider official CLI protocol', () => {
     expect(content).toBe('GEMINI_OK')
     expect(mockedRunNativeProcess).toHaveBeenCalledTimes(2)
     expect(mockedRunNativeProcess.mock.calls[0]?.[0]).toMatchObject({
-      args: ['models', '--json'],
+      args: ['models'],
       env: { PATH: '/safe/bin' },
     })
     expect(mockedRunNativeProcess.mock.calls[1]?.[0].args.slice(0, 2)).toEqual([
@@ -173,13 +174,6 @@ describe('AntigravityProvider official CLI protocol', () => {
 
   it('revalidates a legacy text catalog before running a request', async () => {
     mockedRunNativeProcess.mockImplementation(async (options) => {
-      if (options.args.includes('--json')) {
-        return {
-          stdout: 'Gemini Pro  gemini-pro',
-          stderr: '',
-          exitCode: 0,
-        }
-      }
       if (options.args.join(' ') === 'models') {
         return {
           stdout: 'Gemini Pro  gemini-pro',
@@ -210,7 +204,12 @@ describe('AntigravityProvider official CLI protocol', () => {
     expect(content).toBe('FALLBACK_OK')
     expect(
       mockedRunNativeProcess.mock.calls.map(([call]) => call.args),
-    ).toEqual(expect.arrayContaining([['models', '--json'], ['models']]))
+    ).toEqual(expect.arrayContaining([['models']]))
+    expect(
+      mockedRunNativeProcess.mock.calls.some(([call]) =>
+        call.args.includes('--json'),
+      ),
+    ).toBe(false)
   })
 
   it('redacts nonzero request stdout and stderr from the thrown error', async () => {
