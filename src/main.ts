@@ -175,6 +175,54 @@ export default class SmartComposerPlugin extends Plugin {
     })
 
     this.addCommand({
+      id: 'preview-pele-diagram',
+      name: 'Preview a diagram with Pele',
+      callback: () => {
+        void import('./core/diagrams/PelePreviewModal')
+          .then(({ PelePreviewModal }) => {
+            if (this.unloading) return
+            const modal = new PelePreviewModal(this.app)
+            this.register(() => modal.close())
+            modal.open()
+          })
+          .catch(() => new Notice('Unable to open the diagram preview.'))
+      },
+    })
+
+    this.addCommand({
+      id: 'edit-pele-diagram',
+      name: 'Open diagram editor',
+      callback: () => {
+        void import('./core/diagrams/DiagramWorkspaceModal')
+          .then(({ DiagramWorkspaceModal }) => {
+            if (this.unloading) return
+            const modal = new DiagramWorkspaceModal(
+              this,
+              this.app.workspace.getActiveFile() ?? undefined,
+            )
+            this.register(() => modal.close())
+            modal.open()
+          })
+          .catch(() => new Notice('Unable to open the diagram editor.'))
+      },
+    })
+
+    this.addCommand({
+      id: 'new-pele-diagram',
+      name: 'New diagram',
+      callback: () => {
+        void import('./core/diagrams/DiagramWorkspaceModal')
+          .then(({ DiagramWorkspaceModal }) => {
+            if (this.unloading) return
+            const modal = new DiagramWorkspaceModal(this)
+            this.register(() => modal.close())
+            modal.open()
+          })
+          .catch(() => new Notice('Unable to open the diagram editor.'))
+      },
+    })
+
+    this.addCommand({
       id: 'generate-image',
       name: 'Generate image (text to image)…',
       callback: () => new GenerateImageModal(this).open(),
@@ -262,6 +310,26 @@ export default class SmartComposerPlugin extends Plugin {
             })
         })
         const selection = editor.getSelection()
+        menu.addItem((item) => {
+          item
+            .setTitle('CMDS Achmage: Create diagram with Pele')
+            .setIcon('workflow')
+            .setSection('action')
+            .onClick(() => {
+              void import('./core/diagrams/DiagramWorkspaceModal')
+                .then(({ DiagramWorkspaceModal }) => {
+                  if (this.unloading) return
+                  const modal = new DiagramWorkspaceModal(
+                    this,
+                    undefined,
+                    selection,
+                  )
+                  this.register(() => modal.close())
+                  modal.open()
+                })
+                .catch(() => new Notice('Unable to open the diagram editor.'))
+            })
+        })
         if (selection) {
           menu.addItem((item) => {
             item

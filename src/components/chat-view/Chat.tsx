@@ -17,6 +17,7 @@ import { usePlugin } from '../../contexts/plugin-context'
 import { useRAG } from '../../contexts/rag-context'
 import { useSettings } from '../../contexts/settings-context'
 import { QueuedPrompt } from '../../core/conversation/ConversationRunManager'
+import { matchDiagramRequest } from '../../core/diagrams/diagram-request'
 import {
   applyImagePromptTemplate,
   findImagePromptTemplate,
@@ -958,6 +959,26 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
               }
             : parsedImageRequest
           const artifactMatch = matchArtifactRequest(plainText)
+          const diagramRequest = matchDiagramRequest(plainText)
+          if (diagramRequest !== null) {
+            void import('../../core/diagrams/DiagramWorkspaceModal')
+              .then(({ DiagramWorkspaceModal }) => {
+                const modal = new DiagramWorkspaceModal(
+                  plugin,
+                  undefined,
+                  diagramRequest,
+                )
+                plugin.register(() => modal.close())
+                modal.open()
+              })
+              .catch(() => new Notice('Unable to open the diagram editor.'))
+            setChatMessages((messages) => [
+              ...messages,
+              { ...inputMessage, content },
+            ])
+            setInputMessage(getNewInputMessage(app))
+            return
+          }
           if (artifactMatch && taskManager) {
             const artifactKind = artifactMatch.kind
             const userMessage = { ...inputMessage, content }
