@@ -6,6 +6,8 @@ on:
       - main
       - 'codex/**'
       - 'import/**'
+      - 'test/**'
+      - 'review/**'
   pull_request:
   workflow_dispatch:
   workflow_call:

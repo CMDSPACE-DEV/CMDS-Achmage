@@ -47,9 +47,10 @@ accessibility, and clean-machine test requirements recorded there.
 
 ## Releasing
 
-Before cutting a release or fixing a community-review failure, read
-[docs/obsidian-community-review.md](docs/obsidian-community-review.md): it records how
-the review bot tiers findings (only the `obsidianmd/*` "Error" tier fails the gate),
-how to reproduce the reviewer locally before shipping, and the exact
-version-bump → tag → publish procedure. Keep fix PRs source-only — `main.js` and
-`meta.json` are gitignored build artifacts the release workflow rebuilds.
+Releases ship only after the official community **Review branch** scan passes. Order:
+collect PRs on `test/YYYY-MM-DD` → pre-check scan and owner testing in parallel → owner
+picks the PRs → `review/YYYY-MM-DD` with only those PRs → final scan → set the version
+on the review branch → merge commit into `main` → annotated tag. Team PRs target `main`
+and stay open until that merge. Never bump the version before the final scan passes.
+Full steps: [docs/obsidian-community-review.md](docs/obsidian-community-review.md). Keep
+PRs source-only — `main.js` and `meta.json` are gitignored build artifacts.
