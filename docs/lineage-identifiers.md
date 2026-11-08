@@ -65,6 +65,15 @@ version actually contained. Editing an old migration's constants rewrites
 history and can make a real user's upgrade path diverge from the one that was
 tested. Migrations are append-only.
 
+### Pre-rebrand git tags
+
+The tags `1.4.0` and `2.0.0`–`2.6.6-test.3` were cut for Smart Composer
+Achmage before the rebrand, and some have published GitHub releases.
+`docs/releases/` keeps their notes under the same numbers. Deleting or moving
+the tags would rewrite that record and break anything that still points at
+them, so CMDS Achmage skips those numbers instead. See
+[versioning.md](versioning.md).
+
 ### Upstream issue links in explanatory text
 
 `src/core/llm/anthropic.ts` points at upstream issue #286 when it explains the
