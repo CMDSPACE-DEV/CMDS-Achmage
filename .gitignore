@@ -22,7 +22,10 @@ data.json
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
 
-# Claude Code
-CLAUDE.md
+# Personal agent setup (shared rules live in AGENTS.md; CLAUDE.md only imports it)
+CLAUDE.local.md
+.claude/
+.agents/
+.codex/
 # Local browser test artifacts
 .playwright-mcp/

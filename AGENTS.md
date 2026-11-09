@@ -1,5 +1,17 @@
 # Repository Instructions
 
+This file is the shared contract for everyone working on this repository, human or
+agent, whatever tool they use. Keep it to project rules only.
+
+## Shared vs personal instructions
+
+Put personal or machine-specific setup outside this file and keep it out of git:
+your tool's user-level file (for example `~/.codex/AGENTS.md`, `~/.claude/CLAUDE.md`,
+`~/.pi/agent/AGENTS.md`), a context file in a folder above this repository, or
+`CLAUDE.local.md` for Claude Code. Local tool folders (`.agents/`, `.codex/`,
+`.claude/`) are gitignored. `CLAUDE.md` only imports this file so Claude Code reads the
+same rules; do not add rules there.
+
 ## Mandatory research gate
 
 Before planning or implementing any non-trivial change in this repository:
