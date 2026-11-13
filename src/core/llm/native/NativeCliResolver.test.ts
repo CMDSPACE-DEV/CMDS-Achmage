@@ -80,6 +80,44 @@ describe('NativeCliResolver discovery inventory', () => {
     ])
   })
 
+  it('uses the npm package claude.exe instead of the unspawnable claude.cmd shim', () => {
+    const home = path.join(root, 'home')
+    const appData = path.join(root, 'roaming')
+    const npmPrefix = path.join(appData, 'npm')
+    const customPrefix = path.join(root, 'custom-npm')
+    const npmExe = (prefix: string) =>
+      path.join(
+        prefix,
+        'node_modules',
+        '@anthropic-ai',
+        'claude-code',
+        'bin',
+        'claude.exe',
+      )
+    // npm writes these three shims; none can be spawned with shell:false.
+    for (const shim of ['claude', 'claude.cmd', 'claude.ps1']) {
+      createExecutable(path.join(npmPrefix, shim))
+    }
+    createExecutable(npmExe(npmPrefix))
+
+    const discovery = new NativeCliResolver(undefined, {
+      platform: 'win32',
+      home,
+      env: { APPDATA: appData, PATH: npmPrefix },
+    }).discover('claude')
+    expect(discovery.selectedPath).toBe(npmExe(npmPrefix))
+    expect(discovery.ambiguous).toBe(false)
+
+    // A custom npm prefix is only reachable through PATH.
+    createExecutable(npmExe(customPrefix))
+    const custom = new NativeCliResolver(undefined, {
+      platform: 'win32',
+      home,
+      env: { APPDATA: path.join(root, 'none'), PATH: customPrefix },
+    }).discover('claude')
+    expect(custom.selectedPath).toBe(npmExe(customPrefix))
+  })
+
   it('gives a valid device-local custom path highest priority', () => {
     const home = path.join(root, 'home')
     const nativePath = path.join(home, '.local', 'bin', 'claude.exe')

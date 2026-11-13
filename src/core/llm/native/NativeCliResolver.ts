@@ -64,7 +64,8 @@ export class NativeCliResolver {
     const executableNames =
       provider === 'claude'
         ? platform === 'win32'
-          ? ['claude.exe', 'claude']
+          ? // npm's extensionless `claude` is a POSIX shell shim Windows cannot spawn.
+            ['claude.exe']
           : ['claude']
         : platform === 'win32'
           ? ['agy.exe', 'agy']
@@ -73,6 +74,18 @@ export class NativeCliResolver {
       .split(path.delimiter)
       .map((value) => value.trim())
       .filter(Boolean)) {
+      if (provider === 'claude' && platform === 'win32') {
+        // npm's claude.cmd shim cannot be spawned with shell:false; use the
+        // package's real executable next to it (custom npm prefixes included).
+        specs.push(
+          candidateSpec(
+            npmClaudeExecutable(path, entry),
+            'legacy',
+            'npm global package executable on PATH',
+            50,
+          ),
+        )
+      }
       for (const executableName of executableNames) {
         specs.push(
           candidateSpec(
@@ -118,6 +131,7 @@ function claudeCandidates(
     const programFiles = env.ProgramFiles ?? 'C:\\Program Files'
     const programFilesX86 =
       env['ProgramFiles(x86)'] ?? 'C:\\Program Files (x86)'
+    const appData = env.APPDATA ?? path.join(home, 'AppData', 'Roaming')
     return [
       candidateSpec(
         path.join(home, '.local', 'bin', 'claude.exe'),
@@ -160,6 +174,12 @@ function claudeCandidates(
         'legacy',
         'legacy x86 Program Files path',
         33,
+      ),
+      candidateSpec(
+        npmClaudeExecutable(path, path.join(appData, 'npm')),
+        'legacy',
+        'npm global package executable',
+        34,
       ),
     ]
   }
@@ -216,6 +236,17 @@ function claudeCandidates(
     candidateSpec('/usr/bin/claude', 'legacy', 'system executable path', 34),
   )
   return candidates
+}
+
+function npmClaudeExecutable(path: PathModule, npmPrefix: string): string {
+  return path.join(
+    npmPrefix,
+    'node_modules',
+    '@anthropic-ai',
+    'claude-code',
+    'bin',
+    'claude.exe',
+  )
 }
 
 function antigravityCandidates(
