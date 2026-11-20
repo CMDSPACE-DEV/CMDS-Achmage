@@ -50,7 +50,12 @@ export class AnthropicProvider extends BaseLLMProvider<
   constructor(provider: Extract<LLMProvider, { type: 'anthropic' }>) {
     super(provider)
     this.client = new Anthropic({
-      apiKey: provider.apiKey,
+      // Always pass a string, as every other provider does. With `undefined`
+      // the SDK reads ANTHROPIC_API_KEY from the environment and, failing
+      // that, starts its credential-file chain in the constructor. That chain
+      // runs `import('node:path')`, which Obsidian's renderer blocks as a CORS
+      // request (R-065). An empty key still reaches the missing-key check.
+      apiKey: provider.apiKey ?? '',
       baseURL: provider.baseUrl
         ? provider.baseUrl.replace(/\/+$/, '')
         : undefined, // use default
