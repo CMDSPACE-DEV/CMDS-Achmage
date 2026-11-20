@@ -266,9 +266,27 @@ export const V2_DEFAULT_EMBEDDING_MODELS: readonly V2EmbeddingModel[] = [
   },
 ]
 
+type V1OllamaKey =
+  | 'ollamaChatModel'
+  | 'ollamaApplyModel'
+  | 'ollamaEmbeddingModel'
+
+// 0_to_1 writes the three Ollama blocks only when v0 had `ollamaBaseUrl`, so
+// they can be missing here. The former v1 schema filled them with empty
+// values; without that, reading `.baseUrl` threw and the whole settings
+// object fell back to defaults (R-065).
+const EMPTY_V1_OLLAMA_MODEL: V1OllamaModel = { baseUrl: '', model: '' }
+
 export const migrateFrom1To2: SettingMigration['migrate'] = (
-  data: SmartComposerSettingsV1,
+  input: Omit<SmartComposerSettingsV1, V1OllamaKey> &
+    Partial<Pick<SmartComposerSettingsV1, V1OllamaKey>>,
 ) => {
+  const data: SmartComposerSettingsV1 = {
+    ...input,
+    ollamaChatModel: input.ollamaChatModel ?? EMPTY_V1_OLLAMA_MODEL,
+    ollamaApplyModel: input.ollamaApplyModel ?? EMPTY_V1_OLLAMA_MODEL,
+    ollamaEmbeddingModel: input.ollamaEmbeddingModel ?? EMPTY_V1_OLLAMA_MODEL,
+  }
   const providers: V2LLMProvider[] = [...V2_DEFAULT_PROVIDERS]
   const chatModels: V2ChatModel[] = [...V2_DEFAULT_CHAT_MODELS]
 
