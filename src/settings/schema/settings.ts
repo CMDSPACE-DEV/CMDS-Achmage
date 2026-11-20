@@ -6,10 +6,29 @@ import {
   smartComposerSettingsSchema,
 } from './setting.types'
 
-function migrateSettings(
-  data: Record<string, unknown>,
-): Record<string, unknown> {
-  let currentData = { ...data }
+/**
+ * True when there is nothing to migrate. On a fresh install Obsidian's
+ * `loadData()` resolves to `null` because `data.json` does not exist yet.
+ */
+function isFreshInstall(data: unknown): boolean {
+  return (
+    data === null ||
+    typeof data !== 'object' ||
+    Array.isArray(data) ||
+    Object.keys(data).length === 0
+  )
+}
+
+function migrateSettings(data: unknown): Record<string, unknown> {
+  // Start a fresh install at the current schema and let the schema defaults
+  // fill it in. Running the v0 chain on `{}` reads fields that only pre-1.0
+  // settings had, and the resulting TypeError used to be logged on every
+  // first launch before falling back to the same defaults (R-065).
+  if (isFreshInstall(data)) {
+    return { version: SETTINGS_SCHEMA_VERSION }
+  }
+
+  let currentData = { ...(data as Record<string, unknown>) }
   let currentVersion = (currentData.version as number) ?? 0
 
   for (const migration of SETTING_MIGRATIONS) {
@@ -30,7 +49,7 @@ export function parseSmartComposerSettings(
   data: unknown,
 ): SmartComposerSettings {
   try {
-    const migratedData = migrateSettings(data as Record<string, unknown>)
+    const migratedData = migrateSettings(data)
     return smartComposerSettingsSchema.parse({
       ...migratedData,
       chatModels: mergeImageModelCatalog(migratedData.chatModels),

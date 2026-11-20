@@ -192,6 +192,36 @@ describe('settings 1_to_2 migration', () => {
     })
   })
 
+  it('treats missing Ollama blocks as empty, as the former v1 schema did', () => {
+    // 0_to_1 writes these blocks only when v0 settings had `ollamaBaseUrl`.
+    const withEmptyOllama = {
+      version: 1,
+      openAIApiKey: '',
+      anthropicApiKey: '',
+      geminiApiKey: '',
+      groqApiKey: '',
+      chatModelId: 'anthropic/claude-3.5-sonnet-latest',
+      ollamaChatModel: { baseUrl: '', model: '' },
+      openAICompatibleChatModel: { baseUrl: '', apiKey: '', model: '' },
+      applyModelId: 'openai/gpt-4o-mini',
+      ollamaApplyModel: { baseUrl: '', model: '' },
+      openAICompatibleApplyModel: { baseUrl: '', apiKey: '', model: '' },
+      embeddingModelId: 'openai/text-embedding-3-small',
+      ollamaEmbeddingModel: { baseUrl: '', model: '' },
+      systemPrompt: 'keep me',
+    }
+    const {
+      ollamaChatModel: _chat,
+      ollamaApplyModel: _apply,
+      ollamaEmbeddingModel: _embedding,
+      ...withoutOllama
+    } = withEmptyOllama
+
+    expect(migrateFrom1To2(withoutOllama)).toEqual(
+      migrateFrom1To2(withEmptyOllama),
+    )
+  })
+
   it('should migrate ollama chat, apply, and embedding models with distinct baseUrls', () => {
     const oldSettings = {
       version: 1,

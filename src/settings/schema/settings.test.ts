@@ -9,7 +9,38 @@ import { DEFAULT_IMAGE_PROMPT_TEMPLATES } from '../../core/image/image-prompt-te
 import { DEFAULT_RESEARCH_SOURCES } from '../../types/research.types'
 
 import { SETTINGS_SCHEMA_VERSION } from './migrations'
+import { smartComposerSettingsSchema } from './setting.types'
 import { parseSmartComposerSettings } from './settings'
+
+describe('parseSmartComposerSettings without a settings file', () => {
+  let warn: jest.SpyInstance
+
+  beforeEach(() => {
+    warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    warn.mockRestore()
+  })
+
+  // Obsidian's loadData() resolves to null before data.json exists.
+  it.each([[null], [undefined], [{}]])(
+    'starts %p at the current schema without the fallback warning',
+    (input) => {
+      expect(parseSmartComposerSettings(input)).toEqual(
+        smartComposerSettingsSchema.parse({}),
+      )
+      expect(warn).not.toHaveBeenCalled()
+    },
+  )
+
+  it('migrates v0 settings that never set an Ollama base URL', () => {
+    const result = parseSmartComposerSettings({ chatModel: 'gpt-4o' })
+
+    expect(warn).not.toHaveBeenCalled()
+    expect(result.version).toBe(SETTINGS_SCHEMA_VERSION)
+  })
+})
 
 describe('parseSmartComposerSettings', () => {
   it('should return default values for empty input', () => {
