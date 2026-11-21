@@ -87,6 +87,8 @@ premature synthesis.
 | R-063 | Codex catalog client version 0.162.1 → 0.164.0 (issue #44) and why the `ultra` effort stays deferred | **Partially verified; release and catalog sources verified, live ChatGPT-account `/models` call pending** | Optional; read with R-044 and R-045 for Plan model discovery | [R-063 report](R-063-codex-catalog-client-0.164.0.md) |
 | R-064 | Inline edit input floated by Obsidian's global `.prompt` rule after the 1.3.2 light-DOM move (issue #112); class renamed to `edit-instruction` with a guard test | **Partially verified; cause and fix verified in a live vault, default-theme and popout checks pending** | **Mandatory for inline edit class names and light-DOM styling**; read with R-057 | [R-064 report](R-064-inline-prompt-class-collision.md) |
 
+| R-067 | Codex catalog client 0.171.0 and GPT-6.2 visibility | **Partially verified; automated checks, live app checks pending** | Mandatory for this scoped feature | [R-067 report](R-067-codex-catalog-client-0.171.0.md) |
+
 Do not create the final large-scale roadmap until the user explicitly asks for
 the synthesis. At that point:
 

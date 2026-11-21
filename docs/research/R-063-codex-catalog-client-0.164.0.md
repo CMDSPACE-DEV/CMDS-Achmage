@@ -139,3 +139,5 @@ secrets were recorded. Only public openai/codex sources were read.
 ## Change Log
 
 - 2026-10-26: Initial report.
+
+- 2026-11-21: R-067 supersedes the client-version choice and time-specific catalog visibility snapshot; the original findings above are preserved.
