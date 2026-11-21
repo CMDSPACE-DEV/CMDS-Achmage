@@ -79,3 +79,10 @@ Live Obsidian visual parity and the next published-release scan remain pending.
 ## Security And Privacy
 
 No credentials, account identifiers or private vault contents are recorded.
+
+## Change Log
+
+- 2026-10-18: Initial report.
+- 2026-10-26: The pending live check for E-04 found that Obsidian's own
+  `app.css` `.prompt` rule, not a theme, floated the inline instruction input
+  (issue #112). The class is renamed; see R-064.

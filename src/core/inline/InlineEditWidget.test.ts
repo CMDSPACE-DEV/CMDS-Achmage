@@ -78,6 +78,39 @@ describe('inline edit stylesheet integration', () => {
     widget.destroy()
   })
 
+  it('keeps the instruction input out of Obsidian prompt classes', () => {
+    // Obsidian 1.15 app.css styles these globally for its own modals; `.prompt`
+    // is position: absolute and floated the light-DOM input (#112, R-064).
+    const obsidianPromptClasses = [
+      'prompt',
+      'prompt-input',
+      'prompt-input-container',
+      'prompt-input-cta',
+      'prompt-instruction',
+      'prompt-instruction-command',
+      'prompt-instructions',
+      'prompt-results',
+    ]
+    const { widget, host } = mount(
+      document,
+      session({
+        status: 'prompt',
+        getDraft: jest.fn().mockReturnValue({
+          prompt: '',
+          mode: 'auto',
+          references: [],
+          referenceScope: 'auto',
+        }),
+      }),
+    )
+    const input = host.querySelector('textarea')
+    expect(input?.classList.contains('edit-instruction')).toBe(true)
+    for (const name of obsidianPromptClasses) {
+      expect(host.querySelector(`.${name}`)).toBeNull()
+    }
+    widget.destroy()
+  })
+
   it('uses the editor document when the editor is in another window', () => {
     const popout = document.implementation.createHTMLDocument('popout')
     const { widget, host } = mount(popout, session())
