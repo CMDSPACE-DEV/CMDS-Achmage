@@ -195,6 +195,44 @@ describe('getUpdateDecision', () => {
 })
 
 describe('parseAntigravityModels', () => {
+  it('preserves Gemini 4 effort slugs and labels while skipping progress and partner models', () => {
+    expect(
+      parseAntigravityModels(`Fetching available models...
+gemini-4-neon-xhigh\tGemini 4 Neon (XHigh)
+gemini-4-carbon-high            Gemini 4 Carbon (High)
+claude-opus-5-5                Claude Opus 5.5
+gpt-oss-120b                   GPT OSS 120B
+gemini-pro-orchestrator-neon   Orchestrator (Neon)
+gemini-4-neon-xhigh            Gemini 4 Neon duplicate
+`),
+    ).toEqual([
+      { id: 'gemini-4-neon-xhigh', label: 'Gemini 4 Neon (XHigh)' },
+      { id: 'gemini-4-carbon-high', label: 'Gemini 4 Carbon (High)' },
+    ])
+  })
+
+  it('also filters partner models from JSON catalogs', () => {
+    expect(
+      parseAntigravityModels(
+        JSON.stringify({
+          models: [
+            {
+              id: 'gemini-4-carbon-high',
+              displayName: 'Gemini 4 Carbon (High)',
+            },
+            { id: 'claude-opus-5-5', displayName: 'Claude Opus 5.5' },
+          ],
+        }),
+      ),
+    ).toEqual([
+      {
+        id: 'gemini-4-carbon-high',
+        label: 'Gemini 4 Carbon (High)',
+        description: undefined,
+      },
+    ])
+  })
+
   it('parses a JSON model catalog with stable slugs', () => {
     expect(
       parseAntigravityModels(

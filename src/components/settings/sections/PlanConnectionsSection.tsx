@@ -21,8 +21,8 @@ import type {
   NativeRuntimeStatus,
 } from '../../../core/llm/native/nativeRuntime.types'
 import { NativeRuntimeService } from '../../../core/llm/native/NativeRuntimeService'
+import { syncRuntimeModels } from '../../../core/llm/native/runtimeModelSync'
 import type SmartComposerPlugin from '../../../main'
-import type { ChatModel } from '../../../types/chat-model.types'
 import type { LLMProvider } from '../../../types/provider.types'
 import { ConfirmModal } from '../../modals/ConfirmModal'
 import { ConnectOpenAIPlanModal } from '../modals/ConnectOpenAIPlanModal'
@@ -484,7 +484,8 @@ export function NativeRuntimeCard({
           <div>
             <strong>연결 완료 · Gemini 사용 가능</strong>
             <span>
-              Antigravity 로그인과 사용 가능한 모델 목록을 확인했습니다.
+              Antigravity 로그인과 사용 가능한 모델 목록을 확인했습니다. 새
+              모델이 보이지 않으면 CLI 업데이트 후 모델 목록을 새로 고치세요.
             </span>
             <small>
               할당량 유형은 Antigravity에서 관리하며 현재 CMDS Achmage에는
@@ -529,7 +530,11 @@ export function NativeRuntimeCard({
             size={15}
             className={isDiagnosing ? 'smtcmp-icon-spin' : undefined}
           />
-          {isDiagnosing ? 'Checking' : 'Diagnose'}
+          {isDiagnosing
+            ? 'Checking'
+            : provider === 'gemini'
+              ? '모델 목록 새로 고침'
+              : 'Diagnose'}
         </button>
 
         {snapshot.status === 'not-installed' && (
@@ -702,58 +707,6 @@ function statusConfig(
         statusClass: 'smtcmp-mcp-server-status-badge--disconnected',
       }
   }
-}
-
-function syncRuntimeModels(
-  chatModels: ChatModel[],
-  snapshot: NativeRuntimeSnapshot,
-): ChatModel[] {
-  const providerType =
-    snapshot.provider === 'claude'
-      ? ('anthropic-plan' as const)
-      : ('gemini-plan' as const)
-  const providerId = providerType
-  const next = [...chatModels]
-  let changed = false
-
-  for (const runtimeModel of snapshot.models) {
-    const existingIndex = next.findIndex(
-      (model) =>
-        model.providerType === providerType && model.model === runtimeModel.id,
-    )
-    if (existingIndex !== -1) continue
-
-    const stableAlias = runtimeModel.id.toLowerCase()
-    if (
-      providerType === 'anthropic-plan' &&
-      ['default', 'opus', 'sonnet', 'haiku'].includes(stableAlias)
-    ) {
-      continue
-    }
-
-    const id = uniqueModelId(
-      next,
-      `${runtimeModel.label || runtimeModel.id} (plan)`,
-    )
-    next.push({
-      providerType,
-      providerId,
-      id,
-      model: runtimeModel.id,
-      enable: true,
-    })
-    changed = true
-  }
-  return changed ? next : chatModels
-}
-
-function uniqueModelId(models: ChatModel[], candidate: string): string {
-  if (!models.some((model) => model.id === candidate)) return candidate
-  let suffix = 2
-  while (models.some((model) => model.id === `${candidate} ${suffix}`)) {
-    suffix += 1
-  }
-  return `${candidate} ${suffix}`
 }
 
 function runtimeNotice(title: string, snapshot: NativeRuntimeSnapshot): string {

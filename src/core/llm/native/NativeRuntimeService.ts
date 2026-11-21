@@ -645,7 +645,7 @@ function selectedCandidate(discovery: RuntimeDiscovery) {
 export function parseAntigravityModels(output: string): NativeRuntimeModel[] {
   const parsed = parseJson(output)
   const fromJson = collectModelRecords(parsed)
-  if (fromJson.length > 0) return dedupeModels(fromJson)
+  if (fromJson.length > 0) return dedupeModels(fromJson.filter(isGeminiModel))
 
   const plainText = stripAnsi(output)
   const rows = plainText
@@ -659,20 +659,29 @@ export function parseAntigravityModels(output: string): NativeRuntimeModel[] {
     .filter(Boolean)
     .filter(
       (line) =>
-        !/^(available\s+models?|models?|name\s+slug|loading|current)/i.test(
+        !/^(available\s+models?|models?|name\s+slug|loading|current|fetching)/i.test(
           line,
         ),
     )
     .map((line) => {
-      const tabParts = line.split(/\t+|\s{2,}/).filter(Boolean)
-      const label = tabParts[0]?.trim() ?? ''
-      const slug =
-        tabParts.find((part) => /^[a-z0-9][a-z0-9._-]+$/i.test(part)) ?? label
-      return label ? { id: slug, label } : null
+      const parts = line.split(/\t+|\s{2,}/).filter(Boolean)
+      const first = parts[0]?.trim() ?? ''
+      if (MODEL_SLUG.test(first)) {
+        return { id: first, label: parts[1]?.trim() || first }
+      }
+      const slug = parts.find((part) => MODEL_SLUG.test(part))
+      return first ? { id: slug ?? first, label: first } : null
     })
     .filter((model): model is NativeRuntimeModel => model !== null)
 
-  return dedupeModels(rows)
+  return dedupeModels(rows.filter(isGeminiModel))
+}
+
+const MODEL_SLUG = /^[a-z0-9][a-z0-9._-]+$/i
+
+// Orchestrator is a multi-model agent mode, not a standalone Gemini chat model.
+function isGeminiModel(model: NativeRuntimeModel): boolean {
+  return /^gemini-/i.test(model.id) && !/-orchestrator(?:-|$)/i.test(model.id)
 }
 
 function collectModelRecords(value: unknown): NativeRuntimeModel[] {
