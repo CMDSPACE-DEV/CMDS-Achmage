@@ -82,6 +82,33 @@ const organizationReady: NativeRuntimeSnapshot = {
 }
 
 describe('Claude Plan card Team/Enterprise opt-in (R-049)', () => {
+  it('refreshes the Gemini model catalog through the existing diagnosis and settings callback', async () => {
+    const snapshot: NativeRuntimeSnapshot = {
+      ...organizationReady,
+      provider: 'gemini',
+      models: [{ id: 'gemini-4-neon-xhigh', label: 'Gemini 4 Neon (XHigh)' }],
+    }
+    const service = fakeService(snapshot, false)
+    const onDiagnostics = jest.fn()
+    render(
+      <NativeRuntimeCard
+        app={{} as App}
+        provider="gemini"
+        title="Gemini Plan"
+        description="Test runtime"
+        service={service}
+        onDiagnostics={onDiagnostics}
+      />,
+    )
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole('button', { name: '모델 목록 새로 고침' }),
+      )
+    })
+    expect(service.diagnose).toHaveBeenCalledWith('gemini')
+    expect(onDiagnostics).toHaveBeenCalledWith(snapshot)
+  })
+
   beforeEach(() => {
     mockConfirmModalOptions.length = 0
   })

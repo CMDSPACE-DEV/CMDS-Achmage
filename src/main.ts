@@ -369,6 +369,7 @@ export default class SmartComposerPlugin extends Plugin {
     void this.migrateToJsonStorage()
     this.app.workspace.onLayoutReady(() => {
       void this.syncPlanModelsInBackground()
+      void this.syncGeminiPlanModelsInBackground()
     })
     markPerformance('smart-composer:onload:end')
     measurePerformance(
@@ -425,6 +426,35 @@ export default class SmartComposerPlugin extends Plugin {
     this.settings = researchSecretMigration.settings
     await this.saveData(this.settings) // Save updated settings
     this.settingsSaveQueue = new SettingsSaveQueue(this.settings)
+  }
+
+  private async syncGeminiPlanModelsInBackground(): Promise<void> {
+    const controller = new AbortController()
+    this.register(() => controller.abort())
+    try {
+      const { syncGeminiPlanModels } = await import(
+        './core/llm/geminiPlanModelSync'
+      )
+      const result = await syncGeminiPlanModels(
+        {
+          getSettings: () => this.settings,
+          setSettings: (settings) => this.setSettings(settings),
+        },
+        undefined,
+        controller.signal,
+      )
+      if (this.unloading || result.status !== 'synced') return
+      if (result.added.length > 0) {
+        new Notice(
+          `Gemini Plan 새 모델 추가: ${result.added.map((model) => model.model).join(', ')}`,
+        )
+      }
+    } catch (error) {
+      console.warn(
+        'CMDS Achmage: Gemini Plan model discovery skipped.',
+        error instanceof Error ? error.message : error,
+      )
+    }
   }
 
   /**
