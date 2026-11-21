@@ -6,7 +6,8 @@ settings:
     -
         id: ach-where-heading
         title: Where these settings apply
-        description: Every option below changes only surfaces CMDS Achmage draws itself: the Chat side panel with its composer, and the Inline edit panel that appears inside a note. Nothing here touches the editor text, other panes, or other plugins. Pick a base skin, an accent preset, and a glow level (or a one-click preset) under the plugin's Settings -> Appearance first; the values below are fine tuning applied on top of that choice and are only written when you change them, so leaving them alone keeps the preset's colors.
+        description: >-
+            Every option below changes only surfaces CMDS Achmage draws itself: the Chat side panel with its composer, and the Inline edit panel that appears inside a note. Nothing here touches the editor text, other panes, or other plugins. Pick a base skin, an accent preset, and a glow level (or a one-click preset) under the plugin's Settings -> Appearance first; the values below are fine tuning applied on top of that choice and are only written when you change them, so leaving them alone keeps the preset's colors.
         type: heading
         level: 2
         collapsed: false
